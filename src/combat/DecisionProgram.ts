@@ -9,6 +9,7 @@ const MAX_ACTIONS = 12;
  */
 export function compileActionPlan(source: string, expectedActor?: ArkanId): ActionPlanResult {
   if (source.length > 8000) return { error: 'Das Programm ist zu lang (maximal 8000 Zeichen).' };
+  if (!source.trim()) return { actor: expectedActor, steps: [], blocks: [] };
   const receivers = [...source.matchAll(/\b([A-Za-z_]\w*)\s*\./g)].map((match) => match[1]);
   const actor = receivers[0];
   if ((actor !== 'moosling' && actor !== 'glutling') || receivers.some((id) => id !== actor)) {

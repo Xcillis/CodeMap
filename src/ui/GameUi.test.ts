@@ -47,6 +47,28 @@ function pointer(target: Element | Document, type: string, x: number, y: number,
 }
 
 describe('Arkan-Editor', () => {
+  it('erlaubt das Entfernen aller Blöcke und behält das leere Programm beim Wechsel und Laden', () => {
+    gameEvents.emit('battle-opened', missionPrograms(1), 1);
+    for (let index = 0; index < 2; index += 1) {
+      const remove = Array.from(document.querySelectorAll<HTMLButtonElement>('.loop-block button')).find((button) => button.textContent === 'Entfernen')!;
+      expect(remove.disabled).toBe(false);
+      remove.click();
+    }
+    expect(document.querySelectorAll('.loop-block')).toHaveLength(0);
+    expect(document.querySelector('.empty-program')).not.toBeNull();
+    click('text-mode');
+    expect(source().value).toBe('');
+    click('blocks-mode');
+    expect(document.querySelectorAll('.loop-block')).toHaveLength(0);
+    listeners.clear();
+    new GameUi();
+    gameEvents.emit('battle-opened', missionPrograms(1), 1);
+    expect(document.querySelectorAll('.loop-block')).toHaveLength(0);
+    expect(source().value).toBe('');
+    (document.querySelector('[data-command="move"]') as HTMLButtonElement).click();
+    expect(document.querySelectorAll('.loop-block')).toHaveLength(1);
+    expect(source().value).toContain('moosling.moveForward()');
+  });
   it('behält getrennte, auch unvollständige Texte bei Arkan-Wechsel und Wiederöffnung', () => {
     gameEvents.emit('battle-opened', missionPrograms(3), 3);
     click('text-mode');

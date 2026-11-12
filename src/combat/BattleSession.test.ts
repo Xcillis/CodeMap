@@ -46,6 +46,22 @@ describe('Formation und Feldbelegung', () => {
 });
 
 describe('Missionsausführung', () => {
+  it('erlaubt vollständig leere Programme ohne einen Spielschritt auszuführen', () => {
+    const session = new BattleSession(3);
+    const before = session.snapshot;
+    expect(session.execute({ moosling: '', glutling: '  \n ' }, true)).toContain('leer');
+    expect(session.snapshot).toEqual(before);
+    expect(session.execute({ moosling: '', glutling: '' })).toContain('leer');
+    expect(session.snapshot.tick).toBe(0);
+  });
+
+  it('lässt einen Arkan ohne Programm warten, während der andere handelt', () => {
+    const session = new BattleSession(3);
+    session.execute({ moosling: '', glutling: 'repeat(2, () => { glutling.moveForward(); });' }, true);
+    expect(session.snapshot.player.x).toBe(1);
+    expect(session.snapshot.companion?.x).toBe(3);
+    expect(session.snapshot.tick).toBe(2);
+  });
   for (const mission of [1, 2, 3] as const) {
     it(`liefert für Mission ${mission} schrittweise und vollständig das gleiche Ergebnis`, () => {
       const full = new BattleSession(mission);

@@ -47,6 +47,7 @@ export class BattleSession {
     this.signature = signature;
     this.plans = plans;
     this.length = Math.max(...this.actors.map((actor) => plans[actor]?.length ?? 0));
+    if (this.length === 0) return 'Die Programme sind leer. Ziehe einen Befehl in den Programmbereich.';
     if (this.snapshot.outcome !== 'ongoing') return this.result();
     if (this.cursor >= this.length) return 'Aktionspläne beendet. Bearbeite ein Programm oder starte neu.';
     do {

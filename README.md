@@ -6,6 +6,7 @@ Die Trainingsmissionen beginnen mit Moosling. Nach Schleifen und Bedingungen fol
 
 ## Arena und Programmierung
 
+- Auch ein leeres Programm ist erlaubt: Alle Blöcke lassen sich entfernen. Ein Arkan ohne Befehle wartet, während andere Programme weiterlaufen. Sind alle Programme leer, erscheint ein Hinweis und es wird kein Spielschritt ausgeführt.
 - Die Bibliothek ist in Bewegung, Kampf, Wahrnehmung und Ablauf gegliedert. Es erscheinen nur Kategorien mit verfügbaren Befehlen für den gewählten Arkan; das gilt im Block- und Textmodus.
 - Die aktuellen Trainingsdaten schalten für Moosling ab Mission 2 die Nähe-Abfrage frei. Glutling startet ab Mission 3 mit Bewegung, Angriff und Wiederholung. Nicht gelernte Befehle werden auch bei manueller Texteingabe vor der Ausführung abgelehnt.
 - Die Bibliothek links zeigt verfügbare Befehle; ein Klick fügt sie zum getrennten Programmbereich rechts hinzu. Beide Bereiche scrollen unabhängig und sind in Block- und Textmodus verfügbar.

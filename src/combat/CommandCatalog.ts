@@ -57,6 +57,7 @@ export function availableCommands(actor: ArkanId, mission: number, learned = lea
 }
 
 export function programCapabilityError(blocks: readonly ProgramBlock[], actor: ArkanId, mission: number): string | undefined {
+  if (blocks.length === 0) return;
   const supported = ARKAN_SKILLS[actor].supported;
   const learned = learnedSkills(actor, mission);
   const required = new Set<SkillId>(['repeat']);

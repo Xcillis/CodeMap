@@ -196,6 +196,12 @@ export class GameUi {
 
   private renderBlocks(): void {
     this.loopBlocks.replaceChildren(...this.blockModel.map((block, index) => this.createLoopBlock(block, index)));
+    if (this.blockModel.length === 0) {
+      const hint = document.createElement('p');
+      hint.className = 'empty-program';
+      hint.textContent = 'Noch keine Befehle. Ziehe einen Block aus der Bibliothek hierher oder wähle ihn per Klick aus.';
+      this.loopBlocks.append(hint);
+    }
   }
 
   private createLoopBlock(block: ProgramBlock, index: number): HTMLElement {
@@ -228,7 +234,6 @@ export class GameUi {
     const remove = document.createElement('button');
     remove.type = 'button';
     remove.textContent = 'Entfernen';
-    remove.disabled = this.blockModel.length === 1;
     count.addEventListener('change', () => {
       this.blockModel[index].count = Number(count.value);
       this.syncBlocksToSource();

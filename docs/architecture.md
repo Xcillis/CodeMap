@@ -52,6 +52,8 @@ Die Editoroberfläche trennt die Befehlsbibliothek und den Programmbereich in zw
 
 Die Bibliothek zeigt nur vollständig verfügbare Vorlagen und blendet leere Kategorien aus. Sie erzeugt Drag-, Klick- und Textvorlagen aus denselben Definitionen. `BattleSession` prüft vor jeglicher Zustandsänderung die im Programm tatsächlich verwendeten Fähigkeiten. Ein im Text eingegebener, aber noch nicht gelernter Befehl ist damit ebenfalls gesperrt. Bestehende Textentwürfe bleiben zur Korrektur erhalten.
 
+Leere Programme sind gültige Entwürfe und werden als leere Block- und Schrittliste serialisiert. Der letzte Block darf entfernt werden. Ein leeres Arkan-Programm wartet während der Ausführung anderer Programme; bei vollständig leeren Programmen beginnt kein Tick. Speichern und Moduswechsel erhalten den leeren Zustand.
+
 ## Noch nicht enthalten
 
 Dreier-Formation, vollständiges Blockly, freie JavaScript-Runtime, Online-Speicherung, Login, Backend, NOVA und Kompetenzengine bleiben spätere Erweiterungen. Frühere ADRs beschreiben die Entwicklungsschritte; ADR 008 und ADR 009 beschreiben den aktuellen Ausführungsstand.
