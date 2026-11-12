@@ -42,6 +42,8 @@ Ein Tick führt höchstens eine Aktion je Arkan in der Reihenfolge Moosling, Glu
 
 Editorentwürfe sind nach Mission und Arkan getrennt, bleiben auch bei ungültigem Text erhalten und werden lokal gespeichert. Für DOM-Regressionstests wird ausschließlich als Entwicklungsabhängigkeit jsdom eingesetzt.
 
+Die Editoroberfläche trennt die Befehlsbibliothek und den Programmbereich in zwei unabhängig scrollbare Spalten. Arkan-Auswahl gilt für beide, die Block-/Textumschaltung ausschließlich für den Programmbereich. Die UI meldet den verbleibenden Platz an die Arenaszene, damit deren Kamera sich neben beziehungsweise über den Editor einpasst.
+
 ## Noch nicht enthalten
 
 Dreier-Formation, vollständiges Blockly, freie JavaScript-Runtime, Online-Speicherung, Login, Backend, NOVA und Kompetenzengine bleiben spätere Erweiterungen. Frühere ADRs beschreiben die Entwicklungsschritte; ADR 008 beschreibt den aktuellen Ausführungsstand.

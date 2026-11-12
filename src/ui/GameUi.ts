@@ -84,6 +84,8 @@ export class GameUi {
     this.attachTooltip(this.requiredElement<HTMLButtonElement>('battle-exit'), () => 'Kehrt ohne Datenverlust zur Erkundung zurück.');
     this.attachTooltip(this.requiredElement<HTMLButtonElement>('add-loop-block'), () => 'Fügt eine weitere Wiederholung an das Ende des Aktionsplans an.');
     document.querySelectorAll<HTMLButtonElement>('[data-direction]').forEach((button) => this.bindDirection(button));
+    if (typeof ResizeObserver !== 'undefined') new ResizeObserver(() => this.publishArenaViewport()).observe(this.battlePanel);
+    window.addEventListener('resize', () => this.publishArenaViewport());
   }
 
   private openDialog(dialog: DialogPayload): void {
@@ -119,6 +121,7 @@ export class GameUi {
     this.requiredElement<HTMLButtonElement>('select-glutling').hidden = !programs.glutling;
     this.loadActorEditor();
     this.battleFeedback.textContent = '';
+    this.publishArenaViewport();
   }
 
   private updateBattle(state: BattleState, feedback: string): void {
@@ -135,6 +138,17 @@ export class GameUi {
       item.textContent = entry;
       return item;
     }));
+  }
+
+  private publishArenaViewport(): void {
+    if (this.battlePanel.hidden) return;
+    const panel = this.battlePanel.getBoundingClientRect();
+    if (panel.width === 0) return;
+    const stacked = panel.width > window.innerWidth * .85;
+    gameEvents.emit('battle-viewport', {
+      width: stacked ? window.innerWidth : Math.max(1, panel.left - 8),
+      height: stacked ? Math.max(1, panel.top - 8) : window.innerHeight,
+    });
   }
 
   private updateHealth(bar: HTMLProgressElement, label: HTMLElement, hp: number, maxHp: number): void {

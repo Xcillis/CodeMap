@@ -6,6 +6,7 @@ Die Trainingsmissionen beginnen mit Moosling. Nach Schleifen und Bedingungen fol
 
 ## Arena und Programmierung
 
+- Die Bibliothek links zeigt verfügbare Befehle; ein Klick fügt sie zum getrennten Programmbereich rechts hinzu. Beide Bereiche scrollen unabhängig und sind in Block- und Textmodus verfügbar.
 - Wähle einen Arkan über seinen Button im Editor oder direkt auf dem Spielfeld. Glutling erscheint erst in Mission 3.
 - Block- und Textmodus bearbeiten das Programm des ausgewählten Arkanen. Entwürfe werden pro Mission und Arkan im Browser gespeichert, auch unvollständiger Text.
 - „Nächsten Schritt ausführen“ führt einen Tick aus: zuerst Moosling, dann Glutling, anschließend gegebenenfalls das Konstrukt. Ein beendetes Programm wartet.

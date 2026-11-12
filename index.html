@@ -27,17 +27,24 @@
             <button id="select-moosling" type="button" aria-pressed="true">Moosling</button>
             <button id="select-glutling" type="button" aria-pressed="false" hidden>Glutling</button>
           </div>
-          <label id="program-owner" for="program-source">Programm von Moosling</label>
-          <div class="editor-mode" role="group" aria-label="Programmierdarstellung">
-            <button id="blocks-mode" type="button">Blocksprache</button>
-            <button id="text-mode" type="button">Textmodus</button>
-          </div>
+          <div class="editor-columns">
           <section class="command-library" aria-labelledby="command-library-title">
             <p class="eyebrow" id="command-library-title">BEFEHLSBIBLIOTHEK</p>
+            <p class="library-intro">Wähle einen Befehl, um ihn rechts zum Programm hinzuzufügen.</p>
             <button type="button" data-command="move"><strong>Bewegung</strong><code>moosling.moveForward()</code><span>Ein Feld zum Gegner</span></button>
             <button type="button" data-command="attack"><strong>Kampf</strong><code>moosling.attack()</code><span>Greift in Reichweite an</span></button>
             <button type="button" data-command="condition"><strong>Fühlen</strong><code>moosling.enemyAdjacent</code><span>Prüft die Nachbarschaft</span></button>
           </section>
+          <section class="program-workspace" aria-labelledby="program-area-title">
+            <header class="program-toolbar">
+              <p class="eyebrow" id="program-area-title">PROGRAMMBEREICH</p>
+              <label id="program-owner" for="program-source">Programm von Moosling</label>
+              <div class="editor-mode" role="group" aria-label="Programmierdarstellung">
+                <button id="blocks-mode" type="button">Blocksprache</button>
+                <button id="text-mode" type="button">Textmodus</button>
+              </div>
+            </header>
+          <div class="program-scroll">
           <div id="block-editor" aria-label="Blockeditor">
             <p class="block-intro">Baue einen Aktionsplan aus Wiederholungsblöcken.</p>
             <div id="loop-blocks"></div>
@@ -45,6 +52,10 @@
           </div>
           <textarea id="program-source" spellcheck="false" aria-describedby="program-help" hidden></textarea>
           <p id="program-help">Befehle gehören immer zu einem Arkan, z. B. <code>moosling.moveForward()</code> oder <code>moosling.attack()</code>. Der Plan darf höchstens zwölf Schritte haben.</p>
+          </div>
+          </section>
+          </div>
+          <div class="battle-footer">
           <p id="editor-tooltip" class="editor-tooltip" role="status" aria-live="polite" hidden></p>
           <div class="battle-status" aria-label="Kampfstatus">
             <p>Schritt <strong id="battle-round">0</strong></p>
@@ -60,7 +71,11 @@
             <button id="battle-next-mission" type="button" hidden>Nächste Mission</button>
             <button id="battle-exit" type="button">Zur Erkundung</button>
           </div>
-          <ol id="battle-log" aria-label="Kampfprotokoll"></ol>
+          <details class="battle-log-panel">
+            <summary>Kampfprotokoll</summary>
+            <ol id="battle-log" aria-label="Kampfprotokoll"></ol>
+          </details>
+          </div>
         </div>
       </section>
       <div id="touch-controls" aria-label="Touchsteuerung">

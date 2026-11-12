@@ -21,6 +21,12 @@ export class BattleScene extends Phaser.Scene {
     if (this.session.snapshot.outcome === 'victory' && this.mission < 3) this.startMission(this.mission === 1 ? 2 : 3);
   };
   private readonly onExit = () => this.exit();
+  private readonly onViewport = ({ width, height }: { width: number; height: number }) => {
+    const camera = this.cameras.main;
+    camera.setViewport(0, 0, width, height);
+    camera.setZoom(Math.min(width / 800, height / 700, 1.4));
+    camera.centerOn(400, 350);
+  };
 
   constructor() {
     super('battle');
@@ -37,6 +43,7 @@ export class BattleScene extends Phaser.Scene {
     gameEvents.on('battle-restart', this.onRestart);
     gameEvents.on('battle-next-mission', this.onNextMission);
     gameEvents.on('battle-exit', this.onExit);
+    gameEvents.on('battle-viewport', this.onViewport);
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => this.removeListeners());
     this.startMission(1);
   }
@@ -106,5 +113,6 @@ export class BattleScene extends Phaser.Scene {
     gameEvents.off('battle-restart', this.onRestart);
     gameEvents.off('battle-next-mission', this.onNextMission);
     gameEvents.off('battle-exit', this.onExit);
+    gameEvents.off('battle-viewport', this.onViewport);
   }
 }

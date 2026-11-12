@@ -16,20 +16,29 @@ button { font: inherit; touch-action: none; }
 #dialog-text { margin: 0 0 1rem; font-family: Georgia, serif; font-size: clamp(1rem, 2.5vw, 1.2rem); line-height: 1.5; }
 #dialog-close, .interact, .dpad button { color: #fff9e6; border: 1px solid #f0d778; background: #305050; box-shadow: inset 0 1px rgb(255 255 255 / .2), 0 2px 5px rgb(0 0 0 / .35); cursor: pointer; }
 #dialog-close { min-height: 2.75rem; padding: .5rem 1rem; border-radius: .35rem; font-weight: 700; }
-#battle-panel { position: fixed; z-index: 2; top: max(1rem, env(safe-area-inset-top)); right: max(1rem, env(safe-area-inset-right)); width: min(26rem, calc(100vw - 2rem)); max-height: calc(100dvh - 2rem); overflow: auto; }
-.battle-card { position: relative; padding: 1rem; border: 1px solid #d8c275; border-radius: .5rem; background: rgb(17 34 38 / .94); box-shadow: 0 8px 26px rgb(0 0 0 / .36); }
+#battle-panel { position: fixed; z-index: 2; top: max(1rem, env(safe-area-inset-top)); right: max(1rem, env(safe-area-inset-right)); bottom: max(1rem, env(safe-area-inset-bottom)); width: min(56vw, 60rem); }
+.battle-card { position: relative; display: flex; flex-direction: column; height: 100%; padding: .85rem; border: 1px solid #d8c275; border-radius: .5rem; background: #112226; box-shadow: 0 8px 26px rgb(0 0 0 / .36); overflow: hidden; }
+.editor-columns { display: grid; grid-template-columns: minmax(10rem, .8fr) minmax(0, 1.5fr); flex: 1; min-height: 10rem; overflow: hidden; border: 1px solid #527c79; border-radius: .4rem; }
+.program-workspace { display: flex; flex-direction: column; min-width: 0; min-height: 0; background-color: #193238; background-image: radial-gradient(#41605d 1px, transparent 1px); background-size: 18px 18px; }
+.program-toolbar { flex: none; padding: .75rem; border-bottom: 1px solid #527c79; background: #152c30; }
+.program-toolbar .editor-mode { margin: .5rem 0 0; flex-wrap: wrap; }
+.program-scroll { flex: 1; min-height: 0; overflow: auto; overscroll-behavior: contain; padding: .75rem; scrollbar-gutter: stable; }
+.battle-footer { flex: none; max-height: 38%; overflow: auto; padding-top: .5rem; }
+.battle-log-panel summary { cursor: pointer; padding: .5rem 0; color: #c5ddd4; font-size: .85rem; }
+.library-intro { margin: .3rem 0 .8rem; color: #c4ded7; font-size: .78rem; line-height: 1.45; }
+button:focus-visible, select:focus-visible, textarea:focus-visible, summary:focus-visible { outline: 2px solid #f0d778; outline-offset: 2px; }
 .battle-card label { display: block; margin-bottom: .4rem; font-weight: 700; }
-#program-source { width: 100%; min-height: 8rem; resize: vertical; padding: .65rem; color: #d9f7e4; border: 1px solid #71958a; border-radius: .25rem; background: #102326; font: .85rem/1.45 ui-monospace, Consolas, monospace; }
+#program-source { width: 100%; min-height: 18rem; resize: vertical; padding: .65rem; color: #d9f7e4; border: 1px solid #71958a; border-radius: .25rem; background: #102326; font: .85rem/1.6 ui-monospace, Consolas, monospace; tab-size: 2; }
 .editor-mode { display: flex; gap: .35rem; margin-bottom: .65rem; }
 .editor-mode button, #add-loop-block, .loop-block button { min-height: 2.15rem; padding: .3rem .55rem; color: #e8f4df; border: 1px solid #648b83; border-radius: .25rem; background: #1d4546; cursor: pointer; font-weight: 700; }
 .editor-mode button.editor-mode-active { color: #17292b; border-color: #edcf6c; background: #edcf6c; }
-.command-library { display: grid; gap: .35rem; margin: 0 0 .65rem; padding: .6rem; border: 1px solid #527c79; border-radius: .3rem; background: #112e31; }
+.command-library { min-width: 0; min-height: 0; overflow: auto; overscroll-behavior: contain; padding: .75rem; border-right: 1px solid #527c79; background: #112e31; }
 .command-library .eyebrow { margin-bottom: 0; }
-.command-library button { display: grid; grid-template-columns: 4.8rem 1fr; gap: .1rem .45rem; padding: .45rem; color: #eaf5e6; border: 0; border-left: 4px solid #559cf0; border-radius: .2rem; background: #234e55; text-align: left; cursor: pointer; }
+.command-library button { display: grid; width: 100%; gap: .3rem; margin-bottom: .7rem; padding: .65rem; color: #eaf5e6; border: 1px solid #487e86; border-left: 4px solid #559cf0; border-radius: .4rem; background: #234e55; text-align: left; cursor: pointer; touch-action: manipulation; }
 .command-library button[data-command='attack'] { border-left-color: #db7767; background: #593b3c; }
 .command-library button[data-command='condition'] { border-left-color: #a776e8; background: #423958; }
-.command-library code { color: #fff0ae; font-size: .76rem; }
-.command-library span { grid-column: 2; color: #c9dfd8; font-size: .72rem; }
+.command-library code { color: #fff0ae; font-size: .76rem; overflow-wrap: anywhere; }
+.command-library span { color: #c9dfd8; font-size: .72rem; }
 #block-editor { padding: .65rem; border: 1px solid #668c86; border-radius: .3rem; background: #17383a; }
 .block-intro { margin: 0 0 .55rem; color: #d4e7df; font-size: .82rem; }
 #loop-blocks { display: grid; gap: .45rem; margin-bottom: .55rem; }
@@ -39,7 +48,7 @@ button { font: inherit; touch-action: none; }
 #program-help, #battle-feedback { margin: .5rem 0; font-size: .82rem; line-height: 1.35; color: #c4ded7; }
 .editor-tooltip { position: absolute; z-index: 4; right: .85rem; bottom: .85rem; left: .85rem; pointer-events: none; margin: 0; padding: .55rem .65rem; color: #fff3c4; border-left: 3px solid #e1bb54; border-radius: .2rem; background: #253f3d; box-shadow: 0 4px 14px rgb(0 0 0 / .38); font-size: .82rem; line-height: 1.4; }
 #battle-feedback { min-height: 1.2rem; color: #f1d779; font-weight: 700; }
-.battle-status { display: grid; gap: .5rem; margin: .8rem 0; padding: .65rem; border: 1px solid #416b68; border-radius: .3rem; background: #132b2d; }
+.battle-status { display: grid; grid-template-columns: auto repeat(3, minmax(0, 1fr)); align-items: center; gap: .5rem; margin: .2rem 0; padding: .55rem; border: 1px solid #416b68; border-radius: .3rem; background: #132b2d; }
 .battle-status p, .battle-status label { margin: 0; font-size: .85rem; }
 .battle-status label { display: grid; grid-template-columns: 1fr auto; gap: .2rem .6rem; }
 #companion-health-status[hidden] { display: none; }
@@ -60,4 +69,21 @@ button { font: inherit; touch-action: none; }
 #interaction-hint { position: fixed; left: 50%; bottom: 1.25rem; transform: translateX(-50%); max-width: calc(100vw - 12rem); margin: 0; padding: .4rem .7rem; text-align: center; font-size: .85rem; font-weight: 700; text-shadow: 0 2px 3px #000; }
 @media (pointer: fine) { #touch-controls { opacity: .38; transition: opacity .2s; } #touch-controls:hover { opacity: 1; } }
 @media (max-width: 600px) { #hud { width: calc(100vw - 2rem); } .dpad { grid-template-columns: repeat(3, 3rem); grid-template-rows: repeat(3, 3rem); } .interact { width: 4rem; height: 4rem; } #interaction-hint { bottom: 6.4rem; } }
-@media (max-width: 780px) { #battle-panel { top: auto; bottom: max(1rem, env(safe-area-inset-bottom)); max-height: min(48dvh, 34rem); } }
+@media (max-width: 1000px) {
+  #battle-panel { top: auto; right: .5rem; bottom: max(.5rem, env(safe-area-inset-bottom)); left: .5rem; width: auto; height: 58dvh; }
+  .editor-columns { grid-template-columns: minmax(9rem, .65fr) minmax(0, 2fr); min-height: 8rem; }
+  .battle-footer { max-height: 32%; }
+  .battle-status { grid-template-columns: auto repeat(3, minmax(0, 1fr)); }
+}
+@media (max-width: 480px) {
+  .battle-card { padding: .5rem; }
+  .editor-columns { grid-template-columns: minmax(7rem, .7fr) minmax(0, 1fr); }
+  .command-library, .program-toolbar, .program-scroll { padding: .4rem; }
+  .command-library code { font-size: .66rem; }
+  .editor-mode button { font-size: .78rem; }
+  .battle-status { grid-template-columns: 1fr 1fr; }
+}
+@media (max-width: 1000px) and (max-height: 520px) {
+  #battle-panel { top: .5rem; right: .5rem; bottom: .5rem; left: auto; width: 62vw; height: auto; }
+  .editor-columns { min-height: 6rem; }
+}
