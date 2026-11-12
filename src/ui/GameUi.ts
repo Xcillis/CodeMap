@@ -36,6 +36,7 @@ export class GameUi {
     this.pendingDialogAction = dialog.action;
     this.dialogSpeaker.textContent = dialog.speaker;
     this.dialogText.textContent = dialog.text;
+    this.requiredElement<HTMLButtonElement>('dialog-close').textContent = dialog.action ? 'Zur Trainingsarena' : 'Verstanden';
     this.dialog.hidden = false;
     this.requiredElement<HTMLButtonElement>('dialog-close').focus();
   }
