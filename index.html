@@ -20,6 +20,21 @@
           <button id="dialog-close" type="button">Verstanden</button>
         </div>
       </section>
+      <section id="battle-panel" aria-labelledby="battle-title" hidden>
+        <div class="battle-card">
+          <p class="eyebrow" id="battle-title">RUNENSKRIPT – SICHERE TEILMENGE</p>
+          <label for="program-source">Entscheidung von Moosling</label>
+          <textarea id="program-source" spellcheck="false" aria-describedby="program-help"></textarea>
+          <p id="program-help">Ändere nur die Aktion in Anführungszeichen: ATTACK, DEFEND, MOVE_TOWARD oder WAIT.</p>
+          <p id="battle-feedback" aria-live="polite"></p>
+          <div class="battle-actions">
+            <button id="battle-step" type="button">Runde ausführen</button>
+            <button id="battle-restart" type="button">Neu starten</button>
+            <button id="battle-exit" type="button">Zur Erkundung</button>
+          </div>
+          <ol id="battle-log" aria-label="Kampfprotokoll"></ol>
+        </div>
+      </section>
       <div id="touch-controls" aria-label="Touchsteuerung">
         <div class="dpad" role="group" aria-label="Bewegung">
           <button data-direction="up" aria-label="Nach oben">▲</button>

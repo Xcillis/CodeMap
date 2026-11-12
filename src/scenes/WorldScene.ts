@@ -38,6 +38,10 @@ export class WorldScene extends Phaser.Scene {
     this.cameras.main.setZoom(1.12);
     gameEvents.emit('quest-updated', this.quest.current.objective, false);
     gameEvents.on('dialog-closed', () => (this.dialogActive = false));
+    gameEvents.on('start-battle', () => {
+      this.scene.pause('world');
+      this.scene.launch('battle');
+    });
   }
 
   update(): void {
@@ -57,8 +61,9 @@ export class WorldScene extends Phaser.Scene {
     gameEvents.emit('dialog-opened', {
       speaker: 'ARKANIST ELDREN',
       text: completed
-        ? 'Willkommen, Lehrling. Die Runen am Waldrand flackern wieder – doch dein erster Schritt ist getan. Die Quest ist abgeschlossen.'
+        ? 'Willkommen, Lehrling. Dein erster Schritt ist getan. Jetzt zeigt dir Moosling in der Trainingsarena, wie Entscheidungen im Kampf wirken.'
         : 'Die Akademie zählt auf deinen wachen Blick. Erkunde das Gelände, wenn du bereit bist.',
+      action: completed ? 'start-battle' : undefined,
     });
   }
 
