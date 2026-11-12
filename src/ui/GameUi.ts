@@ -3,10 +3,12 @@ import { touchInput, type TouchDirection } from '../input/TouchInput';
 
 export class GameUi {
   private readonly questText = this.requiredElement<HTMLParagraphElement>('quest-text');
+  private readonly hud = this.requiredElement<HTMLElement>('hud');
   private readonly dialog = this.requiredElement<HTMLElement>('dialog');
   private readonly dialogSpeaker = this.requiredElement<HTMLParagraphElement>('dialog-speaker');
   private readonly dialogText = this.requiredElement<HTMLParagraphElement>('dialog-text');
   private readonly hint = this.requiredElement<HTMLParagraphElement>('interaction-hint');
+  private readonly touchControls = this.requiredElement<HTMLElement>('touch-controls');
   private readonly battlePanel = this.requiredElement<HTMLElement>('battle-panel');
   private readonly programSource = this.requiredElement<HTMLTextAreaElement>('program-source');
   private readonly battleFeedback = this.requiredElement<HTMLParagraphElement>('battle-feedback');
@@ -22,7 +24,10 @@ export class GameUi {
     gameEvents.on('interaction-hint', (text: string) => (this.hint.textContent = text));
     gameEvents.on('battle-opened', (program: string) => this.openBattle(program));
     gameEvents.on('battle-updated', (state: { log: string[] }, feedback: string) => this.updateBattle(state, feedback));
-    gameEvents.on('battle-closed', () => (this.battlePanel.hidden = true));
+    gameEvents.on('battle-closed', () => {
+      this.battlePanel.hidden = true;
+      this.setExplorationUiVisible(true);
+    });
 
     this.requiredElement<HTMLButtonElement>('dialog-close').addEventListener('click', () => this.closeDialog());
     this.requiredElement<HTMLButtonElement>('interact-button').addEventListener('click', () => touchInput.requestInteraction());
@@ -49,6 +54,7 @@ export class GameUi {
   }
 
   private openBattle(program: string): void {
+    this.setExplorationUiVisible(false);
     this.battlePanel.hidden = false;
     this.programSource.value = program;
     this.battleFeedback.textContent = '';
@@ -62,6 +68,10 @@ export class GameUi {
       item.textContent = entry;
       return item;
     }));
+  }
+
+  private setExplorationUiVisible(visible: boolean): void {
+    [this.hud, this.hint, this.touchControls].forEach((element) => element.classList.toggle('screen-hidden', !visible));
   }
 
   private bindDirection(button: HTMLButtonElement): void {
