@@ -39,6 +39,7 @@ export class GameUi {
     this.requiredElement<HTMLButtonElement>('dialog-close').addEventListener('click', () => this.closeDialog());
     this.requiredElement<HTMLButtonElement>('interact-button').addEventListener('click', () => touchInput.requestInteraction());
     this.requiredElement<HTMLButtonElement>('battle-step').addEventListener('click', () => gameEvents.emit('battle-step', this.programSource.value));
+    this.requiredElement<HTMLButtonElement>('battle-simulate').addEventListener('click', () => gameEvents.emit('battle-simulate', this.programSource.value));
     this.requiredElement<HTMLButtonElement>('battle-restart').addEventListener('click', () => gameEvents.emit('battle-restart'));
     this.requiredElement<HTMLButtonElement>('battle-exit').addEventListener('click', () => gameEvents.emit('battle-exit'));
     this.programSource.addEventListener('input', () => saveProgress({ lastProgram: this.programSource.value }));
@@ -75,6 +76,7 @@ export class GameUi {
     this.updateHealth(this.playerHealth, this.playerHealthText, state.player.hp, state.player.maxHp);
     this.updateHealth(this.enemyHealth, this.enemyHealthText, state.enemy.hp, state.enemy.maxHp);
     this.requiredElement<HTMLButtonElement>('battle-step').disabled = state.outcome !== 'ongoing';
+    this.requiredElement<HTMLButtonElement>('battle-simulate').disabled = state.outcome !== 'ongoing';
     this.battleLog.replaceChildren(...state.log.map((entry) => {
       const item = document.createElement('li');
       item.textContent = entry;

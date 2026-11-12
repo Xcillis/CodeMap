@@ -18,6 +18,8 @@ Die Trainingsarena verwendet einen reinen `BattleEngine` mit vollständigem Snap
 
 Die erste Lernmission nutzt statt Bedingungen ausschließlich feste `repeat(n, ...)`-Blöcke. Der Parser übersetzt diese in eine begrenzte Aktionsliste; jedes Element wird als eigener sichtbarer Spielschritt ausgeführt. Damit bleiben Schleifen nachvollziehbar und sicher. Bedingungen werden als separate spätere Folgemission ergänzt. Queststatus und zuletzt bearbeitetes Skript liegen ausschließlich in `localStorage` und sind als lokale Vorstufe zur späteren Persistenz gedacht.
 
+Die Arena bietet zwei Ausführungsarten für denselben Aktionsplan: schrittweise zur Beobachtung und vollständig zur schnellen Ergebniskontrolle. Beide verwenden exakt dieselbe `BattleEngine`; die vollständige Simulation überspringt nur die Zwischenansicht.
+
 ## Bewusst nicht enthalten
 
 Keine Kampfsimulation, Arkan-Programmierung, Blockly-/JavaScript-Editor, Speicherung, Login, Backend, NOVA oder Kompetenzengine. Diese bleiben Integrationspunkte für spätere Meilensteine.

@@ -17,6 +17,7 @@ export class BattleScene extends Phaser.Scene {
   private actionPlan: CombatAction[] = [];
   private nextActionIndex = 0;
   private readonly onStep = (source: string) => this.step(source);
+  private readonly onSimulate = (source: string) => this.simulate(source);
   private readonly onRestart = () => this.restart();
   private readonly onExit = () => this.exit();
 
@@ -31,6 +32,7 @@ export class BattleScene extends Phaser.Scene {
     this.add.text(GRID_START_X, 52, 'Trainingsarena: Die erste Schleife', { fontFamily: 'Georgia, serif', fontSize: '30px', color: '#fff0bd' });
     this.add.text(GRID_START_X, 88, 'Moosling folgt deinem Aktionsplan. Das Konstrukt bleibt zunächst passiv.', { fontSize: '16px', color: '#b8d8cf' });
     gameEvents.on('battle-step', this.onStep);
+    gameEvents.on('battle-simulate', this.onSimulate);
     gameEvents.on('battle-restart', this.onRestart);
     gameEvents.on('battle-exit', this.onExit);
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => this.removeListeners());
@@ -40,16 +42,7 @@ export class BattleScene extends Phaser.Scene {
   }
 
   private step(source: string): void {
-    if (source !== this.activeSource) {
-      const compiled = compileActionPlan(source);
-      if (!compiled.actions) {
-        gameEvents.emit('battle-updated', this.battle.snapshot, compiled.error);
-        return;
-      }
-      this.activeSource = source;
-      this.actionPlan = compiled.actions;
-      this.nextActionIndex = 0;
-    }
+    if (!this.preparePlan(source)) return;
     const action = this.actionPlan[this.nextActionIndex];
     if (!action) {
       gameEvents.emit('battle-updated', this.battle.snapshot, 'Aktionsplan beendet. Ergänze den Plan oder starte neu.');
@@ -63,6 +56,25 @@ export class BattleScene extends Phaser.Scene {
     gameEvents.emit('battle-updated', state, feedback);
   }
 
+  private simulate(source: string): void {
+    if (!this.preparePlan(source)) return;
+    const remainingSteps = this.actionPlan.length - this.nextActionIndex;
+    if (remainingSteps <= 0) {
+      gameEvents.emit('battle-updated', this.battle.snapshot, 'Aktionsplan beendet. Ergänze den Plan oder starte neu.');
+      return;
+    }
+    while (this.nextActionIndex < this.actionPlan.length && this.battle.snapshot.outcome === 'ongoing') {
+      this.battle.runStep(this.actionPlan[this.nextActionIndex]);
+      this.nextActionIndex += 1;
+    }
+    const state = this.battle.snapshot;
+    this.render(state);
+    const feedback = state.outcome === 'victory'
+      ? `Simulation abgeschlossen: ${remainingSteps} Schritte führten zum Sieg.`
+      : `Simulation abgeschlossen: ${remainingSteps} Schritte ausgeführt.`;
+    gameEvents.emit('battle-updated', state, feedback);
+  }
+
   private restart(): void {
     this.battle.reset();
     this.activeSource = '';
@@ -70,6 +82,19 @@ export class BattleScene extends Phaser.Scene {
     this.nextActionIndex = 0;
     this.render(this.battle.snapshot);
     gameEvents.emit('battle-updated', this.battle.snapshot, 'Arena zurückgesetzt.');
+  }
+
+  private preparePlan(source: string): boolean {
+    if (source === this.activeSource) return true;
+    const compiled = compileActionPlan(source);
+    if (!compiled.actions) {
+      gameEvents.emit('battle-updated', this.battle.snapshot, compiled.error);
+      return false;
+    }
+    this.activeSource = source;
+    this.actionPlan = compiled.actions;
+    this.nextActionIndex = 0;
+    return true;
   }
 
   private exit(): void {
@@ -101,6 +126,7 @@ export class BattleScene extends Phaser.Scene {
 
   private removeListeners(): void {
     gameEvents.off('battle-step', this.onStep);
+    gameEvents.off('battle-simulate', this.onSimulate);
     gameEvents.off('battle-restart', this.onRestart);
     gameEvents.off('battle-exit', this.onExit);
   }
