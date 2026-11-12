@@ -1,7 +1,8 @@
 import { BattleEngine } from './BattleEngine';
-import { blocksToSource, compileActionPlan, CONDITION_PROGRAM, DEFAULT_PROGRAM, FORMATION_PROGRAM } from './DecisionProgram';
+import { nodesToSource, programCost, compileActionPlan, CONDITION_PROGRAM, DEFAULT_PROGRAM, FORMATION_PROGRAM } from './DecisionProgram';
 import type { ArkanId, ProgramSources, ProgramStep } from './types';
-import { programCapabilityError } from './CommandCatalog';
+import { nodesCapabilityError } from './CommandCatalog';
+import { ProgramRunner } from './ProgramRunner';
 
 export type MissionId = 1 | 2 | 3;
 
@@ -14,7 +15,7 @@ export function missionPrograms(mission: MissionId): ProgramSources {
 /** Owns execution independently of Phaser and editor selection. */
 export class BattleSession {
   private readonly engine = new BattleEngine();
-  private plans: Partial<Record<ArkanId, ProgramStep[]>> = {};
+  private plans: Partial<Record<ArkanId, ProgramRunner>> = {};
   private signature = '';
   private cursor = 0;
   private length = 0;
@@ -33,35 +34,37 @@ export class BattleSession {
   execute(sources: ProgramSources, full = false): string {
     const plans: typeof this.plans = {};
     const canonical: string[] = [];
+    let length = 0;
     for (const actor of this.actors) {
       const parsed = compileActionPlan(sources[actor] ?? '', actor);
-      if (!parsed.steps || !parsed.blocks) return `${actor}: ${parsed.error}`;
-      const capabilityError = programCapabilityError(parsed.blocks, actor, this.mission);
+      if (parsed.error || !parsed.nodes) return `${actor}: ${parsed.error}`;
+      const capabilityError = nodesCapabilityError(parsed.nodes, actor, this.mission);
       if (capabilityError) return capabilityError;
-      plans[actor] = parsed.steps;
-      canonical.push(blocksToSource(parsed.blocks, actor));
+      plans[actor] = new ProgramRunner(parsed.nodes);
+      length = Math.max(length, programCost(parsed.nodes));
+      canonical.push(nodesToSource(parsed.nodes, actor));
     }
     const signature = JSON.stringify(canonical);
     const changed = signature !== this.signature;
     if (full || changed) this.reset();
     this.signature = signature;
-    this.plans = plans;
-    this.length = Math.max(...this.actors.map((actor) => plans[actor]?.length ?? 0));
+    if (full || changed) this.plans = plans;
+    this.length = length;
     if (this.length === 0) return 'Die Programme sind leer. Ziehe einen Befehl in den Programmbereich.';
     if (this.snapshot.outcome !== 'ongoing') return this.result();
-    if (this.cursor >= this.length) return 'Aktionspläne beendet. Bearbeite ein Programm oder starte neu.';
+    if (this.cursor >= this.length || this.actors.every((actor) => this.plans[actor]?.done)) return 'Aktionspläne beendet. Bearbeite ein Programm oder starte neu.';
     do {
-      const steps: Partial<Record<ArkanId, ProgramStep>> = {};
-      for (const actor of this.actors) steps[actor] = this.plans[actor]?.[this.cursor];
+      const steps: Partial<Record<ArkanId, (adjacent: boolean) => ProgramStep | undefined>> = {};
+      for (const actor of this.actors) steps[actor] = (adjacent) => this.plans[actor]?.next(adjacent);
       this.engine.runTick(steps, this.mission === 2);
-      this.cursor += 1;
-    } while (full && this.cursor < this.length && this.snapshot.outcome === 'ongoing');
+      this.cursor = this.snapshot.tick;
+    } while (full && this.cursor < this.length && this.snapshot.outcome === 'ongoing' && this.actors.some((actor) => !this.plans[actor]?.done));
     return this.result();
   }
 
   private result(): string {
     if (this.snapshot.outcome === 'victory') return 'Sieg! Die Programme haben das Ziel erreicht.';
     if (this.snapshot.outcome === 'defeat') return 'Niederlage. Bearbeite die Programme und führe sie erneut aus.';
-    return `Schritt ${this.cursor}/${this.length}${this.cursor === this.length ? ' – Aktionspläne beendet.' : ''}`;
+    return `Schritt ${this.cursor}/${this.length}${this.cursor === this.length || this.actors.every((actor) => this.plans[actor]?.done) ? ' – Aktionspläne beendet.' : ''}`;
   }
 }

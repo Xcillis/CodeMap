@@ -1,89 +1,109 @@
-import type { ActionPlanResult, ArkanId, CombatAction, ProgramBlock, ProgramStep } from './types';
+import type { ActionPlanResult, ArkanId, CombatAction, ProgramBlock, ProgramNode, ProgramStep } from './types';
 
-const MAX_REPEAT = 6;
-const MAX_ACTIONS = 12;
+export function programCost(nodes: readonly ProgramNode[]): number {
+  return nodes.reduce((sum, node) => sum + (node.kind === 'action' ? 1 : node.kind === 'repeat' ? node.count * programCost(node.body) : Math.max(programCost(node.then), programCost(node.otherwise))), 0);
+}
 
-/**
- * M2 accepts only fixed repeat blocks and builds an action list. User text is
- * parsed, never evaluated, so loops cannot freeze the browser.
- */
+function programWork(nodes: readonly ProgramNode[]): number {
+  return nodes.reduce((sum, node) => sum + 1 + (node.kind === 'repeat' ? node.count * programWork(node.body) : node.kind === 'if' ? Math.max(programWork(node.then), programWork(node.otherwise)) : 0), 0);
+}
+
+/** Parses a bounded grammar. No JavaScript evaluation or code generation runtime. */
 export function compileActionPlan(source: string, expectedActor?: ArkanId): ActionPlanResult {
-  if (source.length > 8000) return { error: 'Das Programm ist zu lang (maximal 8000 Zeichen).' };
-  if (!source.trim()) return { actor: expectedActor, steps: [], blocks: [] };
-  const receivers = [...source.matchAll(/\b([A-Za-z_]\w*)\s*\./g)].map((match) => match[1]);
-  const actor = receivers[0];
-  if ((actor !== 'moosling' && actor !== 'glutling') || receivers.some((id) => id !== actor)) {
-    return { error: 'Jedes Programm darf ausschließlich benannte Befehle eines einzelnen Arkanen enthalten.' };
-  }
-  if (expectedActor && actor !== expectedActor) return { error: `Dieses Programm gehört zu ${expectedActor}. Verwende ${expectedActor}.moveForward() oder ${expectedActor}.attack().` };
-  source = source.replace(/\b(moosling|glutling)\s*\./g, 'moosling.');
-  const blockPattern = /repeat\s*\(\s*(\d+)\s*,\s*\(\s*\)\s*=>\s*\{\s*(?:(?:moosling|glutling)\.(moveForward|attack)\s*\(\s*\)\s*;?|if\s*\(\s*moosling\.enemyAdjacent\s*\)\s*\{\s*moosling\.(moveForward|attack)\s*\(\s*\)\s*;?\s*\}\s*else\s*\{\s*moosling\.(moveForward|attack)\s*\(\s*\)\s*;?\s*\})\s*\}\s*\)\s*;?/gs;
-  const steps: ProgramStep[] = [];
-  const blocks: ProgramBlock[] = [];
-  let cursor = 0;
-  let match: RegExpExecArray | null;
-
-  while ((match = blockPattern.exec(source)) !== null) {
-    if (source.slice(cursor, match.index).trim()) return { error: 'Erwartet wird ein vollständiger repeat-Block mit benannten Arkan-Befehlen.' };
-    const count = Number(match[1]);
-    if (!Number.isInteger(count) || count < 1 || count > MAX_REPEAT) return { error: `Eine Schleife darf 1 bis ${MAX_REPEAT} Wiederholungen enthalten.` };
-    if (match[2]) {
-      const action = toAction(match[2]);
-      blocks.push({ kind: 'action', count, action });
-      steps.push(...Array.from({ length: count }, () => ({ kind: 'action' as const, action })));
-    } else {
-      const whenTrue = toAction(match[3]);
-      const whenFalse = toAction(match[4]);
-      blocks.push({ kind: 'condition', count, whenTrue, whenFalse });
-      steps.push(...Array.from({ length: count }, () => ({ kind: 'condition' as const, whenTrue, whenFalse })));
+  try {
+    if (source.length > 8000) throw new Error('Das Programm ist zu lang (maximal 8000 Zeichen).');
+    const tokens: string[] = [];
+    const pattern = /\s*(=>|[a-zA-Z_]\w*|\d+|[().,;{}])/gy;
+    let end = 0;
+    while (end < source.length && source.slice(end).trim()) {
+      pattern.lastIndex = end;
+      const token = pattern.exec(source);
+      if (!token) throw new Error('Unbekanntes Zeichen im Programm. Erlaubt sind Arkan-Befehle, repeat und if/else.');
+      tokens.push(token[1]);
+      end = pattern.lastIndex;
     }
-    cursor = blockPattern.lastIndex;
-  }
+    let cursor = 0;
+    let actor = expectedActor;
+    const take = (value: string) => {
+      if (tokens[cursor++] !== value) throw new Error(`„${value}“ erwartet. Prüfe Klammern und Befehle.`);
+    };
+    const owner = () => {
+      const name = tokens[cursor++];
+      if (name !== 'moosling' && name !== 'glutling') throw new Error('Befehle müssen einem Arkan zugeordnet sein.');
+      actor ??= name;
+      if (name !== actor) throw new Error(`Dieses Programm gehört zu ${actor}. Befehle anderer Arkane sind hier nicht erlaubt.`);
+      take('.');
+    };
+    const group = (depth: number): ProgramNode[] => { take('{'); const nodes = sequence(depth); take('}'); return nodes; };
+    const sequence = (depth: number): ProgramNode[] => {
+      if (depth > 8) throw new Error('Maximal acht Verschachtelungsebenen.');
+      const nodes: ProgramNode[] = [];
+      while (cursor < tokens.length && tokens[cursor] !== '}') {
+        if (tokens[cursor] === 'repeat') {
+          cursor++; take('(');
+          const count = Number(tokens[cursor++]);
+          if (!Number.isInteger(count) || count < 1 || count > 6) throw new Error('Eine Schleife darf 1 bis 6 Wiederholungen enthalten.');
+          take(','); take('('); take(')'); take('=>');
+          const body = group(depth + 1);
+          take(')');
+          nodes.push({ kind: 'repeat', count, body });
+        } else if (tokens[cursor] === 'if') {
+          cursor++; take('('); owner(); take('enemyAdjacent'); take(')');
+          const then = group(depth + 1);
+          const otherwise = tokens[cursor] === 'else' ? (cursor++, group(depth + 1)) : [];
+          nodes.push({ kind: 'if', then, otherwise });
+        } else {
+          owner();
+          const command = tokens[cursor++];
+          if (command !== 'moveForward' && command !== 'attack') throw new Error('Unbekannter Arkan-Befehl. Nutze moveForward() oder attack().');
+          take('('); take(')');
+          nodes.push({ kind: 'action', action: command === 'attack' ? 'ATTACK' : 'MOVE_TOWARD' });
+        }
+        if (tokens[cursor] === ';') cursor++;
+      }
+      return nodes;
+    };
+    const nodes = sequence(0);
+    if (cursor !== tokens.length) throw new Error('Unerwartete schließende Klammer.');
+    if (programCost(nodes) > 12) return { actor, nodes, error: 'Ein Programm darf höchstens zwölf ausgeführte Aktionen enthalten.' };
+    if (programWork(nodes) > 512) return { actor, nodes, error: 'Zu viele verschachtelte Kontrollschritte (maximal 512).' };
+    const blocks = legacyBlocks(nodes);
+    const steps: ProgramStep[] = [];
+    for (const block of blocks) for (let index = 0; index < block.count; index++) steps.push(block.kind === 'action' ? { kind: 'action', action: block.action } : { kind: 'condition', whenTrue: block.whenTrue, whenFalse: block.whenFalse });
+    return { actor, nodes, blocks, steps };
+  } catch (error) { return { error: error instanceof Error ? error.message : 'Ungültiges Programm.' }; }
+}
 
-  if (!steps.length || source.slice(cursor).trim()) {
-    return { error: 'Befehle müssen einem Arkan zugeordnet sein, etwa moosling.moveForward() oder glutling.attack().' };
+function legacyBlocks(nodes: readonly ProgramNode[]): ProgramBlock[] {
+  const blocks: ProgramBlock[] = [];
+  for (const node of nodes) {
+    if (node.kind === 'action') blocks.push({ kind: 'action', count: 1, action: node.action });
+    else if (node.kind === 'repeat' && node.body.length === 1 && node.body[0].kind === 'action') blocks.push({ kind: 'action', count: node.count, action: node.body[0].action });
+    else if (node.kind === 'repeat' && node.body.length === 1 && node.body[0].kind === 'if') {
+      const branch = node.body[0];
+      if (branch.then.length !== 1 || branch.otherwise.length !== 1 || branch.then[0].kind !== 'action' || branch.otherwise[0].kind !== 'action') return [];
+      blocks.push({ kind: 'condition', count: node.count, whenTrue: branch.then[0].action, whenFalse: branch.otherwise[0].action });
+    } else return [];
   }
-  if (steps.length > MAX_ACTIONS) {
-    return { error: `Ein Plan darf höchstens ${MAX_ACTIONS} Schritte enthalten.` };
-  }
-  return { actor, steps, blocks };
+  return blocks;
+}
+
+export function blocksToNodes(blocks: readonly ProgramBlock[]): ProgramNode[] {
+  return blocks.map((block) => ({ kind: 'repeat', count: block.count, body: block.kind === 'action' ? [{ kind: 'action', action: block.action }] : [{ kind: 'if', then: [{ kind: 'action', action: block.whenTrue }], otherwise: [{ kind: 'action', action: block.whenFalse }] }] }));
+}
+
+export function nodesToSource(nodes: readonly ProgramNode[], actor: ArkanId, indent = ''): string {
+  return nodes.map((node) => {
+    if (node.kind === 'action') return `${indent}${actor}.${node.action === 'ATTACK' ? 'attack' : 'moveForward'}();`;
+    if (node.kind === 'repeat') return `${indent}repeat(${node.count}, () => {\n${nodesToSource(node.body, actor, indent + '  ')}\n${indent}});`;
+    return `${indent}if (${actor}.enemyAdjacent) {\n${nodesToSource(node.then, actor, indent + '  ')}\n${indent}}${node.otherwise.length ? ` else {\n${nodesToSource(node.otherwise, actor, indent + '  ')}\n${indent}}` : ''}`;
+  }).join('\n');
 }
 
 export function blocksToSource(blocks: readonly ProgramBlock[], actor: ArkanId = 'moosling'): string {
-  return blocks.map((block) => {
-    if (block.kind === 'action') return `repeat(${block.count}, () => {\n  moosling.${toCommand(block.action)}();\n});`;
-    return `repeat(${block.count}, () => {\n  if (moosling.enemyAdjacent) {\n    moosling.${toCommand(block.whenTrue)}();\n  } else {\n    moosling.${toCommand(block.whenFalse)}();\n  }\n});`;
-  }).join('\n\n').replace(/moosling\./g, `${actor}.`);
+  return blocksToNodes(blocks).map((node) => nodesToSource([node], actor)).join('\n\n');
 }
 
-export const DEFAULT_PROGRAM = `repeat(3, () => {
-  moosling.moveForward();
-});
-
-repeat(3, () => {
-  moosling.attack();
-});`;
-
-export const CONDITION_PROGRAM = `repeat(6, () => {
-  if (moosling.enemyAdjacent) {
-    moosling.attack();
-  } else {
-    moosling.moveForward();
-  }
-});`;
-
-export const FORMATION_PROGRAM = `repeat(4, () => {
-  moosling.moveForward();
-});
-
-repeat(3, () => {
-  moosling.attack();
-});`;
-
-function toAction(command: string): CombatAction {
-  return command === 'moveForward' ? 'MOVE_TOWARD' : 'ATTACK';
-}
-
-function toCommand(action: CombatAction): 'moveForward' | 'attack' {
-  return action === 'MOVE_TOWARD' ? 'moveForward' : 'attack';
-}
+export const DEFAULT_PROGRAM = blocksToSource([{ kind: 'action', count: 3, action: 'MOVE_TOWARD' }, { kind: 'action', count: 3, action: 'ATTACK' }]);
+export const CONDITION_PROGRAM = blocksToSource([{ kind: 'condition', count: 6, whenTrue: 'ATTACK', whenFalse: 'MOVE_TOWARD' }]);
+export const FORMATION_PROGRAM = blocksToSource([{ kind: 'action', count: 4, action: 'MOVE_TOWARD' }, { kind: 'action', count: 3, action: 'ATTACK' }]);

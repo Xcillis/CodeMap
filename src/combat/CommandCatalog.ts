@@ -1,5 +1,5 @@
-import type { ArkanId, ProgramBlock } from './types';
-import { blocksToSource } from './DecisionProgram';
+import type { ArkanId, ProgramBlock, ProgramNode } from './types';
+import { blocksToNodes, blocksToSource } from './DecisionProgram';
 
 export type SkillId = 'moveForward' | 'attack' | 'enemyAdjacent' | 'repeat';
 export type CommandCategory = 'movement' | 'combat' | 'senses' | 'flow';
@@ -57,15 +57,21 @@ export function availableCommands(actor: ArkanId, mission: number, learned = lea
 }
 
 export function programCapabilityError(blocks: readonly ProgramBlock[], actor: ArkanId, mission: number): string | undefined {
-  if (blocks.length === 0) return;
+  return nodesCapabilityError(blocksToNodes(blocks), actor, mission);
+}
+
+export function nodesCapabilityError(nodes: readonly ProgramNode[], actor: ArkanId, mission: number): string | undefined {
   const supported = ARKAN_SKILLS[actor].supported;
   const learned = learnedSkills(actor, mission);
-  const required = new Set<SkillId>(['repeat']);
-  for (const block of blocks) {
-    if (block.kind === 'condition') required.add('enemyAdjacent');
-    const actions = block.kind === 'action' ? [block.action] : [block.whenTrue, block.whenFalse];
-    for (const action of actions) required.add(action === 'ATTACK' ? 'attack' : 'moveForward');
-  }
+  const required = new Set<SkillId>();
+  const visit = (list: readonly ProgramNode[]): void => {
+    for (const node of list) {
+      if (node.kind === 'action') required.add(node.action === 'ATTACK' ? 'attack' : 'moveForward');
+      else if (node.kind === 'repeat') { required.add('repeat'); visit(node.body); }
+      else { required.add('enemyAdjacent'); visit(node.then); visit(node.otherwise); }
+    }
+  };
+  visit(nodes);
   for (const skill of required) {
     if (!supported.includes(skill) || !learned.includes(skill)) return `${actor} hat „${skill}“ in dieser Mission noch nicht gelernt.`;
   }

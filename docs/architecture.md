@@ -54,6 +54,14 @@ Die Bibliothek zeigt nur vollständig verfügbare Vorlagen und blendet leere Kat
 
 Leere Programme sind gültige Entwürfe und werden als leere Block- und Schrittliste serialisiert. Der letzte Block darf entfernt werden. Ein leeres Arkan-Programm wartet während der Ausführung anderer Programme; bei vollständig leeren Programmen beginnt kein Tick. Speichern und Moduswechsel erhalten den leeren Zustand.
 
+## ADR 010 – Eingerastete Blockly-Programme und rekursive Programmstruktur
+
+Blockly ersetzt die flache Eigenentwicklung des Blockeditors. Der Zelos-Renderer liefert zusammensteckbare Anweisungen und C-förmige Schleifen-/Bedingungsblöcke. Die Palette wird weiterhin nach den gelernten Fähigkeiten des ausgewählten Arkanen gefiltert. Diese Abhängigkeit übernimmt die Verbindungs-, Touch-, Undo- und Verschachtelungsinteraktionen; eine Eigenimplementierung würde diese erheblich verkomplizieren.
+
+Die gemeinsame `ProgramNode`-Struktur enthält Aktionen, Wiederholungen mit einer Anweisungsliste und Bedingungen mit zwei Listen. Ein begrenzter rekursiver Parser liest dieselbe Struktur aus Text. Der Interpreter führt pro Tick eine Aktion aus und entscheidet Bedingungen erst beim Eintritt in ihren Zweig. Ausgewählte Zweige laufen anschließend weiter. Grenzen für Programmgröße, Verschachtelung, mögliche Aktionen und Kontrollschritte verhindern unbeschränkte Ausführung; es wird kein Nutzercode evaluiert.
+
+Nur der am Startblock eingerastete Ablauf ist ausführbar. Lose Blöcke und ihre Positionen bleiben im Blockly-JSON pro Mission/Arkan gespeichert; vor Ausführung oder Textwechsel verlangt die UI Verbinden oder Löschen. Das verhindert stillen Datenverlust. Blockly-Medien werden lokal aus dem npm-Paket von Vite ausgeliefert und als Assets gebaut; die Browseranwendung lädt keine Blockly-Dateien von externen Diensten. Der bisherige `ProgramDrag` unterstützt nur noch die Textbibliothek.
+
 ## Noch nicht enthalten
 
-Dreier-Formation, vollständiges Blockly, freie JavaScript-Runtime, Online-Speicherung, Login, Backend, NOVA und Kompetenzengine bleiben spätere Erweiterungen. Frühere ADRs beschreiben die Entwicklungsschritte; ADR 008 und ADR 009 beschreiben den aktuellen Ausführungsstand.
+Dreier-Formation, Variablen und Funktionen in der Programmiersprache, freie JavaScript-Runtime, Online-Speicherung, Login, Backend, NOVA und Kompetenzengine bleiben spätere Erweiterungen. Frühere ADRs beschreiben die Entwicklungsschritte; ADR 010 ergänzt den aktuellen Stand von Editor und Programmiersprache.

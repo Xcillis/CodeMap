@@ -21,22 +21,25 @@ export class BattleEngine {
     return this.runTick({ moosling: { kind: 'action', action: playerAction } }, enemyActive);
   }
 
-  runTick(programs: Partial<Record<ArkanId, ProgramStep>>, enemyActive = false): Readonly<BattleState> {
+  runTick(programs: Partial<Record<ArkanId, ProgramStep | ((adjacent: boolean) => ProgramStep | undefined)>>, enemyActive = false): Readonly<BattleState> {
     if (this.state.outcome !== 'ongoing') return this.snapshot;
-    this.state.tick += 1;
+    let acted = false;
     for (const actor of [this.state.player, this.state.companion]) {
       if (!actor || actor.hp === 0 || this.state.outcome !== 'ongoing') continue;
-      const step = programs[actor.id as ArkanId];
+      const entry = programs[actor.id as ArkanId];
+      const step = typeof entry === 'function' ? entry(this.areAdjacent(actor, this.state.enemy)) : entry;
       if (!step) {
         this.addLog(`${actor.name}: Programm beendet, wartet.`);
         continue;
       }
+      if (!acted) this.state.tick += 1;
+      acted = true;
       const adjacent = this.areAdjacent(actor, this.state.enemy);
       const action = step.kind === 'action' ? step.action : adjacent ? step.whenTrue : step.whenFalse;
       this.addLog(`${actor.id}.${action === 'ATTACK' ? 'attack()' : 'moveForward()'}${step.kind === 'condition' ? ` – enemyAdjacent = ${adjacent}` : ''}`);
       this.act(actor, this.state.enemy, action);
     }
-    if (enemyActive && this.state.outcome === 'ongoing') {
+    if (acted && enemyActive && this.state.outcome === 'ongoing') {
       const enemyAction = this.areAdjacent(this.state.enemy, this.state.player) ? 'ATTACK' : 'MOVE_TOWARD';
       this.act(this.state.enemy, this.state.player, enemyAction);
     }

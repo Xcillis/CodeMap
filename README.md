@@ -9,8 +9,9 @@ Die Trainingsmissionen beginnen mit Moosling. Nach Schleifen und Bedingungen fol
 - Auch ein leeres Programm ist erlaubt: Alle Blöcke lassen sich entfernen. Ein Arkan ohne Befehle wartet, während andere Programme weiterlaufen. Sind alle Programme leer, erscheint ein Hinweis und es wird kein Spielschritt ausgeführt.
 - Die Bibliothek ist in Bewegung, Kampf, Wahrnehmung und Ablauf gegliedert. Es erscheinen nur Kategorien mit verfügbaren Befehlen für den gewählten Arkan; das gilt im Block- und Textmodus.
 - Die aktuellen Trainingsdaten schalten für Moosling ab Mission 2 die Nähe-Abfrage frei. Glutling startet ab Mission 3 mit Bewegung, Angriff und Wiederholung. Nicht gelernte Befehle werden auch bei manueller Texteingabe vor der Ausführung abgelehnt.
-- Die Bibliothek links zeigt verfügbare Befehle; ein Klick fügt sie zum getrennten Programmbereich rechts hinzu. Beide Bereiche scrollen unabhängig und sind in Block- und Textmodus verfügbar.
-- Ziehe Bibliotheksbefehle per Maus oder Touch an die gewünschte Stelle im Blockprogramm. Die Einfügemarkierung zeigt die Position; am Griff ⠿ lassen sich vorhandene Wiederholungs- und Bedingungsblöcke umsortieren. Der fokussierte Griff reagiert auch auf Pfeil hoch/runter. Escape oder Ablegen außerhalb bricht ab.
+- Der Blockmodus verwendet Blockly mit zusammensteckbaren Blöcken. Wähle eine Kategorie, ziehe einen Block aus der Palette und raste ihn unter „Wenn Programm ausgeführt wird“ ein.
+- Schleifen und Bedingungen haben innere Anschlüsse: Dort lassen sich mehrere Aktionen und weitere Schleifen oder Bedingungen einrasten. Über Entf, Kontextmenü oder Papierkorb werden Blöcke entfernt. Ein neuer Startblock ist unter „Ablauf“ verfügbar.
+- Lose Blöcke bleiben pro Arkan und Mission als Entwurf gespeichert. Vor der Ausführung oder dem Wechsel zum Textmodus müssen sie verbunden oder gelöscht werden; der Textmodus zeigt genau den verbundenen Ablauf.
 - Im Textmodus fügt ein Drop in den Programmbereich den Codebaustein an der zuvor gesetzten Textcursorposition ein. Bestehender Text wird dabei erhalten, abgesehen von einer ausdrücklich markierten Auswahl.
 - Wähle einen Arkan über seinen Button im Editor oder direkt auf dem Spielfeld. Glutling erscheint erst in Mission 3.
 - Block- und Textmodus bearbeiten das Programm des ausgewählten Arkanen. Entwürfe werden pro Mission und Arkan im Browser gespeichert, auch unvollständiger Text.
@@ -35,3 +36,5 @@ Danach die von Vite ausgegebene lokale Adresse im Browser öffnen (in der Regel 
 - Auf Tablets: Steuerkreuz und Taste **REDEN** am unteren Bildschirmrand
 
 Sprich mit Arkanist Eldren, um die Quest abzuschließen. Mit `npm test` laufen die Unit-Tests, mit `npm run build` erfolgt der Produktionsbuild.
+
+Blockly ist als lokale npm-Abhängigkeit eingebunden. Seine Mediendateien werden von Vite lokal bereitgestellt und in den Produktionsbuild übernommen; ein CDN ist nicht erforderlich. Als Entwurfsgrenzen gelten 1–6 Wiederholungen pro Schleife, zwölf Aktionen im längsten möglichen Ablauf, acht Verschachtelungsebenen und 150 Blöcke im Editor.

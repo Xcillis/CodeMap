@@ -7,10 +7,11 @@ interface StoredProgress {
   questCompleted: boolean;
   lastProgram: string;
   programs: Record<string, string>;
+  blockWorkspaces: Record<string, string>;
   editorMode: 'blocks' | 'text';
 }
 
-const fallbackProgress: StoredProgress = { programVersion: 3, questCompleted: false, lastProgram: DEFAULT_PROGRAM, programs: {}, editorMode: 'blocks' };
+const fallbackProgress: StoredProgress = { programVersion: 3, questCompleted: false, lastProgram: DEFAULT_PROGRAM, programs: {}, blockWorkspaces: {}, editorMode: 'blocks' };
 
 export function loadProgress(): StoredProgress {
   if (typeof window === 'undefined') return fallbackProgress;
@@ -24,6 +25,7 @@ export function loadProgress(): StoredProgress {
       questCompleted: parsed.questCompleted === true,
       lastProgram: typeof parsed.lastProgram === 'string' ? parsed.lastProgram : DEFAULT_PROGRAM,
       programs: Object.fromEntries(Object.entries(parsed.programs && typeof parsed.programs === 'object' ? parsed.programs : (typeof parsed.lastProgram === 'string' ? { '1:moosling': parsed.lastProgram } : {})).filter((entry) => typeof entry[1] === 'string')),
+      blockWorkspaces: Object.fromEntries(Object.entries(parsed.blockWorkspaces && typeof parsed.blockWorkspaces === 'object' ? parsed.blockWorkspaces : {}).filter((entry) => typeof entry[1] === 'string')),
       editorMode: parsed.editorMode === 'text' ? 'text' : 'blocks',
     };
   } catch {

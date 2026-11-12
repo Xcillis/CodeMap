@@ -28,6 +28,15 @@ button { font: inherit; touch-action: none; }
 .program-workspace { display: flex; flex-direction: column; min-width: 0; min-height: 0; background-color: #193238; background-image: radial-gradient(#41605d 1px, transparent 1px); background-size: 18px 18px; }
 .program-toolbar { flex: none; padding: .75rem; border-bottom: 1px solid #527c79; background: #152c30; }
 .program-toolbar .editor-mode { margin: .5rem 0 0; flex-wrap: wrap; }
+.editor-columns.snap-mode { grid-template-columns: minmax(0, 1fr); }
+.snap-mode .library-shell { display: none; }
+.snap-mode .program-scroll { padding: 0; overflow: hidden; display: flex; flex-direction: column; }
+.snap-mode #block-editor { flex: 1; min-height: 0; padding: 0; border: 0; display: flex; flex-direction: column; }
+.snap-mode .block-intro { padding: .4rem .65rem; margin: 0; background: #213d40; }
+.snap-mode #program-help { padding: .4rem .65rem; margin: 0; }
+#snap-editor { position: relative; flex: 1; min-height: 8rem; width: 100%; }
+.blocklyToolboxDiv { font-family: inherit; }
+.blocklyWidgetDiv, .blocklyDropDownDiv, .blocklyTooltipDiv { z-index: 1000 !important; }
 .program-scroll { flex: 1; min-height: 0; overflow: auto; overscroll-behavior: contain; padding: .75rem; scrollbar-gutter: stable; }
 .battle-footer { flex: none; max-height: 38%; overflow: auto; padding-top: .5rem; }
 .battle-log-panel summary { cursor: pointer; padding: .5rem 0; color: #c5ddd4; font-size: .85rem; }

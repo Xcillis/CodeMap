@@ -27,7 +27,7 @@
             <button id="select-moosling" type="button" aria-pressed="true">Moosling</button>
             <button id="select-glutling" type="button" aria-pressed="false" hidden>Glutling</button>
           </div>
-          <div class="editor-columns">
+          <div class="editor-columns" id="editor-columns">
           <div class="library-shell">
           <nav id="command-categories" class="command-categories" aria-label="Befehlskategorien"></nav>
           <section class="command-library" aria-labelledby="command-library-title">
@@ -49,9 +49,8 @@
             </header>
           <div class="program-scroll" id="program-drop-area">
           <div id="block-editor" aria-label="Blockeditor">
-            <p class="block-intro">Befehle hierher ziehen. Blöcke am Griff ⠿ umsortieren – auch mit den Pfeiltasten.</p>
-            <div id="loop-blocks"></div>
-            <button id="add-loop-block" type="button">+ Wiederholungsblock</button>
+            <p class="block-intro">Blöcke am Startblock einrasten oder in „wiederhole“ und „falls“ hineinziehen. Entfernen mit Entf oder Papierkorb.</p>
+            <div id="snap-editor" aria-label="Zusammensteckbare Arkan-Blöcke"></div>
           </div>
           <textarea id="program-source" spellcheck="false" aria-describedby="program-help" hidden></textarea>
           <p id="program-help">Befehle gehören immer zu einem Arkan, z. B. <code>moosling.moveForward()</code> oder <code>moosling.attack()</code>. Der Plan darf höchstens zwölf Schritte haben.</p>
