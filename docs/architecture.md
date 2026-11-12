@@ -30,9 +30,9 @@ Ein Wiederholungsblock enthält entweder eine direkte Aktion oder eine bedingte 
 
 ## ADR 007 – Gestufte Arkan-Formationen
 
-Einstiegsmissionen verwenden weiterhin einen aktiven Arkan. Aufbau-Missionen erlauben zwei und fortgeschrittene Missionen bis zu drei aktive Arkane. Der Kampfzustand wird dafür von einem einzelnen Akteur zu einer geordneten Verbündeten-Formation erweitert. Ein gemeinsames Programm steuert die Formation zunächst in stabiler Reihenfolge; spätere Lernziele können darüber Iteration über `state.allies`, Rollen und Prioritäten einführen. Die Detailvorgaben stehen in `docs/design-decisions.md`.
+Einstiegsmissionen verwenden weiterhin einen aktiven Arkan. Aufbau-Missionen erlauben zwei und fortgeschrittene Missionen bis zu drei aktive Arkane. Der Kampfzustand wird dafür von einem einzelnen Akteur zu einer geordneten Verbündeten-Formation erweitert. Jeder Arkan besitzt ein eigenes Programm; die Engine kombiniert deren nächste Aktionen in stabiler Reihenfolge. Spätere Lernziele können darüber Iteration über `state.allies`, Rollen und Prioritäten einführen. Die Detailvorgaben stehen in `docs/design-decisions.md`.
 
-Die erste Umsetzung der Duo-Formation ist Mission 3: Moosling und Glutling führen denselben Plan nacheinander aus, bevor der Gegner handeln würde. Das System führt den optionalen Begleiter bereits als eigenen Kampfzustand, damit individuelle Rollen und eine `state.allies`-API später ohne erneuten Szenenumbau ergänzt werden können.
+Die erste Umsetzung der Duo-Formation ist Mission 3. Das System führt den optionalen Begleiter bereits als eigenen Kampfzustand, damit individuelle Programme, Rollen und eine `state.allies`-API ohne erneuten Szenenumbau ergänzt werden können.
 
 ## Bewusst nicht enthalten
 

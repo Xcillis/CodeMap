@@ -12,6 +12,8 @@ Die frühere Vorgabe aus dem GDD, dass in jedem Kampf genau ein Arkan aktiv ist,
 | Aufbau | 2 | Rollen, Abstand, Prioritäten und gemeinsame Entscheidungen |
 | Fortgeschritten | bis 3 | Iteration über Verbündete, Koordination und Tests mehrerer Zustände |
 
-Die Formation wird zunächst durch ein gemeinsames, deterministisch ausgeführtes Programm gesteuert. Dadurch entsteht keine unübersichtliche Sammlung unabhängiger Programme. Jede Aktion besitzt eine feste, dokumentierte Reihenfolge; Kollisionen, Ziele und Effekte bleiben reproduzierbar.
+Jeder aktive Arkan besitzt ein eigenes, deterministisch ausgeführtes Programm. Die Kampfengine führt diese Programme pro Spielschritt in einer festen Reihenfolge zusammen; Kollisionen, Ziele und Effekte bleiben reproduzierbar. Die Programmbibliothek ordnet jedes Programm eindeutig seinem Arkan zu.
+
+Im eigenen Editor wird ein Programm im Kontext seines Arkanen geschrieben, beispielsweise `moveUp()` oder `attack()`. In Ausführungstrace und Gesamtansicht erscheinen die Schritte eindeutig qualifiziert, etwa `glutling.moveUp()` oder `moosling.attack()`. So bleibt der Code kurz, während Mehr-Arkan-Aufgaben trotzdem klar zuordenbar sind.
 
 Die bestehenden Trainingsmissionen mit Moosling bleiben Einstiegsmissionen mit genau einem aktiven Arkan. Die Duo-Formation wird als eigene Folgemission entwickelt und erst nach Schleifen und Bedingungen freigeschaltet.
