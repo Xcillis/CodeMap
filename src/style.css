@@ -29,6 +29,7 @@ button { font: inherit; touch-action: none; }
 .loop-block select { min-height: 2rem; padding: .15rem; color: #f6f0d8; border: 1px solid #8aaea0; border-radius: .2rem; background: #102b2e; }
 .loop-block button:disabled { opacity: .5; cursor: not-allowed; }
 #program-help, #battle-feedback { margin: .5rem 0; font-size: .82rem; line-height: 1.35; color: #c4ded7; }
+.editor-tooltip { margin: .55rem 0; padding: .55rem .65rem; color: #fff3c4; border-left: 3px solid #e1bb54; border-radius: .2rem; background: #253f3d; font-size: .82rem; line-height: 1.4; }
 #battle-feedback { min-height: 1.2rem; color: #f1d779; font-weight: 700; }
 .battle-status { display: grid; gap: .5rem; margin: .8rem 0; padding: .65rem; border: 1px solid #416b68; border-radius: .3rem; background: #132b2d; }
 .battle-status p, .battle-status label { margin: 0; font-size: .85rem; }

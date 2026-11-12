@@ -16,6 +16,7 @@ export class GameUi {
   private readonly touchControls = this.requiredElement<HTMLElement>('touch-controls');
   private readonly battlePanel = this.requiredElement<HTMLElement>('battle-panel');
   private readonly programSource = this.requiredElement<HTMLTextAreaElement>('program-source');
+  private readonly editorTooltip = this.requiredElement<HTMLParagraphElement>('editor-tooltip');
   private readonly blockEditor = this.requiredElement<HTMLElement>('block-editor');
   private readonly loopBlocks = this.requiredElement<HTMLElement>('loop-blocks');
   private readonly blocksModeButton = this.requiredElement<HTMLButtonElement>('blocks-mode');
@@ -58,6 +59,13 @@ export class GameUi {
       this.blockModel.push({ count: 1, action: 'MOVE_TOWARD' });
       this.syncBlocksToSource();
     });
+    this.attachTooltip(this.blocksModeButton, () => 'Baue den Ablauf aus Wiederholungsblöcken. Die Blöcke werden in denselben Aktionsplan wie der Textmodus übersetzt.');
+    this.attachTooltip(this.textModeButton, () => 'Bearbeite den gleichen Aktionsplan als begrenzten JavaScript-ähnlichen Text. Freier Browser-Code wird nicht ausgeführt.');
+    this.attachTooltip(this.requiredElement<HTMLButtonElement>('battle-step'), () => 'Führt nur die nächste Aktion des Plans aus. So kannst du jede Wiederholung beobachten.');
+    this.attachTooltip(this.requiredElement<HTMLButtonElement>('battle-run-program'), () => 'Setzt die Arena zurück und führt den gesamten Aktionsplan vom Anfang bis zum Ende aus.');
+    this.attachTooltip(this.requiredElement<HTMLButtonElement>('battle-restart'), () => 'Setzt Positionen, Lebenspunkte und die bisher ausgeführten Schritte zurück. Dein Programm bleibt erhalten.');
+    this.attachTooltip(this.requiredElement<HTMLButtonElement>('battle-exit'), () => 'Kehrt ohne Datenverlust zur Erkundung zurück.');
+    this.attachTooltip(this.requiredElement<HTMLButtonElement>('add-loop-block'), () => 'Fügt eine weitere Wiederholung an das Ende des Aktionsplans an.');
     document.querySelectorAll<HTMLButtonElement>('[data-direction]').forEach((button) => this.bindDirection(button));
   }
 
@@ -160,16 +168,21 @@ export class GameUi {
     count.addEventListener('change', () => {
       this.blockModel[index].count = Number(count.value);
       this.syncBlocksToSource();
+      this.showTooltip(`Diese Schleife führt ihre Aktion ${count.value} Mal aus.`);
     });
     action.addEventListener('change', () => {
       this.blockModel[index].action = action.value as CombatAction;
       this.syncBlocksToSource();
+      this.showTooltip(this.actionHelp(action.value as CombatAction));
     });
     remove.addEventListener('click', () => {
       this.blockModel.splice(index, 1);
       this.syncBlocksToSource();
     });
     row.append(prefix, count, times, action, remove);
+    this.attachTooltip(count, () => 'Bestimmt, wie oft die Aktion in diesem Block wiederholt wird. Erlaubt sind 1 bis 6 Wiederholungen.');
+    this.attachTooltip(action, () => this.actionHelp(action.value as CombatAction));
+    this.attachTooltip(remove, () => 'Entfernt diesen Wiederholungsblock aus dem Aktionsplan.');
     return row;
   }
 
@@ -189,6 +202,29 @@ export class GameUi {
 
   private getProgramSource(): string {
     return this.editorMode === 'blocks' ? blocksToSource(this.blockModel) : this.programSource.value;
+  }
+
+  private actionHelp(action: CombatAction): string {
+    return action === 'MOVE_TOWARD'
+      ? 'Zum Konstrukt gehen: Moosling bewegt sich ein Feld in Richtung des Konstrukts. Wiederhole diese Aktion, um die Distanz zu verringern.'
+      : 'Angreifen: Moosling verursacht ein Schadenspunkt, wenn er neben dem Konstrukt steht. Außerhalb der Reichweite hat der Angriff keine Wirkung.';
+  }
+
+  private attachTooltip(element: HTMLElement, getMessage: () => string): void {
+    element.title = getMessage();
+    element.addEventListener('mouseenter', () => this.showTooltip(getMessage()));
+    element.addEventListener('focus', () => this.showTooltip(getMessage()));
+    element.addEventListener('mouseleave', () => this.hideTooltip());
+    element.addEventListener('blur', () => this.hideTooltip());
+  }
+
+  private showTooltip(message: string): void {
+    this.editorTooltip.textContent = message;
+    this.editorTooltip.hidden = false;
+  }
+
+  private hideTooltip(): void {
+    this.editorTooltip.hidden = true;
   }
 
   private setExplorationUiVisible(visible: boolean): void {
