@@ -17,25 +17,21 @@ export class BattleEngine {
     this.state = this.initialState();
   }
 
-  runRound(playerAction: CombatAction): Readonly<BattleState> {
+  runStep(playerAction: CombatAction): Readonly<BattleState> {
     if (this.state.outcome !== 'ongoing') return this.snapshot;
 
-    this.state.round += 1;
+    this.state.tick += 1;
     this.act(this.state.player, this.state.enemy, playerAction);
-    if (this.state.outcome === 'ongoing') {
-      const enemyAction = this.areAdjacent(this.state.enemy, this.state.player) ? 'ATTACK' : 'MOVE_TOWARD';
-      this.act(this.state.enemy, this.state.player, enemyAction);
-    }
     return this.snapshot;
   }
 
   private initialState(): BattleState {
     return {
-      round: 0,
+      tick: 0,
       outcome: 'ongoing',
       player: { id: 'moosling', name: 'Moosling', hp: 5, maxHp: 5, x: 1, y: 3, guarding: false },
       enemy: { id: 'konstrukt', name: 'Übungskonstrukt', hp: 3, maxHp: 3, x: 5, y: 3, guarding: false },
-      log: ['Trainingsarena bereit. Moosling beginnt.'],
+      log: ['Trainingsarena bereit. Das Konstrukt beobachtet deinen Aktionsplan.'],
     };
   }
 
@@ -45,15 +41,8 @@ export class BattleEngine {
       case 'ATTACK':
         this.attack(actor, target);
         break;
-      case 'DEFEND':
-        actor.guarding = true;
-        this.addLog(`${actor.name} schützt sich.`);
-        break;
       case 'MOVE_TOWARD':
         this.moveToward(actor, target);
-        break;
-      case 'WAIT':
-        this.addLog(`${actor.name} wartet.`);
         break;
     }
   }

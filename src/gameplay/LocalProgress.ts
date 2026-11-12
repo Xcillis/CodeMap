@@ -3,11 +3,12 @@ import { DEFAULT_PROGRAM } from '../combat/DecisionProgram';
 const STORAGE_KEY = 'codemap-m2-progress';
 
 interface StoredProgress {
+  programVersion: 2;
   questCompleted: boolean;
   lastProgram: string;
 }
 
-const fallbackProgress: StoredProgress = { questCompleted: false, lastProgram: DEFAULT_PROGRAM };
+const fallbackProgress: StoredProgress = { programVersion: 2, questCompleted: false, lastProgram: DEFAULT_PROGRAM };
 
 export function loadProgress(): StoredProgress {
   if (typeof window === 'undefined') return fallbackProgress;
@@ -15,7 +16,9 @@ export function loadProgress(): StoredProgress {
     const value = window.localStorage.getItem(STORAGE_KEY);
     if (!value) return fallbackProgress;
     const parsed = JSON.parse(value) as Partial<StoredProgress>;
+    if (parsed.programVersion !== 2) return fallbackProgress;
     return {
+      programVersion: 2,
       questCompleted: parsed.questCompleted === true,
       lastProgram: typeof parsed.lastProgram === 'string' ? parsed.lastProgram : DEFAULT_PROGRAM,
     };
@@ -26,5 +29,5 @@ export function loadProgress(): StoredProgress {
 
 export function saveProgress(update: Partial<StoredProgress>): void {
   if (typeof window === 'undefined') return;
-  window.localStorage.setItem(STORAGE_KEY, JSON.stringify({ ...loadProgress(), ...update }));
+  window.localStorage.setItem(STORAGE_KEY, JSON.stringify({ ...loadProgress(), ...update, programVersion: 2 }));
 }

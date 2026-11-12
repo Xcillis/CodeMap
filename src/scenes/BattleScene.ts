@@ -1,6 +1,7 @@
 import Phaser from 'phaser';
 import { BattleEngine } from '../combat/BattleEngine';
-import { DEFAULT_PROGRAM, chooseAction } from '../combat/DecisionProgram';
+import { DEFAULT_PROGRAM, compileActionPlan } from '../combat/DecisionProgram';
+import type { CombatAction } from '../combat/types';
 import type { BattleState, Combatant } from '../combat/types';
 import { gameEvents } from '../game/events';
 
@@ -12,6 +13,9 @@ export class BattleScene extends Phaser.Scene {
   private readonly battle = new BattleEngine();
   private grid!: Phaser.GameObjects.Graphics;
   private actors!: Phaser.GameObjects.Container;
+  private activeSource = '';
+  private actionPlan: CombatAction[] = [];
+  private nextActionIndex = 0;
   private readonly onStep = (source: string) => this.step(source);
   private readonly onRestart = () => this.restart();
   private readonly onExit = () => this.exit();
@@ -24,31 +28,46 @@ export class BattleScene extends Phaser.Scene {
     this.cameras.main.setBackgroundColor('#142c35');
     this.grid = this.add.graphics();
     this.actors = this.add.container();
-    this.add.text(GRID_START_X, 52, 'Trainingsarena: Der erste Arkan', { fontFamily: 'Georgia, serif', fontSize: '30px', color: '#fff0bd' });
-    this.add.text(GRID_START_X, 88, 'Moosling gegen ein Übungskonstrukt', { fontSize: '16px', color: '#b8d8cf' });
+    this.add.text(GRID_START_X, 52, 'Trainingsarena: Die erste Schleife', { fontFamily: 'Georgia, serif', fontSize: '30px', color: '#fff0bd' });
+    this.add.text(GRID_START_X, 88, 'Moosling folgt deinem Aktionsplan. Das Konstrukt bleibt zunächst passiv.', { fontSize: '16px', color: '#b8d8cf' });
     gameEvents.on('battle-step', this.onStep);
     gameEvents.on('battle-restart', this.onRestart);
     gameEvents.on('battle-exit', this.onExit);
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => this.removeListeners());
     this.render(this.battle.snapshot);
     gameEvents.emit('battle-opened', DEFAULT_PROGRAM);
-    gameEvents.emit('battle-updated', this.battle.snapshot, 'Setze zuerst MOVE_TOWARD ein, bis Moosling neben dem Konstrukt steht.');
+    gameEvents.emit('battle-updated', this.battle.snapshot, 'Führe die Schleife Schritt für Schritt aus und beobachte die Wiederholung.');
   }
 
   private step(source: string): void {
-    const program = chooseAction(source, this.battle.snapshot);
-    if (!program.action) {
-      gameEvents.emit('battle-updated', this.battle.snapshot, program.error);
+    if (source !== this.activeSource) {
+      const compiled = compileActionPlan(source);
+      if (!compiled.actions) {
+        gameEvents.emit('battle-updated', this.battle.snapshot, compiled.error);
+        return;
+      }
+      this.activeSource = source;
+      this.actionPlan = compiled.actions;
+      this.nextActionIndex = 0;
+    }
+    const action = this.actionPlan[this.nextActionIndex];
+    if (!action) {
+      gameEvents.emit('battle-updated', this.battle.snapshot, 'Aktionsplan beendet. Ergänze den Plan oder starte neu.');
       return;
     }
-    const state = this.battle.runRound(program.action);
+    this.nextActionIndex += 1;
+    const state = this.battle.runStep(action);
     this.render(state);
-    const feedback = state.outcome === 'victory' ? 'Sieg! Die Bedingung hat Moosling zum richtigen Zeitpunkt angreifen lassen.' : state.outcome === 'defeat' ? 'Niederlage – starte direkt neu.' : `Ausgeführt: ${program.action}`;
+    const readableAction = action === 'MOVE_TOWARD' ? 'moveToward()' : 'attack()';
+    const feedback = state.outcome === 'victory' ? 'Sieg! Dein Schleifenplan hat Moosling sicher zum Ziel geführt.' : `Schritt ${this.nextActionIndex}/${this.actionPlan.length}: ${readableAction}`;
     gameEvents.emit('battle-updated', state, feedback);
   }
 
   private restart(): void {
     this.battle.reset();
+    this.activeSource = '';
+    this.actionPlan = [];
+    this.nextActionIndex = 0;
     this.render(this.battle.snapshot);
     gameEvents.emit('battle-updated', this.battle.snapshot, 'Arena zurückgesetzt.');
   }

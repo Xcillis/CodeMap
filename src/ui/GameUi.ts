@@ -71,7 +71,7 @@ export class GameUi {
 
   private updateBattle(state: BattleState, feedback: string): void {
     this.battleFeedback.textContent = feedback;
-    this.battleRound.textContent = String(state.round);
+    this.battleRound.textContent = String(state.tick);
     this.updateHealth(this.playerHealth, this.playerHealthText, state.player.hp, state.player.maxHp);
     this.updateHealth(this.enemyHealth, this.enemyHealthText, state.enemy.hp, state.enemy.maxHp);
     this.requiredElement<HTMLButtonElement>('battle-step').disabled = state.outcome !== 'ongoing';

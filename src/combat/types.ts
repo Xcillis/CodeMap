@@ -1,4 +1,4 @@
-export type CombatAction = 'ATTACK' | 'DEFEND' | 'MOVE_TOWARD' | 'WAIT';
+export type CombatAction = 'ATTACK' | 'MOVE_TOWARD';
 export type BattleOutcome = 'ongoing' | 'victory' | 'defeat';
 
 export interface GridPosition {
@@ -15,14 +15,14 @@ export interface Combatant extends GridPosition {
 }
 
 export interface BattleState {
-  round: number;
+  tick: number;
   outcome: BattleOutcome;
   player: Combatant;
   enemy: Combatant;
   log: string[];
 }
 
-export interface ProgramResult {
-  action?: CombatAction;
+export interface ActionPlanResult {
+  actions?: CombatAction[];
   error?: string;
 }

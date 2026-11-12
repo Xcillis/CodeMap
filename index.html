@@ -22,18 +22,18 @@
       </section>
       <section id="battle-panel" aria-labelledby="battle-title" hidden>
         <div class="battle-card">
-          <p class="eyebrow" id="battle-title">RUNENSKRIPT – SICHERE TEILMENGE</p>
+          <p class="eyebrow" id="battle-title">RUNENSKRIPT – DIE ERSTE SCHLEIFE</p>
           <label for="program-source">Entscheidung von Moosling</label>
           <textarea id="program-source" spellcheck="false" aria-describedby="program-help"></textarea>
-          <p id="program-help"><code>state.enemyAdjacent</code> ist wahr, wenn Moosling neben dem Konstrukt steht. Erlaubte Aktionen: ATTACK, DEFEND, MOVE_TOWARD oder WAIT.</p>
+          <p id="program-help">Wiederhole <code>moveToward()</code> oder <code>attack()</code> mit <code>repeat(1–6, ...)</code>. Der Plan darf höchstens zwölf Schritte haben.</p>
           <div class="battle-status" aria-label="Kampfstatus">
-            <p>Runde <strong id="battle-round">0</strong></p>
+            <p>Schritt <strong id="battle-round">0</strong></p>
             <label for="player-health">Moosling <span id="player-health-text">5/5</span><progress id="player-health" max="5" value="5">5 von 5</progress></label>
             <label for="enemy-health">Konstrukt <span id="enemy-health-text">3/3</span><progress id="enemy-health" max="3" value="3">3 von 3</progress></label>
           </div>
           <p id="battle-feedback" aria-live="polite"></p>
           <div class="battle-actions">
-            <button id="battle-step" type="button">Runde ausführen</button>
+            <button id="battle-step" type="button">Nächsten Schritt ausführen</button>
             <button id="battle-restart" type="button">Neu starten</button>
             <button id="battle-exit" type="button">Zur Erkundung</button>
           </div>
