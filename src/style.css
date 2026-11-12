@@ -34,7 +34,7 @@ button:focus-visible, select:focus-visible, textarea:focus-visible, summary:focu
 .editor-mode button.editor-mode-active { color: #17292b; border-color: #edcf6c; background: #edcf6c; }
 .command-library { min-width: 0; min-height: 0; overflow: auto; overscroll-behavior: contain; padding: .75rem; border-right: 1px solid #527c79; background: #112e31; }
 .command-library .eyebrow { margin-bottom: 0; }
-.command-library button { display: grid; width: 100%; gap: .3rem; margin-bottom: .7rem; padding: .65rem; color: #eaf5e6; border: 1px solid #487e86; border-left: 4px solid #559cf0; border-radius: .4rem; background: #234e55; text-align: left; cursor: pointer; touch-action: manipulation; }
+.command-library button { display: grid; width: 100%; gap: .3rem; margin-bottom: .7rem; padding: .65rem; color: #eaf5e6; border: 1px solid #487e86; border-left: 4px solid #559cf0; border-radius: .4rem; background: #234e55; text-align: left; cursor: grab; touch-action: none; user-select: none; }
 .command-library button[data-command='attack'] { border-left-color: #db7767; background: #593b3c; }
 .command-library button[data-command='condition'] { border-left-color: #a776e8; background: #423958; }
 .command-library code { color: #fff0ae; font-size: .76rem; overflow-wrap: anywhere; }
@@ -45,6 +45,12 @@ button:focus-visible, select:focus-visible, textarea:focus-visible, summary:focu
 .loop-block { display: flex; flex-wrap: wrap; align-items: center; gap: .35rem; padding: .5rem; border-left: 4px solid #d6a84d; border-radius: .25rem; background: #294e4b; font-size: .82rem; }
 .loop-block select { min-height: 2rem; padding: .15rem; color: #f6f0d8; border: 1px solid #8aaea0; border-radius: .2rem; background: #102b2e; }
 .loop-block button:disabled { opacity: .5; cursor: not-allowed; }
+.loop-block .block-drag-handle { cursor: grab; touch-action: none; min-width: 2.75rem; min-height: 2.75rem; font-size: 1.4rem; color: #f4d66e; user-select: none; }
+.program-dragging, .program-dragging * { cursor: grabbing !important; user-select: none; }
+.program-dragging .editor-tooltip { display: none; }
+.program-scroll.drop-active { outline: 2px dashed #edd273; outline-offset: -4px; }
+.drag-ghost { position: fixed; z-index: 100; top: 0; left: 0; max-width: 16rem; padding: .75rem; pointer-events: none; border: 2px solid #f1d16a; border-radius: .5rem; color: #fff2ba; background: #294e4b; box-shadow: 0 8px 24px #0008; opacity: .94; font-size: .82rem; white-space: pre-wrap; }
+.drop-marker { position: fixed; z-index: 99; height: 4px; pointer-events: none; border-radius: 3px; background: #f1d16a; box-shadow: 0 0 7px #f1d16a; }
 #program-help, #battle-feedback { margin: .5rem 0; font-size: .82rem; line-height: 1.35; color: #c4ded7; }
 .editor-tooltip { position: absolute; z-index: 4; right: .85rem; bottom: .85rem; left: .85rem; pointer-events: none; margin: 0; padding: .55rem .65rem; color: #fff3c4; border-left: 3px solid #e1bb54; border-radius: .2rem; background: #253f3d; box-shadow: 0 4px 14px rgb(0 0 0 / .38); font-size: .82rem; line-height: 1.4; }
 #battle-feedback { min-height: 1.2rem; color: #f1d779; font-weight: 700; }

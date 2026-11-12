@@ -44,6 +44,8 @@ Editorentwürfe sind nach Mission und Arkan getrennt, bleiben auch bei ungültig
 
 Die Editoroberfläche trennt die Befehlsbibliothek und den Programmbereich in zwei unabhängig scrollbare Spalten. Arkan-Auswahl gilt für beide, die Block-/Textumschaltung ausschließlich für den Programmbereich. Die UI meldet den verbleibenden Platz an die Arenaszene, damit deren Kamera sich neben beziehungsweise über den Editor einpasst.
 
+`ProgramDrag` verwaltet Pointer-Gesten für Maus und Touch, Ziehvorschau, Einfügemarkierung und Randscrollen. Es verändert keine Programmdaten während des Ziehens und meldet erst beim gültigen Ablegen eine Einfügeposition an `GameUi`. Abbruch, Modus-/Arkan-Wechsel und Verlassen der Arena räumen die Geste auf. Drag-and-drop, Klick und Tastatur verändern dieselbe Blockliste und werden über dieselbe Textserialisierung gespeichert. Verschoben werden vollständige, im aktuellen Sprachumfang unterstützte Wiederholungs- oder Bedingungsblöcke.
+
 ## Noch nicht enthalten
 
 Dreier-Formation, vollständiges Blockly, freie JavaScript-Runtime, Online-Speicherung, Login, Backend, NOVA und Kompetenzengine bleiben spätere Erweiterungen. Frühere ADRs beschreiben die Entwicklungsschritte; ADR 008 beschreibt den aktuellen Ausführungsstand.

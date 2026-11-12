@@ -30,7 +30,7 @@
           <div class="editor-columns">
           <section class="command-library" aria-labelledby="command-library-title">
             <p class="eyebrow" id="command-library-title">BEFEHLSBIBLIOTHEK</p>
-            <p class="library-intro">Wähle einen Befehl, um ihn rechts zum Programm hinzuzufügen.</p>
+            <p class="library-intro" id="library-instructions">Ziehe einen Befehl rechts an die gewünschte Stelle. Ein Klick hängt ihn an.</p>
             <button type="button" data-command="move"><strong>Bewegung</strong><code>moosling.moveForward()</code><span>Ein Feld zum Gegner</span></button>
             <button type="button" data-command="attack"><strong>Kampf</strong><code>moosling.attack()</code><span>Greift in Reichweite an</span></button>
             <button type="button" data-command="condition"><strong>Fühlen</strong><code>moosling.enemyAdjacent</code><span>Prüft die Nachbarschaft</span></button>
@@ -44,9 +44,9 @@
                 <button id="text-mode" type="button">Textmodus</button>
               </div>
             </header>
-          <div class="program-scroll">
+          <div class="program-scroll" id="program-drop-area">
           <div id="block-editor" aria-label="Blockeditor">
-            <p class="block-intro">Baue einen Aktionsplan aus Wiederholungsblöcken.</p>
+            <p class="block-intro">Befehle hierher ziehen. Blöcke am Griff ⠿ umsortieren – auch mit den Pfeiltasten.</p>
             <div id="loop-blocks"></div>
             <button id="add-loop-block" type="button">+ Wiederholungsblock</button>
           </div>

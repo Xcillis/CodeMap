@@ -3,6 +3,7 @@ import { touchInput, type TouchDirection } from '../input/TouchInput';
 import { loadProgress, saveProgress, saveProgramDraft } from '../gameplay/LocalProgress';
 import { blocksToSource, compileActionPlan } from '../combat/DecisionProgram';
 import type { ArkanId, BattleState, CombatAction, ProgramBlock, ProgramSources } from '../combat/types';
+import { ProgramDrag, type DragItem } from './ProgramDrag';
 
 type EditorMode = 'blocks' | 'text';
 
@@ -39,8 +40,15 @@ export class GameUi {
   private selectedActor: ArkanId = 'moosling';
   private sources: ProgramSources = {};
   private readonly drafts: Record<string, string> = {};
+  private readonly drag: ProgramDrag;
 
   constructor() {
+    this.drag = new ProgramDrag(
+      this.battlePanel,
+      this.requiredElement<HTMLElement>('program-drop-area'),
+      () => this.editorMode === 'blocks' ? Array.from(this.loopBlocks.querySelectorAll<HTMLElement>('.loop-block')) : [],
+      (item, index) => this.dropProgramItem(item, index),
+    );
     gameEvents.on('quest-updated', (objective: string, complete: boolean) => {
       this.questText.textContent = objective;
       this.questText.parentElement?.classList.toggle('complete', complete);
@@ -50,6 +58,7 @@ export class GameUi {
     gameEvents.on('battle-opened', (programs: ProgramSources, mission: number) => this.openBattle(programs, mission));
     gameEvents.on('battle-updated', (state: BattleState, feedback: string) => this.updateBattle(state, feedback));
     gameEvents.on('battle-closed', () => {
+      this.drag.cancel();
       this.battlePanel.hidden = true;
       this.setExplorationUiVisible(true);
     });
@@ -105,6 +114,7 @@ export class GameUi {
   }
 
   private openBattle(programs: ProgramSources, mission: number): void {
+    this.drag.cancel();
     this.setExplorationUiVisible(false);
     this.battlePanel.hidden = false;
     this.mission = mission;
@@ -159,6 +169,7 @@ export class GameUi {
   }
 
   private setEditorMode(mode: EditorMode): void {
+    this.drag.cancel();
     if (mode === 'blocks' && this.editorMode === 'text') {
       const parsed = compileActionPlan(this.programSource.value, this.selectedActor);
       if (!parsed.blocks) {
@@ -175,6 +186,9 @@ export class GameUi {
     this.textModeButton.classList.toggle('editor-mode-active', mode === 'text');
     this.blocksModeButton.setAttribute('aria-pressed', String(mode === 'blocks'));
     this.textModeButton.setAttribute('aria-pressed', String(mode === 'text'));
+    this.requiredElement<HTMLElement>('library-instructions').textContent = mode === 'blocks'
+      ? 'Ziehe einen Befehl rechts an die gewünschte Stelle. Ein Klick hängt ihn an.'
+      : 'Ziehe einen Befehl in den Textbereich oder klicke ihn an: Einfügen an der Textcursorposition.';
     if (mode === 'blocks') this.renderBlocks();
     this.captureDraft();
     saveProgress({ editorMode: mode });
@@ -187,6 +201,17 @@ export class GameUi {
   private createLoopBlock(block: ProgramBlock, index: number): HTMLElement {
     const row = document.createElement('div');
     row.className = 'loop-block';
+    const handle = document.createElement('button');
+    handle.type = 'button';
+    handle.className = 'block-drag-handle';
+    handle.dataset.dragBlock = String(index);
+    handle.textContent = '⠿';
+    handle.setAttribute('aria-label', `Block ${index + 1} verschieben. Pfeil nach oben oder unten zum Umsortieren.`);
+    handle.addEventListener('keydown', (event) => {
+      if (event.key !== 'ArrowUp' && event.key !== 'ArrowDown') return;
+      event.preventDefault();
+      this.moveBlock(index, event.key === 'ArrowUp' ? index - 1 : index + 2);
+    });
     const prefix = document.createElement('span');
     prefix.textContent = 'Wiederhole';
     const count = document.createElement('select');
@@ -213,7 +238,7 @@ export class GameUi {
       this.blockModel.splice(index, 1);
       this.syncBlocksToSource();
     });
-    row.append(prefix, count, times);
+    row.append(handle, prefix, count, times);
     if (block.kind === 'action') {
       const action = this.createActionSelect(`Aktion für Block ${index + 1}`, block.action);
       action.addEventListener('change', () => {
@@ -275,14 +300,18 @@ export class GameUi {
     return this.editorMode === 'blocks' ? blocksToSource(this.blockModel, this.selectedActor) : this.programSource.value;
   }
 
-  private addLibraryCommand(command: string | undefined): void {
+  private addLibraryCommand(command: string | undefined, index = this.blockModel.length): void {
     if (this.editorMode === 'blocks') {
-      if (command === 'condition') {
-        this.blockModel.push({ kind: 'condition', count: 1, whenTrue: 'ATTACK', whenFalse: 'MOVE_TOWARD' });
-      } else {
-        this.blockModel.push({ kind: 'action', count: 1, action: command === 'attack' ? 'ATTACK' : 'MOVE_TOWARD' });
+      if (this.blockModel.reduce((sum, block) => sum + block.count, 0) >= 12) {
+        this.battleFeedback.textContent = 'Maximal zwölf Schritte. Verringere zuerst eine Wiederholungszahl.';
+        return;
       }
+      const block: ProgramBlock = command === 'condition'
+        ? { kind: 'condition', count: 1, whenTrue: 'ATTACK', whenFalse: 'MOVE_TOWARD' }
+        : { kind: 'action', count: 1, action: command === 'attack' ? 'ATTACK' : 'MOVE_TOWARD' };
+      this.blockModel.splice(index, 0, block);
       this.syncBlocksToSource();
+      this.battleFeedback.textContent = `Block an Position ${index + 1} eingefügt.`;
       return;
     }
     const snippet = command === 'condition'
@@ -291,6 +320,22 @@ export class GameUi {
     const ownedSnippet = snippet.replace(/moosling/g, this.selectedActor);
     this.programSource.setRangeText(`${this.programSource.value.trim() ? '\n\n' : ''}${ownedSnippet}`, this.programSource.selectionStart, this.programSource.selectionEnd, 'end');
     this.captureDraft();
+  }
+
+  private dropProgramItem(item: DragItem, index: number): void {
+    this.hideTooltip();
+    if (item.kind === 'command') this.addLibraryCommand(item.command, index);
+    else if (this.editorMode === 'blocks') this.moveBlock(item.index, index);
+  }
+
+  private moveBlock(from: number, boundary: number): void {
+    const target = Math.max(0, Math.min(boundary > from ? boundary - 1 : boundary, this.blockModel.length - 1));
+    if (target === from) return;
+    const [block] = this.blockModel.splice(from, 1);
+    this.blockModel.splice(target, 0, block);
+    this.syncBlocksToSource();
+    this.battleFeedback.textContent = `Block von Position ${from + 1} auf ${target + 1} verschoben.`;
+    this.loopBlocks.querySelector<HTMLButtonElement>(`[data-drag-block="${target}"]`)?.focus();
   }
 
   private captureDraft(): void {
@@ -306,6 +351,7 @@ export class GameUi {
   }
 
   private selectActor(actor: ArkanId): void {
+    this.drag.cancel();
     if (actor === this.selectedActor || this.sources[actor] === undefined) return;
     this.captureDraft();
     this.selectedActor = actor;

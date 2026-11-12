@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { readFileSync } from 'node:fs';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { GameUi } from './GameUi';
 import { gameEvents } from '../game/events';
 import { missionPrograms } from '../combat/BattleSession';
@@ -21,6 +21,30 @@ beforeEach(() => {
   document.body.innerHTML = readFileSync('index.html', 'utf8');
   new GameUi();
 });
+
+afterEach(() => {
+  document.dispatchEvent(new Event('pointercancel'));
+  vi.restoreAllMocks();
+  vi.unstubAllGlobals();
+});
+
+function dragSetup(): void {
+  vi.stubGlobal('requestAnimationFrame', vi.fn(() => 1));
+  vi.stubGlobal('cancelAnimationFrame', vi.fn());
+  const workspace = document.getElementById('program-drop-area')!;
+  vi.spyOn(workspace, 'getBoundingClientRect').mockReturnValue({ left: 300, right: 600, top: 100, bottom: 500, width: 300, height: 400, x: 300, y: 100, toJSON: () => ({}) });
+  document.querySelectorAll<HTMLElement>('.loop-block').forEach((row, index) => {
+    const top = 120 + index * 100;
+    vi.spyOn(row, 'getBoundingClientRect').mockReturnValue({ left: 310, right: 580, top, bottom: top + 80, width: 270, height: 80, x: 310, y: top, toJSON: () => ({}) });
+  });
+  Object.defineProperty(document, 'elementFromPoint', { configurable: true, value: (x: number, y: number) => x >= 300 && x <= 600 && y >= 100 && y <= 500 ? workspace : document.body });
+}
+
+function pointer(target: Element | Document, type: string, x: number, y: number, pointerType = 'mouse'): void {
+  const event = new MouseEvent(type, { bubbles: true, cancelable: true, button: 0, clientX: x, clientY: y });
+  Object.defineProperties(event, { pointerId: { value: 1 }, pointerType: { value: pointerType } });
+  target.dispatchEvent(event);
+}
 
 describe('Arkan-Editor', () => {
   it('behält getrennte, auch unvollständige Texte bei Arkan-Wechsel und Wiederöffnung', () => {
@@ -76,5 +100,71 @@ describe('Arkan-Editor', () => {
     expect(source().value).toBe(missionPrograms(1).moosling);
     gameEvents.emit('battle-opened', missionPrograms(2), 2);
     expect(source().value).toBe('repeat(1, () => { moosling.attack(); });');
+  });
+});
+
+describe('Drag-and-drop im Editor', () => {
+  it('fügt Bibliotheksblöcke an der Drop-Position ein und unterdrückt den anschließenden Klick', () => {
+    gameEvents.emit('battle-opened', missionPrograms(1), 1);
+    dragSetup();
+    const command = document.querySelector('[data-command="attack"]')!;
+    pointer(command, 'pointerdown', 40, 60);
+    pointer(document, 'pointermove', 400, 125);
+    expect(document.querySelector('.drop-marker')).not.toBeNull();
+    pointer(document, 'pointerup', 400, 125);
+    (command as HTMLButtonElement).click();
+    expect(document.querySelectorAll('.loop-block')).toHaveLength(3);
+    expect(source().value).toMatch(/^repeat\(1, \(\) => \{\n  moosling.attack/);
+    expect(document.querySelector('.drag-ghost')).toBeNull();
+  });
+
+  it('sortiert vorhandene Blöcke per Touch um und erhält die Textdarstellung', () => {
+    gameEvents.emit('battle-opened', missionPrograms(1), 1);
+    dragSetup();
+    const handle = document.querySelector('[data-drag-block="0"]')!;
+    pointer(handle, 'pointerdown', 350, 140, 'touch');
+    pointer(document, 'pointermove', 400, 370, 'touch');
+    pointer(document, 'pointerup', 400, 370, 'touch');
+    expect(source().value.indexOf('moosling.attack()')).toBeLessThan(source().value.indexOf('moosling.moveForward()'));
+    expect(document.querySelectorAll('.loop-block')).toHaveLength(2);
+  });
+
+  it('verändert beim Ablegen außerhalb und bei Escape das Programm nicht', () => {
+    gameEvents.emit('battle-opened', missionPrograms(1), 1);
+    dragSetup();
+    const before = source().value;
+    const command = document.querySelector('[data-command="move"]')!;
+    pointer(command, 'pointerdown', 40, 60);
+    pointer(document, 'pointermove', 700, 600);
+    pointer(document, 'pointerup', 700, 600);
+    expect(source().value).toBe(before);
+    pointer(command, 'pointerdown', 40, 60);
+    pointer(document, 'pointermove', 400, 150);
+    document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }));
+    pointer(document, 'pointerup', 400, 150);
+    expect(source().value).toBe(before);
+    expect(document.querySelector('.drag-ghost')).toBeNull();
+  });
+
+  it('behält beim Drop in Glutlings Text den Entwurf und dessen Arkan-Zuordnung', () => {
+    gameEvents.emit('battle-opened', missionPrograms(3), 3);
+    click('select-glutling');
+    click('text-mode');
+    type('glutling.');
+    source().setSelectionRange(source().value.length, source().value.length);
+    dragSetup();
+    pointer(document.querySelector('[data-command="attack"]')!, 'pointerdown', 40, 60);
+    pointer(document, 'pointermove', 400, 150);
+    pointer(document, 'pointerup', 400, 150);
+    expect(source().value).toContain('glutling.\n\nrepeat');
+    expect(source().value).toContain('glutling.attack()');
+    expect(source().value).not.toContain('moosling');
+  });
+
+  it('ermöglicht Umsortieren per Tastatur ohne Drag-Geste', () => {
+    gameEvents.emit('battle-opened', missionPrograms(1), 1);
+    document.querySelector('[data-drag-block="0"]')!.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowDown', bubbles: true }));
+    expect(source().value.indexOf('moosling.attack()')).toBeLessThan(source().value.indexOf('moosling.moveForward()'));
+    expect(document.activeElement?.getAttribute('data-drag-block')).toBe('1');
   });
 });
