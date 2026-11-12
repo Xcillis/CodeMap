@@ -16,7 +16,7 @@ button { font: inherit; touch-action: none; }
 #dialog-close, .interact, .dpad button { color: #fff9e6; border: 1px solid #f0d778; background: #305050; box-shadow: inset 0 1px rgb(255 255 255 / .2), 0 2px 5px rgb(0 0 0 / .35); cursor: pointer; }
 #dialog-close { min-height: 2.75rem; padding: .5rem 1rem; border-radius: .35rem; font-weight: 700; }
 #battle-panel { position: fixed; z-index: 2; top: max(1rem, env(safe-area-inset-top)); right: max(1rem, env(safe-area-inset-right)); width: min(26rem, calc(100vw - 2rem)); max-height: calc(100dvh - 2rem); overflow: auto; }
-.battle-card { padding: 1rem; border: 1px solid #d8c275; border-radius: .5rem; background: rgb(17 34 38 / .94); box-shadow: 0 8px 26px rgb(0 0 0 / .36); }
+.battle-card { position: relative; padding: 1rem; border: 1px solid #d8c275; border-radius: .5rem; background: rgb(17 34 38 / .94); box-shadow: 0 8px 26px rgb(0 0 0 / .36); }
 .battle-card label { display: block; margin-bottom: .4rem; font-weight: 700; }
 #program-source { width: 100%; min-height: 8rem; resize: vertical; padding: .65rem; color: #d9f7e4; border: 1px solid #71958a; border-radius: .25rem; background: #102326; font: .85rem/1.45 ui-monospace, Consolas, monospace; }
 .editor-mode { display: flex; gap: .35rem; margin-bottom: .65rem; }
@@ -29,7 +29,7 @@ button { font: inherit; touch-action: none; }
 .loop-block select { min-height: 2rem; padding: .15rem; color: #f6f0d8; border: 1px solid #8aaea0; border-radius: .2rem; background: #102b2e; }
 .loop-block button:disabled { opacity: .5; cursor: not-allowed; }
 #program-help, #battle-feedback { margin: .5rem 0; font-size: .82rem; line-height: 1.35; color: #c4ded7; }
-.editor-tooltip { margin: .55rem 0; padding: .55rem .65rem; color: #fff3c4; border-left: 3px solid #e1bb54; border-radius: .2rem; background: #253f3d; font-size: .82rem; line-height: 1.4; }
+.editor-tooltip { position: absolute; z-index: 4; right: .85rem; bottom: .85rem; left: .85rem; pointer-events: none; margin: 0; padding: .55rem .65rem; color: #fff3c4; border-left: 3px solid #e1bb54; border-radius: .2rem; background: #253f3d; box-shadow: 0 4px 14px rgb(0 0 0 / .38); font-size: .82rem; line-height: 1.4; }
 #battle-feedback { min-height: 1.2rem; color: #f1d779; font-weight: 700; }
 .battle-status { display: grid; gap: .5rem; margin: .8rem 0; padding: .65rem; border: 1px solid #416b68; border-radius: .3rem; background: #132b2d; }
 .battle-status p, .battle-status label { margin: 0; font-size: .85rem; }
