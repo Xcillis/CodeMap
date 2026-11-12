@@ -1,10 +1,24 @@
 export type CombatAction = 'ATTACK' | 'MOVE_TOWARD';
 export type BattleOutcome = 'ongoing' | 'victory' | 'defeat';
 
-export interface LoopBlock {
+export interface RepeatActionBlock {
+  kind: 'action';
   count: number;
   action: CombatAction;
 }
+
+export interface RepeatConditionBlock {
+  kind: 'condition';
+  count: number;
+  whenTrue: CombatAction;
+  whenFalse: CombatAction;
+}
+
+export type ProgramBlock = RepeatActionBlock | RepeatConditionBlock;
+
+export type ProgramStep =
+  | { kind: 'action'; action: CombatAction }
+  | { kind: 'condition'; whenTrue: CombatAction; whenFalse: CombatAction };
 
 export interface GridPosition {
   x: number;
@@ -28,7 +42,7 @@ export interface BattleState {
 }
 
 export interface ActionPlanResult {
-  actions?: CombatAction[];
-  blocks?: LoopBlock[];
+  steps?: ProgramStep[];
+  blocks?: ProgramBlock[];
   error?: string;
 }

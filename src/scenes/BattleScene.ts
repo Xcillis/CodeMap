@@ -1,8 +1,7 @@
 import Phaser from 'phaser';
 import { BattleEngine } from '../combat/BattleEngine';
-import { DEFAULT_PROGRAM, compileActionPlan } from '../combat/DecisionProgram';
-import type { CombatAction } from '../combat/types';
-import type { BattleState, Combatant } from '../combat/types';
+import { CONDITION_PROGRAM, DEFAULT_PROGRAM, compileActionPlan } from '../combat/DecisionProgram';
+import type { BattleState, CombatAction, Combatant, ProgramStep } from '../combat/types';
 import { gameEvents } from '../game/events';
 
 const TILE = 72;
@@ -13,12 +12,16 @@ export class BattleScene extends Phaser.Scene {
   private readonly battle = new BattleEngine();
   private grid!: Phaser.GameObjects.Graphics;
   private actors!: Phaser.GameObjects.Container;
+  private heading!: Phaser.GameObjects.Text;
+  private subtitle!: Phaser.GameObjects.Text;
   private activeSource = '';
-  private actionPlan: CombatAction[] = [];
+  private actionPlan: ProgramStep[] = [];
   private nextActionIndex = 0;
+  private mission: 1 | 2 = 1;
   private readonly onStep = (source: string) => this.step(source);
   private readonly onRunProgram = (source: string) => this.runProgram(source);
   private readonly onRestart = () => this.restart();
+  private readonly onNextMission = () => this.startMission(2);
   private readonly onExit = () => this.exit();
 
   constructor() {
@@ -29,31 +32,48 @@ export class BattleScene extends Phaser.Scene {
     this.cameras.main.setBackgroundColor('#142c35');
     this.grid = this.add.graphics();
     this.actors = this.add.container();
-    this.add.text(GRID_START_X, 52, 'Trainingsarena: Die erste Schleife', { fontFamily: 'Georgia, serif', fontSize: '30px', color: '#fff0bd' });
-    this.add.text(GRID_START_X, 88, 'Moosling folgt deinem Aktionsplan. Das Konstrukt bleibt zunächst passiv.', { fontSize: '16px', color: '#b8d8cf' });
+    this.heading = this.add.text(GRID_START_X, 52, '', { fontFamily: 'Georgia, serif', fontSize: '30px', color: '#fff0bd' });
+    this.subtitle = this.add.text(GRID_START_X, 88, '', { fontSize: '16px', color: '#b8d8cf' });
     gameEvents.on('battle-step', this.onStep);
     gameEvents.on('battle-run-program', this.onRunProgram);
     gameEvents.on('battle-restart', this.onRestart);
+    gameEvents.on('battle-next-mission', this.onNextMission);
     gameEvents.on('battle-exit', this.onExit);
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => this.removeListeners());
+    this.startMission(1);
+  }
+
+  private startMission(mission: 1 | 2): void {
+    this.mission = mission;
+    this.battle.reset();
+    this.activeSource = '';
+    this.actionPlan = [];
+    this.nextActionIndex = 0;
+    this.heading.setText(mission === 1 ? 'Trainingsarena: Die erste Schleife' : 'Trainingsarena: Nähe prüfen');
+    this.subtitle.setText(mission === 1
+      ? 'Moosling folgt deinem Aktionsplan. Das Konstrukt bleibt passiv.'
+      : 'Das Konstrukt bewegt sich. Reagiere mit einer Bedingung auf seine Nähe.');
     this.render(this.battle.snapshot);
-    gameEvents.emit('battle-opened', DEFAULT_PROGRAM);
-    gameEvents.emit('battle-updated', this.battle.snapshot, 'Führe die Schleife Schritt für Schritt aus und beobachte die Wiederholung.');
+    gameEvents.emit('battle-opened', mission === 1 ? DEFAULT_PROGRAM : CONDITION_PROGRAM, mission);
+    gameEvents.emit('battle-updated', this.battle.snapshot, mission === 1
+      ? 'Führe die Schleife Schritt für Schritt aus und beobachte die Wiederholung.'
+      : 'Das Konstrukt bewegt sich nun. Prüfe bei jedem Schritt, ob es neben Moosling steht.');
+    gameEvents.emit('battle-next-available', false);
   }
 
   private step(source: string): void {
     if (!this.preparePlan(source)) return;
-    const action = this.actionPlan[this.nextActionIndex];
-    if (!action) {
+    const step = this.actionPlan[this.nextActionIndex];
+    if (!step) {
       gameEvents.emit('battle-updated', this.battle.snapshot, 'Aktionsplan beendet. Ergänze den Plan oder starte neu.');
       return;
     }
     this.nextActionIndex += 1;
-    const state = this.battle.runStep(action);
+    const action = this.resolveStep(step);
+    const state = this.battle.runStep(action, this.mission === 2);
     this.render(state);
     const readableAction = action === 'MOVE_TOWARD' ? 'moveToward()' : 'attack()';
-    const feedback = state.outcome === 'victory' ? 'Sieg! Dein Schleifenplan hat Moosling sicher zum Ziel geführt.' : `Schritt ${this.nextActionIndex}/${this.actionPlan.length}: ${readableAction}`;
-    gameEvents.emit('battle-updated', state, feedback);
+    gameEvents.emit('battle-updated', state, state.outcome === 'victory' ? this.victoryMessage() : `Schritt ${this.nextActionIndex}/${this.actionPlan.length}: ${readableAction}`);
   }
 
   private runProgram(source: string): void {
@@ -61,15 +81,12 @@ export class BattleScene extends Phaser.Scene {
     this.battle.reset();
     const totalSteps = this.actionPlan.length;
     while (this.nextActionIndex < this.actionPlan.length && this.battle.snapshot.outcome === 'ongoing') {
-      this.battle.runStep(this.actionPlan[this.nextActionIndex]);
+      this.battle.runStep(this.resolveStep(this.actionPlan[this.nextActionIndex]), this.mission === 2);
       this.nextActionIndex += 1;
     }
     const state = this.battle.snapshot;
     this.render(state);
-    const feedback = state.outcome === 'victory'
-      ? `Programm ausgeführt: ${totalSteps} Schritte führten zum Sieg.`
-      : `Programm ausgeführt: ${totalSteps} Schritte ausgeführt.`;
-    gameEvents.emit('battle-updated', state, feedback);
+    gameEvents.emit('battle-updated', state, state.outcome === 'victory' ? this.victoryMessage() : `Programm ausgeführt: ${totalSteps} Schritte ausgeführt.`);
   }
 
   private restart(): void {
@@ -84,14 +101,29 @@ export class BattleScene extends Phaser.Scene {
   private preparePlan(source: string, restartPlan = false): boolean {
     if (source === this.activeSource && !restartPlan) return true;
     const compiled = compileActionPlan(source);
-    if (!compiled.actions) {
+    if (!compiled.steps) {
       gameEvents.emit('battle-updated', this.battle.snapshot, compiled.error);
       return false;
     }
     this.activeSource = source;
-    this.actionPlan = compiled.actions;
+    this.actionPlan = compiled.steps;
     this.nextActionIndex = 0;
     return true;
+  }
+
+  private resolveStep(step: ProgramStep): CombatAction {
+    if (step.kind === 'action') return step.action;
+    const { player, enemy } = this.battle.snapshot;
+    const adjacent = Math.abs(player.x - enemy.x) + Math.abs(player.y - enemy.y) === 1;
+    return adjacent ? step.whenTrue : step.whenFalse;
+  }
+
+  private victoryMessage(): string {
+    if (this.mission === 1) {
+      gameEvents.emit('battle-next-available', true);
+      return 'Sieg! Die nächste Mission führt Bedingungen ein.';
+    }
+    return 'Sieg! Moosling hat bei jedem Schritt passend auf die Nähe reagiert.';
   }
 
   private exit(): void {
@@ -125,6 +157,7 @@ export class BattleScene extends Phaser.Scene {
     gameEvents.off('battle-step', this.onStep);
     gameEvents.off('battle-run-program', this.onRunProgram);
     gameEvents.off('battle-restart', this.onRestart);
+    gameEvents.off('battle-next-mission', this.onNextMission);
     gameEvents.off('battle-exit', this.onExit);
   }
 }

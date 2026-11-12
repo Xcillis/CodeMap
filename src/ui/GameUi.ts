@@ -2,7 +2,7 @@ import { gameEvents, type DialogPayload } from '../game/events';
 import { touchInput, type TouchDirection } from '../input/TouchInput';
 import { loadProgress, saveProgress } from '../gameplay/LocalProgress';
 import { blocksToSource, compileActionPlan } from '../combat/DecisionProgram';
-import type { BattleState, CombatAction, LoopBlock } from '../combat/types';
+import type { BattleState, CombatAction, ProgramBlock } from '../combat/types';
 
 type EditorMode = 'blocks' | 'text';
 
@@ -30,7 +30,8 @@ export class GameUi {
   private readonly enemyHealthText = this.requiredElement<HTMLElement>('enemy-health-text');
   private pendingDialogAction: DialogPayload['action'];
   private editorMode: EditorMode = 'blocks';
-  private blockModel: LoopBlock[] = [];
+  private blockModel: ProgramBlock[] = [];
+  private mission = 1;
 
   constructor() {
     gameEvents.on('quest-updated', (objective: string, complete: boolean) => {
@@ -39,24 +40,28 @@ export class GameUi {
     });
     gameEvents.on('dialog-opened', (dialog: DialogPayload) => this.openDialog(dialog));
     gameEvents.on('interaction-hint', (text: string) => (this.hint.textContent = text));
-    gameEvents.on('battle-opened', (program: string) => this.openBattle(program));
+    gameEvents.on('battle-opened', (program: string, mission: number) => this.openBattle(program, mission));
     gameEvents.on('battle-updated', (state: BattleState, feedback: string) => this.updateBattle(state, feedback));
     gameEvents.on('battle-closed', () => {
       this.battlePanel.hidden = true;
       this.setExplorationUiVisible(true);
     });
+    gameEvents.on('battle-next-available', (available: boolean) => (this.requiredElement<HTMLButtonElement>('battle-next-mission').hidden = !available));
 
     this.requiredElement<HTMLButtonElement>('dialog-close').addEventListener('click', () => this.closeDialog());
     this.requiredElement<HTMLButtonElement>('interact-button').addEventListener('click', () => touchInput.requestInteraction());
     this.requiredElement<HTMLButtonElement>('battle-step').addEventListener('click', () => gameEvents.emit('battle-step', this.getProgramSource()));
     this.requiredElement<HTMLButtonElement>('battle-run-program').addEventListener('click', () => gameEvents.emit('battle-run-program', this.getProgramSource()));
     this.requiredElement<HTMLButtonElement>('battle-restart').addEventListener('click', () => gameEvents.emit('battle-restart'));
+    this.requiredElement<HTMLButtonElement>('battle-next-mission').addEventListener('click', () => gameEvents.emit('battle-next-mission'));
     this.requiredElement<HTMLButtonElement>('battle-exit').addEventListener('click', () => gameEvents.emit('battle-exit'));
     this.programSource.addEventListener('input', () => saveProgress({ lastProgram: this.programSource.value }));
     this.blocksModeButton.addEventListener('click', () => this.setEditorMode('blocks'));
     this.textModeButton.addEventListener('click', () => this.setEditorMode('text'));
     this.requiredElement<HTMLButtonElement>('add-loop-block').addEventListener('click', () => {
-      this.blockModel.push({ count: 1, action: 'MOVE_TOWARD' });
+      this.blockModel.push(this.mission === 2
+        ? { kind: 'condition', count: 1, whenTrue: 'ATTACK', whenFalse: 'MOVE_TOWARD' }
+        : { kind: 'action', count: 1, action: 'MOVE_TOWARD' });
       this.syncBlocksToSource();
     });
     this.attachTooltip(this.blocksModeButton, () => 'Baue den Ablauf aus Wiederholungsblöcken. Die Blöcke werden in denselben Aktionsplan wie der Textmodus übersetzt.');
@@ -64,6 +69,7 @@ export class GameUi {
     this.attachTooltip(this.requiredElement<HTMLButtonElement>('battle-step'), () => 'Führt nur die nächste Aktion des Plans aus. So kannst du jede Wiederholung beobachten.');
     this.attachTooltip(this.requiredElement<HTMLButtonElement>('battle-run-program'), () => 'Setzt die Arena zurück und führt den gesamten Aktionsplan vom Anfang bis zum Ende aus.');
     this.attachTooltip(this.requiredElement<HTMLButtonElement>('battle-restart'), () => 'Setzt Positionen, Lebenspunkte und die bisher ausgeführten Schritte zurück. Dein Programm bleibt erhalten.');
+    this.attachTooltip(this.requiredElement<HTMLButtonElement>('battle-next-mission'), () => 'Startet die nächste Lernmission mit einer neuen Aufgabe und einem erweiterten Programmbefehl.');
     this.attachTooltip(this.requiredElement<HTMLButtonElement>('battle-exit'), () => 'Kehrt ohne Datenverlust zur Erkundung zurück.');
     this.attachTooltip(this.requiredElement<HTMLButtonElement>('add-loop-block'), () => 'Fügt eine weitere Wiederholung an das Ende des Aktionsplans an.');
     document.querySelectorAll<HTMLButtonElement>('[data-direction]').forEach((button) => this.bindDirection(button));
@@ -85,10 +91,12 @@ export class GameUi {
     this.pendingDialogAction = undefined;
   }
 
-  private openBattle(program: string): void {
+  private openBattle(program: string, mission: number): void {
     this.setExplorationUiVisible(false);
     this.battlePanel.hidden = false;
-    this.programSource.value = loadProgress().lastProgram || program;
+    this.mission = mission;
+    this.requiredElement<HTMLButtonElement>('battle-next-mission').hidden = true;
+    this.programSource.value = mission === 1 ? (loadProgress().lastProgram || program) : program;
     const parsed = compileActionPlan(this.programSource.value);
     this.blockModel = parsed.blocks ?? [];
     this.setEditorMode(parsed.blocks ? loadProgress().editorMode : 'text');
@@ -141,7 +149,7 @@ export class GameUi {
     this.loopBlocks.replaceChildren(...this.blockModel.map((block, index) => this.createLoopBlock(block, index)));
   }
 
-  private createLoopBlock(block: LoopBlock, index: number): HTMLElement {
+  private createLoopBlock(block: ProgramBlock, index: number): HTMLElement {
     const row = document.createElement('div');
     row.className = 'loop-block';
     const prefix = document.createElement('span');
@@ -157,10 +165,6 @@ export class GameUi {
     }
     const times = document.createElement('span');
     times.textContent = 'mal';
-    const action = document.createElement('select');
-    action.setAttribute('aria-label', `Aktion für Block ${index + 1}`);
-    this.addActionOption(action, 'MOVE_TOWARD', 'zum Konstrukt gehen', block.action);
-    this.addActionOption(action, 'ATTACK', 'angreifen', block.action);
     const remove = document.createElement('button');
     remove.type = 'button';
     remove.textContent = 'Entfernen';
@@ -170,18 +174,42 @@ export class GameUi {
       this.syncBlocksToSource();
       this.showTooltip(`Diese Schleife führt ihre Aktion ${count.value} Mal aus.`);
     });
-    action.addEventListener('change', () => {
-      this.blockModel[index].action = action.value as CombatAction;
-      this.syncBlocksToSource();
-      this.showTooltip(this.actionHelp(action.value as CombatAction));
-    });
     remove.addEventListener('click', () => {
       this.blockModel.splice(index, 1);
       this.syncBlocksToSource();
     });
-    row.append(prefix, count, times, action, remove);
+    row.append(prefix, count, times);
+    if (block.kind === 'action') {
+      const action = this.createActionSelect(`Aktion für Block ${index + 1}`, block.action);
+      action.addEventListener('change', () => {
+        (this.blockModel[index] as Extract<ProgramBlock, { kind: 'action' }>).action = action.value as CombatAction;
+        this.syncBlocksToSource();
+        this.showTooltip(this.actionHelp(action.value as CombatAction));
+      });
+      row.append(action);
+      this.attachTooltip(action, () => this.actionHelp(action.value as CombatAction));
+    } else {
+      const condition = document.createElement('span');
+      condition.textContent = 'wenn Gegner nahe:';
+      const whenTrue = this.createActionSelect(`Aktion bei Nähe für Block ${index + 1}`, block.whenTrue);
+      const otherwise = document.createElement('span');
+      otherwise.textContent = 'sonst:';
+      const whenFalse = this.createActionSelect(`Aktion ohne Nähe für Block ${index + 1}`, block.whenFalse);
+      whenTrue.addEventListener('change', () => {
+        (this.blockModel[index] as Extract<ProgramBlock, { kind: 'condition' }>).whenTrue = whenTrue.value as CombatAction;
+        this.syncBlocksToSource();
+      });
+      whenFalse.addEventListener('change', () => {
+        (this.blockModel[index] as Extract<ProgramBlock, { kind: 'condition' }>).whenFalse = whenFalse.value as CombatAction;
+        this.syncBlocksToSource();
+      });
+      row.append(condition, whenTrue, otherwise, whenFalse);
+      this.attachTooltip(condition, () => 'Die Bedingung wird bei jedem Schleifendurchlauf erneut geprüft.');
+      this.attachTooltip(whenTrue, () => 'Diese Aktion wird gewählt, wenn Moosling direkt neben dem Konstrukt steht.');
+      this.attachTooltip(whenFalse, () => 'Diese Aktion wird gewählt, solange noch Abstand zum Konstrukt besteht.');
+    }
+    row.append(remove);
     this.attachTooltip(count, () => 'Bestimmt, wie oft die Aktion in diesem Block wiederholt wird. Erlaubt sind 1 bis 6 Wiederholungen.');
-    this.attachTooltip(action, () => this.actionHelp(action.value as CombatAction));
     this.attachTooltip(remove, () => 'Entfernt diesen Wiederholungsblock aus dem Aktionsplan.');
     return row;
   }
@@ -192,6 +220,14 @@ export class GameUi {
     option.textContent = label;
     option.selected = value === selectedAction;
     select.append(option);
+  }
+
+  private createActionSelect(label: string, selectedAction: CombatAction): HTMLSelectElement {
+    const select = document.createElement('select');
+    select.setAttribute('aria-label', label);
+    this.addActionOption(select, 'MOVE_TOWARD', 'zum Konstrukt gehen', selectedAction);
+    this.addActionOption(select, 'ATTACK', 'angreifen', selectedAction);
+    return select;
   }
 
   private syncBlocksToSource(): void {

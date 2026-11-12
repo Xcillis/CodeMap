@@ -17,11 +17,15 @@ export class BattleEngine {
     this.state = this.initialState();
   }
 
-  runStep(playerAction: CombatAction): Readonly<BattleState> {
+  runStep(playerAction: CombatAction, enemyActive = false): Readonly<BattleState> {
     if (this.state.outcome !== 'ongoing') return this.snapshot;
 
     this.state.tick += 1;
     this.act(this.state.player, this.state.enemy, playerAction);
+    if (enemyActive && this.state.outcome === 'ongoing') {
+      const enemyAction = this.areAdjacent(this.state.enemy, this.state.player) ? 'ATTACK' : 'MOVE_TOWARD';
+      this.act(this.state.enemy, this.state.player, enemyAction);
+    }
     return this.snapshot;
   }
 

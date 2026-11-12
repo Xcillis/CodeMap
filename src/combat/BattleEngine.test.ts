@@ -26,12 +26,20 @@ describe('BattleEngine', () => {
 describe('compileActionPlan', () => {
   it('übersetzt repeat-Blöcke in einen begrenzten Aktionsplan', () => {
     const source = 'repeat(2, () => { moveToward(); }); repeat(3, () => { attack(); });';
-    expect(compileActionPlan(source).actions).toEqual(['MOVE_TOWARD', 'MOVE_TOWARD', 'ATTACK', 'ATTACK', 'ATTACK']);
+    expect(compileActionPlan(source).steps).toEqual([
+      { kind: 'action', action: 'MOVE_TOWARD' }, { kind: 'action', action: 'MOVE_TOWARD' },
+      { kind: 'action', action: 'ATTACK' }, { kind: 'action', action: 'ATTACK' }, { kind: 'action', action: 'ATTACK' },
+    ]);
   });
 
   it('wandelt Blockdaten verlustfrei in die Textdarstellung zurück', () => {
-    const source = blocksToSource([{ count: 2, action: 'MOVE_TOWARD' }, { count: 3, action: 'ATTACK' }]);
-    expect(compileActionPlan(source).blocks).toEqual([{ count: 2, action: 'MOVE_TOWARD' }, { count: 3, action: 'ATTACK' }]);
+    const source = blocksToSource([{ kind: 'action', count: 2, action: 'MOVE_TOWARD' }, { kind: 'action', count: 3, action: 'ATTACK' }]);
+    expect(compileActionPlan(source).blocks).toEqual([{ kind: 'action', count: 2, action: 'MOVE_TOWARD' }, { kind: 'action', count: 3, action: 'ATTACK' }]);
+  });
+
+  it('erhält Bedingungen in der gemeinsamen Programmstruktur', () => {
+    const source = 'repeat(2, () => { if (state.enemyAdjacent) { attack(); } else { moveToward(); } });';
+    expect(compileActionPlan(source).blocks).toEqual([{ kind: 'condition', count: 2, whenTrue: 'ATTACK', whenFalse: 'MOVE_TOWARD' }]);
   });
 
   it('lehnt freie JavaScript-APIs und unbeschränkte Wiederholungen ab', () => {
