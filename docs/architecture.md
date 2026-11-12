@@ -62,6 +62,8 @@ Die gemeinsame `ProgramNode`-Struktur enthält Aktionen, Wiederholungen mit eine
 
 Nur der am Startblock eingerastete Ablauf ist ausführbar. Lose Blöcke und ihre Positionen bleiben im Blockly-JSON pro Mission/Arkan gespeichert; vor Ausführung oder Textwechsel verlangt die UI Verbinden oder Löschen. Das verhindert stillen Datenverlust. Blockly-Medien werden lokal aus dem npm-Paket von Vite ausgeliefert und als Assets gebaut; die Browseranwendung lädt keine Blockly-Dateien von externen Diensten. Der bisherige `ProgramDrag` unterstützt nur noch die Textbibliothek.
 
+Blockbeschriftungen enthalten keine Arkan-Namen. Arkan-Karten und eine persistente Anzeige über dem Arbeitsbereich definieren den Objektkontext. Die Textserialisierung verwendet weiterhin die ausgewählte Arkan-ID. Alte Blockly-Entwürfe werden beim Laden nur um das frühere Anzeigefeld `ACTOR` bereinigt; Verbindungen, Wiederholungszahlen und Positionen bleiben erhalten.
+
 ## Noch nicht enthalten
 
 Dreier-Formation, Variablen und Funktionen in der Programmiersprache, freie JavaScript-Runtime, Online-Speicherung, Login, Backend, NOVA und Kompetenzengine bleiben spätere Erweiterungen. Frühere ADRs beschreiben die Entwicklungsschritte; ADR 010 ergänzt den aktuellen Stand von Editor und Programmiersprache.

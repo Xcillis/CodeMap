@@ -39,6 +39,18 @@ beforeEach(() => {
 });
 
 describe('Editorzustand und Arkan-Zuordnung', () => {
+  it('zeigt das ausgewählte Objekt eindeutig an und wechselt dessen Programm', () => {
+    gameEvents.emit('battle-opened', missionPrograms(3), 3);
+    expect(document.getElementById('program-owner')!.textContent).toBe('Du programmierst gerade: Moosling');
+    expect(document.getElementById('select-moosling')!.getAttribute('aria-pressed')).toBe('true');
+    click('select-glutling');
+    expect(document.getElementById('program-owner')!.textContent).toBe('Du programmierst gerade: Glutling');
+    expect(document.getElementById('select-glutling')!.getAttribute('aria-pressed')).toBe('true');
+    expect(document.getElementById('select-moosling')!.getAttribute('aria-pressed')).toBe('false');
+    click('text-mode');
+    expect(text().value).toContain('glutling.moveForward()');
+    expect(text().value).not.toContain('moosling');
+  });
   it('behält eigene Programme, auch unvollständige Texte, beim Arkan-Wechsel und Neuladen', () => {
     gameEvents.emit('battle-opened', missionPrograms(3), 3); click('text-mode');
     type('repeat(2, () => { moosling.attack(); });'); click('select-glutling');

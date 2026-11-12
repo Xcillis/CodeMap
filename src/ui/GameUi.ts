@@ -124,10 +124,13 @@ export class GameUi {
     const parsed = compileActionPlan(this.text.value, this.selectedActor);
     const mode = parsed.nodes ? loadProgress().editorMode : 'text';
     this.setMode(mode, true);
-    this.el('program-owner').textContent = `Programm von ${this.selectedActor === 'moosling' ? 'Moosling' : 'Glutling'}`;
+    this.el('program-owner').textContent = `Du programmierst gerade: ${this.selectedActor === 'moosling' ? 'Moosling' : 'Glutling'}`;
+    this.panel.dataset.programActor = this.selectedActor;
     for (const actor of ['moosling', 'glutling'] as const) {
       this.el(`select-${actor}`).setAttribute('aria-pressed', String(actor === this.selectedActor));
       this.el(`select-${actor}`).classList.toggle('editor-mode-active', actor === this.selectedActor);
+      const state = this.el(`select-${actor}`).querySelector('.arkan-selection-state');
+      if (state) state.textContent = actor === this.selectedActor ? 'Ausgewählt' : 'Auswählen';
     }
     this.renderLibrary();
   }

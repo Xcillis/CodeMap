@@ -1,11 +1,32 @@
 // @vitest-environment jsdom
 import * as Blockly from 'blockly/core';
 import { describe, expect, it } from 'vitest';
-import { loadNodes, workspaceNodes, snapToolbox } from './SnapEditor';
+import { loadNodes, workspaceNodes, snapToolbox, restoreWorkspaceState } from './SnapEditor';
 import { compileActionPlan, nodesToSource } from '../combat/DecisionProgram';
 import { BattleSession } from '../combat/BattleSession';
 
 describe('Echte Blockly-Verbindungen', () => {
+  it('beschriftet Blöcke ohne Objektnamen und qualifiziert nur den Textcode', () => {
+    const workspace = new Blockly.Workspace();
+    try {
+      loadNodes(workspace, [{ kind: 'action', action: 'ATTACK' }, { kind: 'if', then: [{ kind: 'action', action: 'MOVE_TOWARD' }], otherwise: [] }], 'glutling');
+      const labels = workspace.getAllBlocks(false).map((block) => block.toString()).join(' ');
+      expect(labels).toContain('angreifen');
+      expect(labels).not.toMatch(/moosling|glutling/);
+      expect(nodesToSource(workspaceNodes(workspace), 'glutling')).toContain('glutling.attack()');
+      expect(JSON.stringify(snapToolbox('glutling', 3))).not.toContain('ACTOR');
+    } finally { workspace.dispose(); }
+  });
+
+  it('lädt ältere Entwürfe mit ACTOR-Feldern ohne Verbindungsverlust', () => {
+    const saved = JSON.stringify({ blocks: { languageVersion: 0, blocks: [{ type: 'cm_start', x: 40, y: 60, next: { block: { type: 'cm_repeat', fields: { COUNT: 2 }, inputs: { BODY: { block: { type: 'cm_attack', fields: { ACTOR: 'moosling' } } } } } } }] } });
+    const workspace = new Blockly.Workspace();
+    try {
+      Blockly.serialization.workspaces.load(restoreWorkspaceState(saved), workspace);
+      expect(workspaceNodes(workspace)).toEqual([{ kind: 'repeat', count: 2, body: [{ kind: 'action', action: 'ATTACK' }] }]);
+      expect(JSON.stringify(Blockly.serialization.workspaces.save(workspace))).not.toContain('ACTOR');
+    } finally { workspace.dispose(); }
+  });
   it('rastet mehrere Aktionen in einen Wiederholungsblock ein und führt sie aus', () => {
     const workspace = new Blockly.Workspace();
     try {

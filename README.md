@@ -14,6 +14,7 @@ Die Trainingsmissionen beginnen mit Moosling. Nach Schleifen und Bedingungen fol
 - Lose Blöcke bleiben pro Arkan und Mission als Entwurf gespeichert. Vor der Ausführung oder dem Wechsel zum Textmodus müssen sie verbunden oder gelöscht werden; der Textmodus zeigt genau den verbundenen Ablauf.
 - Im Textmodus fügt ein Drop in den Programmbereich den Codebaustein an der zuvor gesetzten Textcursorposition ein. Bestehender Text wird dabei erhalten, abgesehen von einer ausdrücklich markierten Auswahl.
 - Wähle einen Arkan über seinen Button im Editor oder direkt auf dem Spielfeld. Glutling erscheint erst in Mission 3.
+- Die Blocksprache verwendet kurze Beschriftungen wie „angreifen“ und „vorwärts gehen“. Die ausgewählte Arkan-Karte und „Du programmierst gerade: …“ legen das Objekt fest. Im Textmodus bleiben die Befehle ausdrücklich benannt, etwa `glutling.attack()`.
 - Block- und Textmodus bearbeiten das Programm des ausgewählten Arkanen. Entwürfe werden pro Mission und Arkan im Browser gespeichert, auch unvollständiger Text.
 - „Nächsten Schritt ausführen“ führt einen Tick aus: zuerst Moosling, dann Glutling, anschließend gegebenenfalls das Konstrukt. Ein beendetes Programm wartet.
 - „Programm ausführen“ startet alle Programme vom frischen Missionszustand. Nach einer Programmänderung startet auch der nächste Einzelschritt einen neuen Versuch; reine Darstellungswechsel setzen ihn nicht zurück.

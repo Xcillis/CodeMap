@@ -47,6 +47,16 @@ button:focus-visible, select:focus-visible, textarea:focus-visible, summary:focu
 .editor-mode { display: flex; gap: .35rem; margin-bottom: .65rem; }
 .editor-mode button, #add-loop-block, .loop-block button { min-height: 2.15rem; padding: .3rem .55rem; color: #e8f4df; border: 1px solid #648b83; border-radius: .25rem; background: #1d4546; cursor: pointer; font-weight: 700; }
 .editor-mode button.editor-mode-active { color: #17292b; border-color: #edcf6c; background: #edcf6c; }
+.arkan-selector { display: flex; gap: .6rem; margin: .3rem 0 .75rem; }
+.arkan-selector button { display: grid; grid-template-columns: 2.4rem 1fr; align-items: center; gap: .15rem .55rem; min-height: 3.5rem; padding: .5rem .8rem; border: 2px solid #53756e; border-radius: .5rem; color: #dce9df; background: #1c353a; text-align: left; cursor: pointer; }
+.arkan-selector button[aria-pressed='true'] { color: #fff3bd; border-color: #edcf6c; background: #31494a; box-shadow: 0 0 0 1px #edcf6c; }
+.arkan-avatar { grid-row: 1 / 3; display: grid; place-items: center; width: 2.4rem; height: 2.4rem; border-radius: .6rem; color: white; font-size: 1.5rem; }
+.moosling-avatar { background: radial-gradient(circle at 35% 30%, #9ad37a, #376d3d); }
+.glutling-avatar { background: radial-gradient(circle at 35% 30%, #ffd16b, #bd4a2e); }
+.arkan-name { font-weight: 800; }
+.arkan-selection-state { font-size: .7rem; }
+#program-owner { padding-left: .6rem; border-left: 4px solid #8ac975; }
+[data-program-actor='glutling'] #program-owner { border-left-color: #f5a050; }
 .command-library { min-width: 0; min-height: 0; overflow: auto; overscroll-behavior: contain; padding: .75rem; border-right: 1px solid #527c79; background: #112e31; }
 .command-library .eyebrow { margin-bottom: 0; }
 .command-library button { display: grid; width: 100%; gap: .3rem; margin-bottom: .7rem; padding: .65rem; color: #eaf5e6; border: 1px solid #487e86; border-left: 4px solid var(--category-color, #559cf0); border-radius: .4rem; background: #234e55; text-align: left; cursor: grab; touch-action: none; user-select: none; }

@@ -23,9 +23,10 @@
       <section id="battle-panel" aria-labelledby="battle-title" hidden>
         <div class="battle-card">
           <p class="eyebrow" id="battle-title">RUNENSKRIPT – DIE ERSTE SCHLEIFE</p>
-          <div id="arkan-tabs" class="editor-mode" role="group" aria-label="Arkan programmieren">
-            <button id="select-moosling" type="button" aria-pressed="true">Moosling</button>
-            <button id="select-glutling" type="button" aria-pressed="false" hidden>Glutling</button>
+          <p class="eyebrow">ARKAN AUSWÄHLEN</p>
+          <div id="arkan-tabs" class="arkan-selector" role="group" aria-label="Arkan programmieren">
+            <button id="select-moosling" type="button" aria-pressed="true"><span class="arkan-avatar moosling-avatar" aria-hidden="true">✦</span><span class="arkan-name">Moosling</span><span class="arkan-selection-state">Ausgewählt</span></button>
+            <button id="select-glutling" type="button" aria-pressed="false" hidden><span class="arkan-avatar glutling-avatar" aria-hidden="true">✦</span><span class="arkan-name">Glutling</span><span class="arkan-selection-state">Auswählen</span></button>
           </div>
           <div class="editor-columns" id="editor-columns">
           <div class="library-shell">
@@ -41,7 +42,7 @@
           <section class="program-workspace" aria-labelledby="program-area-title">
             <header class="program-toolbar">
               <p class="eyebrow" id="program-area-title">PROGRAMMBEREICH</p>
-              <label id="program-owner" for="program-source">Programm von Moosling</label>
+              <label id="program-owner" for="program-source" aria-live="polite">Du programmierst gerade: Moosling</label>
               <div class="editor-mode" role="group" aria-label="Programmierdarstellung">
                 <button id="blocks-mode" type="button">Blocksprache</button>
                 <button id="text-mode" type="button">Textmodus</button>
