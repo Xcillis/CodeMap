@@ -2,6 +2,8 @@
 
 Lokaler Phaser-/TypeScript-Prototyp für die erste Erkundungsquest aus *Die Chroniken von Aetheria*.
 
+Die aktuellen Trainingsmissionen starten bewusst mit einem aktiven Arkan. Erweiterte Missionen werden später Duo- und Dreier-Formationen mit einem gemeinsamen Programm einführen.
+
 ## Starten
 
 ```bash

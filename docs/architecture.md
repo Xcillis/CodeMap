@@ -28,6 +28,10 @@ Der Blockeditor bearbeitet `ProgramBlock`-Daten mit Wiederholungszahl und Aktion
 
 Ein Wiederholungsblock enthält entweder eine direkte Aktion oder eine bedingte Aktion mit den Zweigen `whenTrue` und `whenFalse`. Der Interpreter löst Bedingungen erst vor ihrem jeweiligen Spielschritt auf, damit die aktuelle Distanz zum Gegner berücksichtigt wird. Mission 1 verwendet nur direkte Wiederholungen und ein passives Konstrukt; Mission 2 aktiviert das Konstrukt und führt `state.enemyAdjacent` ein.
 
+## ADR 007 – Gestufte Arkan-Formationen
+
+Einstiegsmissionen verwenden weiterhin einen aktiven Arkan. Aufbau-Missionen erlauben zwei und fortgeschrittene Missionen bis zu drei aktive Arkane. Der Kampfzustand wird dafür von einem einzelnen Akteur zu einer geordneten Verbündeten-Formation erweitert. Ein gemeinsames Programm steuert die Formation zunächst in stabiler Reihenfolge; spätere Lernziele können darüber Iteration über `state.allies`, Rollen und Prioritäten einführen. Die Detailvorgaben stehen in `docs/design-decisions.md`.
+
 ## Bewusst nicht enthalten
 
 Keine Kampfsimulation, Arkan-Programmierung, Blockly-/JavaScript-Editor, Speicherung, Login, Backend, NOVA oder Kompetenzengine. Diese bleiben Integrationspunkte für spätere Meilensteine.
