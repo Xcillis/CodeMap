@@ -1,0 +1,6 @@
+node_modules/
+dist/
+
+# Temporäre Arbeitsdateien beim Auslesen des GDD
+docs/_gdd.zip
+docs/_gdd_extract/

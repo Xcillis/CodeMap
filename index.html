@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="theme-color" content="#152d35" />
+    <title>CodeMap – Die Chroniken von Aetheria</title>
+  </head>
+  <body>
+    <main id="app">
+      <div id="game" aria-label="Spielwelt von CodeMap"></div>
+      <aside id="hud" aria-live="polite">
+        <p class="eyebrow">HAUPTQUEST</p>
+        <p id="quest-text">Sprich mit dem Arkanisten.</p>
+      </aside>
+      <section id="dialog" aria-modal="true" aria-labelledby="dialog-speaker" hidden>
+        <div class="dialog-panel">
+          <p id="dialog-speaker" class="eyebrow">ARKANIST ELDREN</p>
+          <p id="dialog-text"></p>
+          <button id="dialog-close" type="button">Verstanden</button>
+        </div>
+      </section>
+      <div id="touch-controls" aria-label="Touchsteuerung">
+        <div class="dpad" role="group" aria-label="Bewegung">
+          <button data-direction="up" aria-label="Nach oben">▲</button>
+          <button data-direction="left" aria-label="Nach links">◀</button>
+          <button data-direction="down" aria-label="Nach unten">▼</button>
+          <button data-direction="right" aria-label="Nach rechts">▶</button>
+        </div>
+        <button id="interact-button" class="interact" aria-label="Interagieren">E<br /><span>REDEN</span></button>
+      </div>
+      <p id="interaction-hint" aria-live="polite"></p>
+    </main>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
