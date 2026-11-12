@@ -20,6 +20,10 @@ Die erste Lernmission nutzt statt Bedingungen ausschließlich feste `repeat(n, .
 
 Die Arena bietet zwei Ausführungsarten für denselben Aktionsplan: schrittweise zur Beobachtung und vollständig zur schnellen Ergebniskontrolle. Beide verwenden exakt dieselbe `BattleEngine`; die vollständige Simulation überspringt nur die Zwischenansicht.
 
+## ADR 005 – Block und Text mit gemeinsamer Schleifenstruktur
+
+Der Blockeditor bearbeitet `LoopBlock`-Daten mit Wiederholungszahl und Aktion. Die Textansicht serialisiert exakt dieselben Daten in die eingeschränkte JavaScript-ähnliche Schreibweise und kann sie wieder einlesen. Der Wechsel verändert somit weder den Aktionsplan noch führt er Code aus. Der erste Editor ist bewusst ein schlanker strukturierter Blockeditor; eine spätere Blockly-Integration kann dieselbe Datenstruktur nutzen.
+
 ## Bewusst nicht enthalten
 
 Keine Kampfsimulation, Arkan-Programmierung, Blockly-/JavaScript-Editor, Speicherung, Login, Backend, NOVA oder Kompetenzengine. Diese bleiben Integrationspunkte für spätere Meilensteine.

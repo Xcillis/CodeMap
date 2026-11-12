@@ -1,6 +1,11 @@
 export type CombatAction = 'ATTACK' | 'MOVE_TOWARD';
 export type BattleOutcome = 'ongoing' | 'victory' | 'defeat';
 
+export interface LoopBlock {
+  count: number;
+  action: CombatAction;
+}
+
 export interface GridPosition {
   x: number;
   y: number;
@@ -24,5 +29,6 @@ export interface BattleState {
 
 export interface ActionPlanResult {
   actions?: CombatAction[];
+  blocks?: LoopBlock[];
   error?: string;
 }

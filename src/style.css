@@ -19,6 +19,15 @@ button { font: inherit; touch-action: none; }
 .battle-card { padding: 1rem; border: 1px solid #d8c275; border-radius: .5rem; background: rgb(17 34 38 / .94); box-shadow: 0 8px 26px rgb(0 0 0 / .36); }
 .battle-card label { display: block; margin-bottom: .4rem; font-weight: 700; }
 #program-source { width: 100%; min-height: 8rem; resize: vertical; padding: .65rem; color: #d9f7e4; border: 1px solid #71958a; border-radius: .25rem; background: #102326; font: .85rem/1.45 ui-monospace, Consolas, monospace; }
+.editor-mode { display: flex; gap: .35rem; margin-bottom: .65rem; }
+.editor-mode button, #add-loop-block, .loop-block button { min-height: 2.15rem; padding: .3rem .55rem; color: #e8f4df; border: 1px solid #648b83; border-radius: .25rem; background: #1d4546; cursor: pointer; font-weight: 700; }
+.editor-mode button.editor-mode-active { color: #17292b; border-color: #edcf6c; background: #edcf6c; }
+#block-editor { padding: .65rem; border: 1px solid #668c86; border-radius: .3rem; background: #17383a; }
+.block-intro { margin: 0 0 .55rem; color: #d4e7df; font-size: .82rem; }
+#loop-blocks { display: grid; gap: .45rem; margin-bottom: .55rem; }
+.loop-block { display: flex; flex-wrap: wrap; align-items: center; gap: .35rem; padding: .5rem; border-left: 4px solid #d6a84d; border-radius: .25rem; background: #294e4b; font-size: .82rem; }
+.loop-block select { min-height: 2rem; padding: .15rem; color: #f6f0d8; border: 1px solid #8aaea0; border-radius: .2rem; background: #102b2e; }
+.loop-block button:disabled { opacity: .5; cursor: not-allowed; }
 #program-help, #battle-feedback { margin: .5rem 0; font-size: .82rem; line-height: 1.35; color: #c4ded7; }
 #battle-feedback { min-height: 1.2rem; color: #f1d779; font-weight: 700; }
 .battle-status { display: grid; gap: .5rem; margin: .8rem 0; padding: .65rem; border: 1px solid #416b68; border-radius: .3rem; background: #132b2d; }

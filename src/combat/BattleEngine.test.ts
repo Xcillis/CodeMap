@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { BattleEngine } from './BattleEngine';
-import { compileActionPlan } from './DecisionProgram';
+import { blocksToSource, compileActionPlan } from './DecisionProgram';
 
 describe('BattleEngine', () => {
   it('führt identische Runden deterministisch aus', () => {
@@ -27,6 +27,11 @@ describe('compileActionPlan', () => {
   it('übersetzt repeat-Blöcke in einen begrenzten Aktionsplan', () => {
     const source = 'repeat(2, () => { moveToward(); }); repeat(3, () => { attack(); });';
     expect(compileActionPlan(source).actions).toEqual(['MOVE_TOWARD', 'MOVE_TOWARD', 'ATTACK', 'ATTACK', 'ATTACK']);
+  });
+
+  it('wandelt Blockdaten verlustfrei in die Textdarstellung zurück', () => {
+    const source = blocksToSource([{ count: 2, action: 'MOVE_TOWARD' }, { count: 3, action: 'ATTACK' }]);
+    expect(compileActionPlan(source).blocks).toEqual([{ count: 2, action: 'MOVE_TOWARD' }, { count: 3, action: 'ATTACK' }]);
   });
 
   it('lehnt freie JavaScript-APIs und unbeschränkte Wiederholungen ab', () => {
