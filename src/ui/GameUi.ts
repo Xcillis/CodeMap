@@ -68,6 +68,7 @@ export class GameUi {
         : { kind: 'action', count: 1, action: 'MOVE_TOWARD' });
       this.syncBlocksToSource();
     });
+    document.querySelectorAll<HTMLButtonElement>('[data-command]').forEach((button) => button.addEventListener('click', () => this.addLibraryCommand(button.dataset.command)));
     this.attachTooltip(this.blocksModeButton, () => 'Baue den Ablauf aus Wiederholungsblöcken. Die Blöcke werden in denselben Aktionsplan wie der Textmodus übersetzt.');
     this.attachTooltip(this.textModeButton, () => 'Bearbeite den gleichen Aktionsplan als begrenzten JavaScript-ähnlichen Text. Freier Browser-Code wird nicht ausgeführt.');
     this.attachTooltip(this.requiredElement<HTMLButtonElement>('battle-step'), () => 'Führt nur die nächste Aktion des Plans aus. So kannst du jede Wiederholung beobachten.');
@@ -245,6 +246,23 @@ export class GameUi {
 
   private getProgramSource(): string {
     return this.editorMode === 'blocks' ? blocksToSource(this.blockModel) : this.programSource.value;
+  }
+
+  private addLibraryCommand(command: string | undefined): void {
+    if (this.editorMode === 'blocks') {
+      if (command === 'condition') {
+        this.blockModel.push({ kind: 'condition', count: 1, whenTrue: 'ATTACK', whenFalse: 'MOVE_TOWARD' });
+      } else {
+        this.blockModel.push({ kind: 'action', count: 1, action: command === 'attack' ? 'ATTACK' : 'MOVE_TOWARD' });
+      }
+      this.syncBlocksToSource();
+      return;
+    }
+    const snippet = command === 'condition'
+      ? 'repeat(1, () => {\n  if (moosling.enemyAdjacent) {\n    moosling.attack();\n  } else {\n    moosling.moveForward();\n  }\n});'
+      : `repeat(1, () => {\n  moosling.${command === 'attack' ? 'attack' : 'moveForward'}();\n});`;
+    this.programSource.setRangeText(`${this.programSource.value.trim() ? '\n\n' : ''}${snippet}`, this.programSource.selectionStart, this.programSource.selectionEnd, 'end');
+    saveProgress({ lastProgram: this.programSource.value });
   }
 
   private actionHelp(action: CombatAction): string {
