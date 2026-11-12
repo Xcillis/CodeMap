@@ -1,6 +1,7 @@
 import { BattleEngine } from './BattleEngine';
 import { blocksToSource, compileActionPlan, CONDITION_PROGRAM, DEFAULT_PROGRAM, FORMATION_PROGRAM } from './DecisionProgram';
 import type { ArkanId, ProgramSources, ProgramStep } from './types';
+import { programCapabilityError } from './CommandCatalog';
 
 export type MissionId = 1 | 2 | 3;
 
@@ -35,7 +36,8 @@ export class BattleSession {
     for (const actor of this.actors) {
       const parsed = compileActionPlan(sources[actor] ?? '', actor);
       if (!parsed.steps || !parsed.blocks) return `${actor}: ${parsed.error}`;
-      if (this.mission === 1 && parsed.blocks.some((block) => block.kind === 'condition')) return 'Bedingungen werden in Mission 2 freigeschaltet.';
+      const capabilityError = programCapabilityError(parsed.blocks, actor, this.mission);
+      if (capabilityError) return capabilityError;
       plans[actor] = parsed.steps;
       canonical.push(blocksToSource(parsed.blocks, actor));
     }

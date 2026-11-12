@@ -46,6 +46,12 @@ Die Editoroberfläche trennt die Befehlsbibliothek und den Programmbereich in zw
 
 `ProgramDrag` verwaltet Pointer-Gesten für Maus und Touch, Ziehvorschau, Einfügemarkierung und Randscrollen. Es verändert keine Programmdaten während des Ziehens und meldet erst beim gültigen Ablegen eine Einfügeposition an `GameUi`. Abbruch, Modus-/Arkan-Wechsel und Verlassen der Arena räumen die Geste auf. Drag-and-drop, Klick und Tastatur verändern dieselbe Blockliste und werden über dieselbe Textserialisierung gespeichert. Verschoben werden vollständige, im aktuellen Sprachumfang unterstützte Wiederholungs- oder Bedingungsblöcke.
 
+## ADR 009 – Gemeinsamer Befehlskatalog und Arkan-Fähigkeiten
+
+`CommandCatalog` beschreibt Kategorien, Syntax, Blockvorlagen und benötigte Fähigkeiten. Die Arkan-Daten trennen grundsätzlich unterstützte Fähigkeiten von bereits gelernten Fähigkeiten. Die bestehenden Trainingsmissionen definieren die Lernfreigaben: Moosling erhält Wahrnehmung ab Mission 2, Glutling beginnt in Mission 3 mit seinen Basisbefehlen. Diese Daten sind die Vorstufe einer späteren dauerhaften Fähigkeitsentwicklung.
+
+Die Bibliothek zeigt nur vollständig verfügbare Vorlagen und blendet leere Kategorien aus. Sie erzeugt Drag-, Klick- und Textvorlagen aus denselben Definitionen. `BattleSession` prüft vor jeglicher Zustandsänderung die im Programm tatsächlich verwendeten Fähigkeiten. Ein im Text eingegebener, aber noch nicht gelernter Befehl ist damit ebenfalls gesperrt. Bestehende Textentwürfe bleiben zur Korrektur erhalten.
+
 ## Noch nicht enthalten
 
-Dreier-Formation, vollständiges Blockly, freie JavaScript-Runtime, Online-Speicherung, Login, Backend, NOVA und Kompetenzengine bleiben spätere Erweiterungen. Frühere ADRs beschreiben die Entwicklungsschritte; ADR 008 beschreibt den aktuellen Ausführungsstand.
+Dreier-Formation, vollständiges Blockly, freie JavaScript-Runtime, Online-Speicherung, Login, Backend, NOVA und Kompetenzengine bleiben spätere Erweiterungen. Frühere ADRs beschreiben die Entwicklungsschritte; ADR 008 und ADR 009 beschreiben den aktuellen Ausführungsstand.

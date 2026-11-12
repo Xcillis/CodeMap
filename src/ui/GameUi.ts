@@ -4,6 +4,7 @@ import { loadProgress, saveProgress, saveProgramDraft } from '../gameplay/LocalP
 import { blocksToSource, compileActionPlan } from '../combat/DecisionProgram';
 import type { ArkanId, BattleState, CombatAction, ProgramBlock, ProgramSources } from '../combat/types';
 import { ProgramDrag, type DragItem } from './ProgramDrag';
+import { availableCommands, COMMAND_CATEGORIES, commandSource, type CommandCategory } from '../combat/CommandCatalog';
 
 type EditorMode = 'blocks' | 'text';
 
@@ -41,6 +42,7 @@ export class GameUi {
   private sources: ProgramSources = {};
   private readonly drafts: Record<string, string> = {};
   private readonly drag: ProgramDrag;
+  private selectedCategory: CommandCategory = 'movement';
 
   constructor() {
     this.drag = new ProgramDrag(
@@ -77,13 +79,11 @@ export class GameUi {
     gameEvents.on('arkan-selected', (actor: ArkanId) => this.selectActor(actor));
     this.blocksModeButton.addEventListener('click', () => this.setEditorMode('blocks'));
     this.textModeButton.addEventListener('click', () => this.setEditorMode('text'));
-    this.requiredElement<HTMLButtonElement>('add-loop-block').addEventListener('click', () => {
-      this.blockModel.push(this.mission === 2
-        ? { kind: 'condition', count: 1, whenTrue: 'ATTACK', whenFalse: 'MOVE_TOWARD' }
-        : { kind: 'action', count: 1, action: 'MOVE_TOWARD' });
-      this.syncBlocksToSource();
+    this.requiredElement<HTMLButtonElement>('add-loop-block').addEventListener('click', () => this.addLibraryCommand('repeat'));
+    this.requiredElement<HTMLElement>('command-entries').addEventListener('click', (event) => {
+      const button = event.target instanceof Element ? event.target.closest<HTMLButtonElement>('[data-command]') : null;
+      if (button) this.addLibraryCommand(button.dataset.command);
     });
-    document.querySelectorAll<HTMLButtonElement>('[data-command]').forEach((button) => button.addEventListener('click', () => this.addLibraryCommand(button.dataset.command)));
     this.attachTooltip(this.blocksModeButton, () => 'Baue den Ablauf aus Wiederholungsblöcken. Die Blöcke werden in denselben Aktionsplan wie der Textmodus übersetzt.');
     this.attachTooltip(this.textModeButton, () => 'Bearbeite den gleichen Aktionsplan als begrenzten JavaScript-ähnlichen Text. Freier Browser-Code wird nicht ausgeführt.');
     this.attachTooltip(this.requiredElement<HTMLButtonElement>('battle-step'), () => 'Führt nur die nächste Aktion des Plans aus. So kannst du jede Wiederholung beobachten.');
@@ -285,8 +285,17 @@ export class GameUi {
   private createActionSelect(label: string, selectedAction: CombatAction): HTMLSelectElement {
     const select = document.createElement('select');
     select.setAttribute('aria-label', label);
-    this.addActionOption(select, 'MOVE_TOWARD', 'zum Konstrukt gehen', selectedAction);
-    this.addActionOption(select, 'ATTACK', 'angreifen', selectedAction);
+    const commands = availableCommands(this.selectedActor, this.mission);
+    if (commands.some((command) => command.id === 'move')) this.addActionOption(select, 'MOVE_TOWARD', 'zum Konstrukt gehen', selectedAction);
+    if (commands.some((command) => command.id === 'attack')) this.addActionOption(select, 'ATTACK', 'angreifen', selectedAction);
+    if (!Array.from(select.options).some((option) => option.selected && option.value === selectedAction)) {
+      const option = document.createElement('option');
+      option.value = selectedAction;
+      option.textContent = 'Noch nicht gelernt';
+      option.disabled = true;
+      option.selected = true;
+      select.append(option);
+    }
     return select;
   }
 
@@ -301,23 +310,23 @@ export class GameUi {
   }
 
   private addLibraryCommand(command: string | undefined, index = this.blockModel.length): void {
+    const definition = availableCommands(this.selectedActor, this.mission).find((entry) => entry.id === command);
+    if (!definition) {
+      this.battleFeedback.textContent = 'Dieser Befehl ist für den ausgewählten Arkan noch nicht freigeschaltet.';
+      return;
+    }
     if (this.editorMode === 'blocks') {
-      if (this.blockModel.reduce((sum, block) => sum + block.count, 0) >= 12) {
+      const block = definition.block();
+      if (this.blockModel.reduce((sum, entry) => sum + entry.count, 0) + block.count > 12) {
         this.battleFeedback.textContent = 'Maximal zwölf Schritte. Verringere zuerst eine Wiederholungszahl.';
         return;
       }
-      const block: ProgramBlock = command === 'condition'
-        ? { kind: 'condition', count: 1, whenTrue: 'ATTACK', whenFalse: 'MOVE_TOWARD' }
-        : { kind: 'action', count: 1, action: command === 'attack' ? 'ATTACK' : 'MOVE_TOWARD' };
       this.blockModel.splice(index, 0, block);
       this.syncBlocksToSource();
       this.battleFeedback.textContent = `Block an Position ${index + 1} eingefügt.`;
       return;
     }
-    const snippet = command === 'condition'
-      ? 'repeat(1, () => {\n  if (moosling.enemyAdjacent) {\n    moosling.attack();\n  } else {\n    moosling.moveForward();\n  }\n});'
-      : `repeat(1, () => {\n  moosling.${command === 'attack' ? 'attack' : 'moveForward'}();\n});`;
-    const ownedSnippet = snippet.replace(/moosling/g, this.selectedActor);
+    const ownedSnippet = commandSource(definition, this.selectedActor);
     this.programSource.setRangeText(`${this.programSource.value.trim() ? '\n\n' : ''}${ownedSnippet}`, this.programSource.selectionStart, this.programSource.selectionEnd, 'end');
     this.captureDraft();
   }
@@ -371,13 +380,7 @@ export class GameUi {
       button.setAttribute('aria-pressed', String(id === actor));
       button.classList.toggle('editor-mode-active', id === actor);
     }
-    const commands = { move: 'moveForward()', attack: 'attack()', condition: 'enemyAdjacent' };
-    document.querySelectorAll<HTMLButtonElement>('[data-command]').forEach((button) => {
-      const command = button.dataset.command as keyof typeof commands;
-      const code = button.querySelector('code');
-      if (code) code.textContent = `${actor}.${commands[command]}`;
-      button.hidden = command === 'condition' && this.mission === 1;
-    });
+    this.renderCommandLibrary();
     this.hideTooltip();
   }
 
@@ -385,6 +388,53 @@ export class GameUi {
     return action === 'MOVE_TOWARD'
       ? 'moveForward(): Der ausgewählte Arkan geht ein Feld zum Konstrukt. Belegte Felder blockieren den Schritt.'
       : 'attack(): Der ausgewählte Arkan verursacht einen Schadenspunkt, wenn er neben dem Konstrukt steht.';
+  }
+
+  private renderCommandLibrary(): void {
+    const commands = availableCommands(this.selectedActor, this.mission);
+    const categories = COMMAND_CATEGORIES.filter((category) => commands.some((command) => command.category === category.id));
+    if (!categories.some((category) => category.id === this.selectedCategory)) this.selectedCategory = categories[0]?.id ?? 'movement';
+    const nav = this.requiredElement<HTMLElement>('command-categories');
+    nav.replaceChildren(...categories.map((category) => {
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.dataset.category = category.id;
+      button.id = `category-${category.id}`;
+      button.style.setProperty('--category-color', category.color);
+      button.setAttribute('aria-pressed', String(category.id === this.selectedCategory));
+      const dot = document.createElement('span');
+      dot.className = 'category-dot';
+      dot.setAttribute('aria-hidden', 'true');
+      const label = document.createElement('span');
+      label.textContent = category.label;
+      button.append(dot, label);
+      button.addEventListener('click', () => {
+        this.drag.cancel();
+        this.selectedCategory = category.id;
+        this.renderCommandLibrary();
+        this.requiredElement<HTMLButtonElement>(`category-${category.id}`).focus();
+      });
+      return button;
+    }));
+    const selected = categories.find((category) => category.id === this.selectedCategory);
+    this.requiredElement<HTMLElement>('command-category-title').textContent = selected?.label ?? 'Keine Befehle';
+    this.requiredElement<HTMLElement>('command-availability').textContent = `Gelernte Befehle für ${this.selectedActor === 'moosling' ? 'Moosling' : 'Glutling'}`;
+    this.requiredElement<HTMLElement>('command-entries').replaceChildren(...commands.filter((command) => command.category === this.selectedCategory).map((command) => {
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.dataset.command = command.id;
+      button.style.setProperty('--category-color', selected?.color ?? '#559cf0');
+      const label = document.createElement('strong');
+      label.textContent = command.label;
+      const syntax = document.createElement('code');
+      syntax.textContent = command.syntax(this.selectedActor);
+      const description = document.createElement('span');
+      description.textContent = command.description;
+      button.append(label, syntax, description);
+      this.attachTooltip(button, () => command.description);
+      return button;
+    }));
+    this.hideTooltip();
   }
 
   private attachTooltip(element: HTMLElement, getMessage: () => string): void {

@@ -106,6 +106,7 @@ describe('Arkan-Editor', () => {
 describe('Drag-and-drop im Editor', () => {
   it('fügt Bibliotheksblöcke an der Drop-Position ein und unterdrückt den anschließenden Klick', () => {
     gameEvents.emit('battle-opened', missionPrograms(1), 1);
+    click('category-combat');
     dragSetup();
     const command = document.querySelector('[data-command="attack"]')!;
     pointer(command, 'pointerdown', 40, 60);
@@ -152,6 +153,7 @@ describe('Drag-and-drop im Editor', () => {
     click('text-mode');
     type('glutling.');
     source().setSelectionRange(source().value.length, source().value.length);
+    click('category-combat');
     dragSetup();
     pointer(document.querySelector('[data-command="attack"]')!, 'pointerdown', 40, 60);
     pointer(document, 'pointermove', 400, 150);
@@ -166,5 +168,44 @@ describe('Drag-and-drop im Editor', () => {
     document.querySelector('[data-drag-block="0"]')!.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowDown', bubbles: true }));
     expect(source().value.indexOf('moosling.attack()')).toBeLessThan(source().value.indexOf('moosling.moveForward()'));
     expect(document.activeElement?.getAttribute('data-drag-block')).toBe('1');
+  });
+});
+
+describe('Befehlskategorien und gelernte Fähigkeiten', () => {
+  it('zeigt in Mission 1 nur verfügbare Kategorien und wechselt die Befehlsliste', () => {
+    gameEvents.emit('battle-opened', missionPrograms(1), 1);
+    expect(document.getElementById('category-movement')).not.toBeNull();
+    expect(document.getElementById('category-combat')).not.toBeNull();
+    expect(document.getElementById('category-flow')).not.toBeNull();
+    expect(document.getElementById('category-senses')).toBeNull();
+    expect(document.querySelector('[data-command="move"]')).not.toBeNull();
+    expect(document.querySelector('[data-command="attack"]')).toBeNull();
+    click('category-combat');
+    expect(document.querySelector('[data-command="attack"]')).not.toBeNull();
+    expect(document.querySelector('[data-command="move"]')).toBeNull();
+    click('text-mode');
+    expect(document.getElementById('category-combat')?.getAttribute('aria-pressed')).toBe('true');
+  });
+
+  it('zeigt Mooslings gelernte Wahrnehmung, aber nicht für den neuen Glutling', () => {
+    gameEvents.emit('battle-opened', missionPrograms(3), 3);
+    click('category-senses');
+    expect(document.querySelector('[data-command="condition"] code')?.textContent).toBe('moosling.enemyAdjacent');
+    click('select-glutling');
+    expect(document.getElementById('category-senses')).toBeNull();
+    expect(document.querySelector('[data-command="condition"]')).toBeNull();
+    expect(document.querySelector('[data-command="move"] code')?.textContent).toBe('glutling.moveForward()');
+    click('select-moosling');
+    expect(document.getElementById('category-senses')).not.toBeNull();
+  });
+
+  it('fügt eine Wiederholung aus Ablauf mit der aktuellen Arkan-Zuordnung ein', () => {
+    gameEvents.emit('battle-opened', missionPrograms(3), 3);
+    click('select-glutling');
+    click('text-mode');
+    type('');
+    click('category-flow');
+    (document.querySelector('[data-command="repeat"]') as HTMLButtonElement).click();
+    expect(source().value).toBe('repeat(3, () => {\n  glutling.moveForward();\n});');
   });
 });

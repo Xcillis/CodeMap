@@ -28,13 +28,16 @@
             <button id="select-glutling" type="button" aria-pressed="false" hidden>Glutling</button>
           </div>
           <div class="editor-columns">
+          <div class="library-shell">
+          <nav id="command-categories" class="command-categories" aria-label="Befehlskategorien"></nav>
           <section class="command-library" aria-labelledby="command-library-title">
             <p class="eyebrow" id="command-library-title">BEFEHLSBIBLIOTHEK</p>
+            <p id="command-category-title" class="category-title">Bewegung</p>
+            <p id="command-availability" class="library-intro"></p>
             <p class="library-intro" id="library-instructions">Ziehe einen Befehl rechts an die gewünschte Stelle. Ein Klick hängt ihn an.</p>
-            <button type="button" data-command="move"><strong>Bewegung</strong><code>moosling.moveForward()</code><span>Ein Feld zum Gegner</span></button>
-            <button type="button" data-command="attack"><strong>Kampf</strong><code>moosling.attack()</code><span>Greift in Reichweite an</span></button>
-            <button type="button" data-command="condition"><strong>Fühlen</strong><code>moosling.enemyAdjacent</code><span>Prüft die Nachbarschaft</span></button>
+            <div id="command-entries"></div>
           </section>
+          </div>
           <section class="program-workspace" aria-labelledby="program-area-title">
             <header class="program-toolbar">
               <p class="eyebrow" id="program-area-title">PROGRAMMBEREICH</p>

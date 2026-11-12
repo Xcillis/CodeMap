@@ -18,7 +18,13 @@ button { font: inherit; touch-action: none; }
 #dialog-close { min-height: 2.75rem; padding: .5rem 1rem; border-radius: .35rem; font-weight: 700; }
 #battle-panel { position: fixed; z-index: 2; top: max(1rem, env(safe-area-inset-top)); right: max(1rem, env(safe-area-inset-right)); bottom: max(1rem, env(safe-area-inset-bottom)); width: min(56vw, 60rem); }
 .battle-card { position: relative; display: flex; flex-direction: column; height: 100%; padding: .85rem; border: 1px solid #d8c275; border-radius: .5rem; background: #112226; box-shadow: 0 8px 26px rgb(0 0 0 / .36); overflow: hidden; }
-.editor-columns { display: grid; grid-template-columns: minmax(10rem, .8fr) minmax(0, 1.5fr); flex: 1; min-height: 10rem; overflow: hidden; border: 1px solid #527c79; border-radius: .4rem; }
+.editor-columns { display: grid; grid-template-columns: minmax(14rem, 1fr) minmax(0, 1.5fr); flex: 1; min-height: 10rem; overflow: hidden; border: 1px solid #527c79; border-radius: .4rem; }
+.library-shell { display: grid; grid-template-columns: 4.8rem minmax(0, 1fr); min-height: 0; min-width: 0; }
+.command-categories { min-height: 0; overflow: auto; padding: .4rem .2rem; border-right: 1px solid #527c79; background: #192b32; }
+.command-categories button { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: .35rem; width: 100%; min-height: 4.5rem; padding: .45rem .1rem; border: 1px solid transparent; border-radius: .3rem; color: #d7e8e0; background: transparent; font-size: .66rem; overflow-wrap: anywhere; cursor: pointer; touch-action: manipulation; }
+.command-categories button[aria-pressed='true'] { color: #fff5cf; border-color: var(--category-color); background: #2a454b; }
+.category-dot { display: block; width: 1.5rem; height: 1.5rem; border-radius: 50%; border: 2px solid #ffffff55; background: var(--category-color); }
+.category-title { margin: .4rem 0; color: #f1dfab; font-weight: 800; font-size: 1rem; }
 .program-workspace { display: flex; flex-direction: column; min-width: 0; min-height: 0; background-color: #193238; background-image: radial-gradient(#41605d 1px, transparent 1px); background-size: 18px 18px; }
 .program-toolbar { flex: none; padding: .75rem; border-bottom: 1px solid #527c79; background: #152c30; }
 .program-toolbar .editor-mode { margin: .5rem 0 0; flex-wrap: wrap; }
@@ -34,9 +40,10 @@ button:focus-visible, select:focus-visible, textarea:focus-visible, summary:focu
 .editor-mode button.editor-mode-active { color: #17292b; border-color: #edcf6c; background: #edcf6c; }
 .command-library { min-width: 0; min-height: 0; overflow: auto; overscroll-behavior: contain; padding: .75rem; border-right: 1px solid #527c79; background: #112e31; }
 .command-library .eyebrow { margin-bottom: 0; }
-.command-library button { display: grid; width: 100%; gap: .3rem; margin-bottom: .7rem; padding: .65rem; color: #eaf5e6; border: 1px solid #487e86; border-left: 4px solid #559cf0; border-radius: .4rem; background: #234e55; text-align: left; cursor: grab; touch-action: none; user-select: none; }
+.command-library button { display: grid; width: 100%; gap: .3rem; margin-bottom: .7rem; padding: .65rem; color: #eaf5e6; border: 1px solid #487e86; border-left: 4px solid var(--category-color, #559cf0); border-radius: .4rem; background: #234e55; text-align: left; cursor: grab; touch-action: none; user-select: none; }
 .command-library button[data-command='attack'] { border-left-color: #db7767; background: #593b3c; }
 .command-library button[data-command='condition'] { border-left-color: #a776e8; background: #423958; }
+.command-library button[data-command='repeat'] { border-left-color: #e1b64e; background: #594923; }
 .command-library code { color: #fff0ae; font-size: .76rem; overflow-wrap: anywhere; }
 .command-library span { color: #c9dfd8; font-size: .72rem; }
 #block-editor { padding: .65rem; border: 1px solid #668c86; border-radius: .3rem; background: #17383a; }
@@ -77,13 +84,15 @@ button:focus-visible, select:focus-visible, textarea:focus-visible, summary:focu
 @media (max-width: 600px) { #hud { width: calc(100vw - 2rem); } .dpad { grid-template-columns: repeat(3, 3rem); grid-template-rows: repeat(3, 3rem); } .interact { width: 4rem; height: 4rem; } #interaction-hint { bottom: 6.4rem; } }
 @media (max-width: 1000px) {
   #battle-panel { top: auto; right: .5rem; bottom: max(.5rem, env(safe-area-inset-bottom)); left: .5rem; width: auto; height: 58dvh; }
-  .editor-columns { grid-template-columns: minmax(9rem, .65fr) minmax(0, 2fr); min-height: 8rem; }
+  .editor-columns { grid-template-columns: minmax(12rem, .9fr) minmax(0, 2fr); min-height: 8rem; }
   .battle-footer { max-height: 32%; }
   .battle-status { grid-template-columns: auto repeat(3, minmax(0, 1fr)); }
 }
 @media (max-width: 480px) {
   .battle-card { padding: .5rem; }
-  .editor-columns { grid-template-columns: minmax(7rem, .7fr) minmax(0, 1fr); }
+  .editor-columns { grid-template-columns: minmax(10rem, 1fr) minmax(0, 1.1fr); }
+  .library-shell { grid-template-columns: 3.3rem minmax(0, 1fr); }
+  .command-categories button { font-size: .58rem; }
   .command-library, .program-toolbar, .program-scroll { padding: .4rem; }
   .command-library code { font-size: .66rem; }
   .editor-mode button { font-size: .78rem; }
