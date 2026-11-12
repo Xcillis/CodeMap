@@ -26,8 +26,8 @@ describe('BattleEngine', () => {
     const battle = new BattleEngine();
     battle.reset(true, 5);
 
-    for (let index = 0; index < 4; index += 1) battle.runStep('MOVE_TOWARD', false, true);
-    for (let index = 0; index < 3; index += 1) battle.runStep('ATTACK', false, true);
+    for (let index = 0; index < 4; index += 1) battle.runTick({ moosling: { kind: 'action', action: 'MOVE_TOWARD' }, glutling: { kind: 'action', action: 'MOVE_TOWARD' } });
+    for (let index = 0; index < 3; index += 1) battle.runTick({ moosling: { kind: 'action', action: 'ATTACK' }, glutling: { kind: 'action', action: 'ATTACK' } });
 
     expect(battle.snapshot.companion?.name).toBe('Glutling');
     expect(battle.snapshot.outcome).toBe('victory');

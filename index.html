@@ -23,7 +23,11 @@
       <section id="battle-panel" aria-labelledby="battle-title" hidden>
         <div class="battle-card">
           <p class="eyebrow" id="battle-title">RUNENSKRIPT – DIE ERSTE SCHLEIFE</p>
-          <label for="program-source">Entscheidung von Moosling</label>
+          <div id="arkan-tabs" class="editor-mode" role="group" aria-label="Arkan programmieren">
+            <button id="select-moosling" type="button" aria-pressed="true">Moosling</button>
+            <button id="select-glutling" type="button" aria-pressed="false" hidden>Glutling</button>
+          </div>
+          <label id="program-owner" for="program-source">Programm von Moosling</label>
           <div class="editor-mode" role="group" aria-label="Programmierdarstellung">
             <button id="blocks-mode" type="button">Blocksprache</button>
             <button id="text-mode" type="button">Textmodus</button>

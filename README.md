@@ -2,7 +2,16 @@
 
 Lokaler Phaser-/TypeScript-Prototyp für die erste Erkundungsquest aus *Die Chroniken von Aetheria*.
 
-Die aktuellen Trainingsmissionen starten bewusst mit einem aktiven Arkan. Erweiterte Missionen werden später Duo- und Dreier-Formationen mit einem gemeinsamen Programm einführen.
+Die Trainingsmissionen beginnen mit Moosling. Nach Schleifen und Bedingungen folgt eine Duo-Mission mit Glutling. Jeder Arkan besitzt sein eigenes Programm mit ausdrücklich benannten Befehlen, beispielsweise `moosling.attack()` und `glutling.moveForward()`.
+
+## Arena und Programmierung
+
+- Wähle einen Arkan über seinen Button im Editor oder direkt auf dem Spielfeld. Glutling erscheint erst in Mission 3.
+- Block- und Textmodus bearbeiten das Programm des ausgewählten Arkanen. Entwürfe werden pro Mission und Arkan im Browser gespeichert, auch unvollständiger Text.
+- „Nächsten Schritt ausführen“ führt einen Tick aus: zuerst Moosling, dann Glutling, anschließend gegebenenfalls das Konstrukt. Ein beendetes Programm wartet.
+- „Programm ausführen“ startet alle Programme vom frischen Missionszustand. Nach einer Programmänderung startet auch der nächste Einzelschritt einen neuen Versuch; reine Darstellungswechsel setzen ihn nicht zurück.
+- Belegte Felder blockieren die Bewegung; die Aktion wird verbraucht und die Ursache im Protokoll angezeigt. `moveForward()` bedeutet derzeit ein Feld zum Gegner (horizontal bei Gleichstand), ohne automatische Umgehung.
+- „Neu starten“ setzt den Kampf zurück und behält die Programme. Nach einem Sieg wird die nächste Mission freigegeben.
 
 ## Starten
 

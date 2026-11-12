@@ -34,6 +34,14 @@ Einstiegsmissionen verwenden weiterhin einen aktiven Arkan. Aufbau-Missionen erl
 
 Die erste Umsetzung der Duo-Formation ist Mission 3. Das System führt den optionalen Begleiter bereits als eigenen Kampfzustand, damit individuelle Programme, Rollen und eine `state.allies`-API ohne erneuten Szenenumbau ergänzt werden können.
 
-## Bewusst nicht enthalten
+## ADR 008 – Getrennte Programme und missionsgebundene Ausführung
 
-Keine Kampfsimulation, Arkan-Programmierung, Blockly-/JavaScript-Editor, Speicherung, Login, Backend, NOVA oder Kompetenzengine. Diese bleiben Integrationspunkte für spätere Meilensteine.
+`BattleSession` besitzt Missionszustand, validierte Programme und Ausführungsposition. Die Phaser-Szene zeichnet nur den Snapshot und leitet UI-Aktionen weiter. Jeder Programmslot wird gegen seine Arkan-ID validiert; die gemeinsame Blockstruktur wird mit dieser ID serialisiert. Die Engine löst Bedingungen zum Handlungszeitpunkt des jeweiligen Arkanen auf.
+
+Ein Tick führt höchstens eine Aktion je Arkan in der Reihenfolge Moosling, Glutling aus; ein kürzeres Programm wartet. Belegte Felder blockieren einen Schritt und verbrauchen die Aktion. Bereits im selben Tick freigegebene Felder dürfen nachfolgende Figuren betreten. Neustart und Gesamtausführung verwenden identische Missionsdaten. Geänderte Programme starten einen frischen Versuch; semantisch gleiche Block-/Textwechsel behalten die Ausführungsposition.
+
+Editorentwürfe sind nach Mission und Arkan getrennt, bleiben auch bei ungültigem Text erhalten und werden lokal gespeichert. Für DOM-Regressionstests wird ausschließlich als Entwicklungsabhängigkeit jsdom eingesetzt.
+
+## Noch nicht enthalten
+
+Dreier-Formation, vollständiges Blockly, freie JavaScript-Runtime, Online-Speicherung, Login, Backend, NOVA und Kompetenzengine bleiben spätere Erweiterungen. Frühere ADRs beschreiben die Entwicklungsschritte; ADR 008 beschreibt den aktuellen Ausführungsstand.

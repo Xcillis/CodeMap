@@ -6,10 +6,11 @@ interface StoredProgress {
   programVersion: 3;
   questCompleted: boolean;
   lastProgram: string;
+  programs: Record<string, string>;
   editorMode: 'blocks' | 'text';
 }
 
-const fallbackProgress: StoredProgress = { programVersion: 3, questCompleted: false, lastProgram: DEFAULT_PROGRAM, editorMode: 'blocks' };
+const fallbackProgress: StoredProgress = { programVersion: 3, questCompleted: false, lastProgram: DEFAULT_PROGRAM, programs: {}, editorMode: 'blocks' };
 
 export function loadProgress(): StoredProgress {
   if (typeof window === 'undefined') return fallbackProgress;
@@ -22,6 +23,7 @@ export function loadProgress(): StoredProgress {
       programVersion: 3,
       questCompleted: parsed.questCompleted === true,
       lastProgram: typeof parsed.lastProgram === 'string' ? parsed.lastProgram : DEFAULT_PROGRAM,
+      programs: Object.fromEntries(Object.entries(parsed.programs && typeof parsed.programs === 'object' ? parsed.programs : (typeof parsed.lastProgram === 'string' ? { '1:moosling': parsed.lastProgram } : {})).filter((entry) => typeof entry[1] === 'string')),
       editorMode: parsed.editorMode === 'text' ? 'text' : 'blocks',
     };
   } catch {
@@ -31,5 +33,11 @@ export function loadProgress(): StoredProgress {
 
 export function saveProgress(update: Partial<StoredProgress>): void {
   if (typeof window === 'undefined') return;
-  window.localStorage.setItem(STORAGE_KEY, JSON.stringify({ ...loadProgress(), ...update, programVersion: 3 }));
+  try {
+    window.localStorage.setItem(STORAGE_KEY, JSON.stringify({ ...loadProgress(), ...update, programVersion: 3 }));
+  } catch { /* Storage may be disabled; in-memory editing still works. */ }
+}
+
+export function saveProgramDraft(mission: number, actor: string, source: string): void {
+  saveProgress({ programs: { ...loadProgress().programs, [`${mission}:${actor}`]: source } });
 }

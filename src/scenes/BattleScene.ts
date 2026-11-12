@@ -1,7 +1,6 @@
 import Phaser from 'phaser';
-import { BattleEngine } from '../combat/BattleEngine';
-import { CONDITION_PROGRAM, DEFAULT_PROGRAM, FORMATION_PROGRAM, compileActionPlan } from '../combat/DecisionProgram';
-import type { BattleState, CombatAction, Combatant, ProgramStep } from '../combat/types';
+import { BattleSession, missionPrograms, type MissionId } from '../combat/BattleSession';
+import type { BattleState, Combatant, ProgramSources } from '../combat/types';
 import { gameEvents } from '../game/events';
 
 const TILE = 72;
@@ -9,19 +8,18 @@ const GRID_START_X = 110;
 const GRID_START_Y = 130;
 
 export class BattleScene extends Phaser.Scene {
-  private readonly battle = new BattleEngine();
+  private session = new BattleSession(1);
   private grid!: Phaser.GameObjects.Graphics;
   private actors!: Phaser.GameObjects.Container;
   private heading!: Phaser.GameObjects.Text;
   private subtitle!: Phaser.GameObjects.Text;
-  private activeSource = '';
-  private actionPlan: ProgramStep[] = [];
-  private nextActionIndex = 0;
   private mission: 1 | 2 | 3 = 1;
-  private readonly onStep = (source: string) => this.step(source);
-  private readonly onRunProgram = (source: string) => this.runProgram(source);
+  private readonly onStep = (sources: ProgramSources) => this.execute(sources);
+  private readonly onRunProgram = (sources: ProgramSources) => this.execute(sources, true);
   private readonly onRestart = () => this.restart();
-  private readonly onNextMission = () => this.startMission(this.mission === 1 ? 2 : 3);
+  private readonly onNextMission = () => {
+    if (this.session.snapshot.outcome === 'victory' && this.mission < 3) this.startMission(this.mission === 1 ? 2 : 3);
+  };
   private readonly onExit = () => this.exit();
 
   constructor() {
@@ -43,87 +41,34 @@ export class BattleScene extends Phaser.Scene {
     this.startMission(1);
   }
 
-  private startMission(mission: 1 | 2 | 3): void {
+  private startMission(mission: MissionId): void {
     this.mission = mission;
-    this.battle.reset(mission === 3, mission === 3 ? 5 : 3);
-    this.activeSource = '';
-    this.actionPlan = [];
-    this.nextActionIndex = 0;
+    this.session = new BattleSession(mission);
     this.heading.setText(mission === 1 ? 'Trainingsarena: Die erste Schleife' : mission === 2 ? 'Trainingsarena: Nähe prüfen' : 'Trainingsarena: Duo-Formation');
     this.subtitle.setText(mission === 1
       ? 'Moosling folgt deinem Aktionsplan. Das Konstrukt bleibt passiv.'
-      : mission === 2 ? 'Das Konstrukt bewegt sich. Reagiere mit einer Bedingung auf seine Nähe.' : 'Moosling und Glutling führen deinen gemeinsamen Aktionsplan aus.');
-    this.render(this.battle.snapshot);
-    gameEvents.emit('battle-opened', mission === 1 ? DEFAULT_PROGRAM : mission === 2 ? CONDITION_PROGRAM : FORMATION_PROGRAM, mission);
-    gameEvents.emit('battle-updated', this.battle.snapshot, mission === 1
+      : mission === 2 ? 'Das Konstrukt bewegt sich. Reagiere mit einer Bedingung auf seine Nähe.' : 'Moosling und Glutling folgen ihren eigenen Programmen.');
+    this.render(this.session.snapshot);
+    gameEvents.emit('battle-opened', missionPrograms(mission), mission);
+    gameEvents.emit('battle-updated', this.session.snapshot, mission === 1
       ? 'Führe die Schleife Schritt für Schritt aus und beobachte die Wiederholung.'
-      : mission === 2 ? 'Das Konstrukt bewegt sich nun. Prüfe bei jedem Schritt, ob es neben Moosling steht.' : 'Ein Plan, zwei Arkane: Beide führen jede Aktion in fester Reihenfolge aus.');
+      : mission === 2 ? 'Das Konstrukt bewegt sich nun. Prüfe bei jedem Schritt, ob es neben Moosling steht.' : 'Wähle einen Arkan zum Programmieren. Pro Tick handelt zuerst Moosling, dann Glutling.');
     gameEvents.emit('battle-next-available', false);
   }
 
-  private step(source: string): void {
-    if (!this.preparePlan(source)) return;
-    const step = this.actionPlan[this.nextActionIndex];
-    if (!step) {
-      gameEvents.emit('battle-updated', this.battle.snapshot, 'Aktionsplan beendet. Ergänze den Plan oder starte neu.');
-      return;
-    }
-    this.nextActionIndex += 1;
-    const action = this.resolveStep(step);
-    const state = this.battle.runStep(action, this.mission === 2, this.mission === 3);
+  private execute(sources: ProgramSources, full = false): void {
+    const feedback = this.session.execute(sources, full);
+    const state = this.session.snapshot;
     this.render(state);
-    const readableAction = action === 'MOVE_TOWARD' ? 'moveToward()' : 'attack()';
-    gameEvents.emit('battle-updated', state, state.outcome === 'victory' ? this.victoryMessage() : `Schritt ${this.nextActionIndex}/${this.actionPlan.length}: ${readableAction}`);
-  }
-
-  private runProgram(source: string): void {
-    if (!this.preparePlan(source, true)) return;
-    this.battle.reset();
-    const totalSteps = this.actionPlan.length;
-    while (this.nextActionIndex < this.actionPlan.length && this.battle.snapshot.outcome === 'ongoing') {
-      this.battle.runStep(this.resolveStep(this.actionPlan[this.nextActionIndex]), this.mission === 2, this.mission === 3);
-      this.nextActionIndex += 1;
-    }
-    const state = this.battle.snapshot;
-    this.render(state);
-    gameEvents.emit('battle-updated', state, state.outcome === 'victory' ? this.victoryMessage() : `Programm ausgeführt: ${totalSteps} Schritte ausgeführt.`);
+    gameEvents.emit('battle-updated', state, feedback);
+    gameEvents.emit('battle-next-available', state.outcome === 'victory' && this.mission < 3);
   }
 
   private restart(): void {
-    this.battle.reset(this.mission === 3, this.mission === 3 ? 5 : 3);
-    this.activeSource = '';
-    this.actionPlan = [];
-    this.nextActionIndex = 0;
-    this.render(this.battle.snapshot);
-    gameEvents.emit('battle-updated', this.battle.snapshot, 'Arena zurückgesetzt.');
-  }
-
-  private preparePlan(source: string, restartPlan = false): boolean {
-    if (source === this.activeSource && !restartPlan) return true;
-    const compiled = compileActionPlan(source);
-    if (!compiled.steps) {
-      gameEvents.emit('battle-updated', this.battle.snapshot, compiled.error);
-      return false;
-    }
-    this.activeSource = source;
-    this.actionPlan = compiled.steps;
-    this.nextActionIndex = 0;
-    return true;
-  }
-
-  private resolveStep(step: ProgramStep): CombatAction {
-    if (step.kind === 'action') return step.action;
-    const { player, enemy } = this.battle.snapshot;
-    const adjacent = Math.abs(player.x - enemy.x) + Math.abs(player.y - enemy.y) === 1;
-    return adjacent ? step.whenTrue : step.whenFalse;
-  }
-
-  private victoryMessage(): string {
-    if (this.mission < 3) {
-      gameEvents.emit('battle-next-available', true);
-      return this.mission === 1 ? 'Sieg! Die nächste Mission führt Bedingungen ein.' : 'Sieg! Jetzt wird Glutling für eine Duo-Formation freigeschaltet.';
-    }
-    return 'Sieg! Die Formation hat beide Arkane koordiniert.';
+    this.session.reset();
+    this.render(this.session.snapshot);
+    gameEvents.emit('battle-updated', this.session.snapshot, 'Arena zurückgesetzt. Programme bleiben erhalten.');
+    gameEvents.emit('battle-next-available', false);
   }
 
   private exit(): void {
@@ -150,6 +95,7 @@ export class BattleScene extends Phaser.Scene {
     const x = GRID_START_X + actor.x * TILE + TILE / 2;
     const y = GRID_START_Y + actor.y * TILE + TILE / 2;
     const marker = this.add.circle(x, y, 24, color).setStrokeStyle(actor.guarding ? 5 : 2, actor.guarding ? 0xf8e47c : 0xffffff);
+    if (actor.id !== 'konstrukt') marker.setInteractive({ useHandCursor: true }).on('pointerdown', () => gameEvents.emit('arkan-selected', actor.id));
     const label = this.add.text(x, y - 42, `${actor.name}\n${actor.hp}/${actor.maxHp}`, { fontFamily: 'Georgia, serif', fontSize: '13px', align: 'center', color: textColor, stroke: '#142c35', strokeThickness: 3 }).setOrigin(0.5);
     this.actors.add([marker, label]);
   }

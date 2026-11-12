@@ -1,5 +1,7 @@
 export type CombatAction = 'ATTACK' | 'MOVE_TOWARD';
 export type BattleOutcome = 'ongoing' | 'victory' | 'defeat';
+export type ArkanId = 'moosling' | 'glutling';
+export type ProgramSources = Partial<Record<ArkanId, string>>;
 
 export interface RepeatActionBlock {
   kind: 'action';
@@ -43,6 +45,7 @@ export interface BattleState {
 }
 
 export interface ActionPlanResult {
+  actor?: ArkanId;
   steps?: ProgramStep[];
   blocks?: ProgramBlock[];
   error?: string;

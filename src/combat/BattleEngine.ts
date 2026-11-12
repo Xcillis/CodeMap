@@ -1,11 +1,11 @@
-import type { BattleState, CombatAction, Combatant } from './types';
+import type { ArkanId, BattleState, CombatAction, Combatant, GridPosition, ProgramStep } from './types';
 
 const GRID_SIZE = 7;
 
 export class BattleEngine {
   private state: BattleState;
 
-  constructor() {
+  constructor(private readonly spawns?: Partial<Record<ArkanId | 'konstrukt', GridPosition>>) {
     this.state = this.initialState();
   }
 
@@ -17,13 +17,24 @@ export class BattleEngine {
     this.state = this.initialState(withCompanion, enemyHp);
   }
 
-  runStep(playerAction: CombatAction, enemyActive = false, formationActive = false): Readonly<BattleState> {
-    if (this.state.outcome !== 'ongoing') return this.snapshot;
+  runStep(playerAction: CombatAction, enemyActive = false): Readonly<BattleState> {
+    return this.runTick({ moosling: { kind: 'action', action: playerAction } }, enemyActive);
+  }
 
+  runTick(programs: Partial<Record<ArkanId, ProgramStep>>, enemyActive = false): Readonly<BattleState> {
+    if (this.state.outcome !== 'ongoing') return this.snapshot;
     this.state.tick += 1;
-    this.act(this.state.player, this.state.enemy, playerAction);
-    if (formationActive && this.state.companion && this.state.outcome === 'ongoing') {
-      this.act(this.state.companion, this.state.enemy, playerAction);
+    for (const actor of [this.state.player, this.state.companion]) {
+      if (!actor || actor.hp === 0 || this.state.outcome !== 'ongoing') continue;
+      const step = programs[actor.id as ArkanId];
+      if (!step) {
+        this.addLog(`${actor.name}: Programm beendet, wartet.`);
+        continue;
+      }
+      const adjacent = this.areAdjacent(actor, this.state.enemy);
+      const action = step.kind === 'action' ? step.action : adjacent ? step.whenTrue : step.whenFalse;
+      this.addLog(`${actor.id}.${action === 'ATTACK' ? 'attack()' : 'moveForward()'}${step.kind === 'condition' ? ` – enemyAdjacent = ${adjacent}` : ''}`);
+      this.act(actor, this.state.enemy, action);
     }
     if (enemyActive && this.state.outcome === 'ongoing') {
       const enemyAction = this.areAdjacent(this.state.enemy, this.state.player) ? 'ATTACK' : 'MOVE_TOWARD';
@@ -33,7 +44,7 @@ export class BattleEngine {
   }
 
   private initialState(withCompanion = false, enemyHp = 3): BattleState {
-    return {
+    const state: BattleState = {
       tick: 0,
       outcome: 'ongoing',
       player: { id: 'moosling', name: 'Moosling', hp: 5, maxHp: 5, x: 1, y: 3, guarding: false },
@@ -41,6 +52,10 @@ export class BattleEngine {
       enemy: { id: 'konstrukt', name: 'Übungskonstrukt', hp: enemyHp, maxHp: enemyHp, x: 5, y: 3, guarding: false },
       log: ['Trainingsarena bereit. Das Konstrukt beobachtet deinen Aktionsplan.'],
     };
+    for (const actor of [state.player, state.companion, state.enemy]) {
+      if (actor && this.spawns?.[actor.id]) Object.assign(actor, this.spawns[actor.id]);
+    }
+    return state;
   }
 
   private act(actor: Combatant, target: Combatant, action: CombatAction): void {
@@ -76,13 +91,20 @@ export class BattleEngine {
     }
     const horizontalDistance = target.x - actor.x;
     const verticalDistance = target.y - actor.y;
+    let nextX = actor.x;
+    let nextY = actor.y;
     if (Math.abs(horizontalDistance) >= Math.abs(verticalDistance) && horizontalDistance !== 0) {
-      actor.x += Math.sign(horizontalDistance);
+      nextX += Math.sign(horizontalDistance);
     } else if (verticalDistance !== 0) {
-      actor.y += Math.sign(verticalDistance);
+      nextY += Math.sign(verticalDistance);
     }
-    actor.x = Math.min(GRID_SIZE - 1, Math.max(0, actor.x));
-    actor.y = Math.min(GRID_SIZE - 1, Math.max(0, actor.y));
+    const occupant = [this.state.player, this.state.companion, this.state.enemy].find((unit) => unit && unit.id !== actor.id && unit.x === nextX && unit.y === nextY);
+    if (occupant || nextX < 0 || nextX >= GRID_SIZE || nextY < 0 || nextY >= GRID_SIZE) {
+      this.addLog(`${actor.name}: Bewegung blockiert${occupant ? ` – Feld von ${occupant.name} belegt` : ' – Kartenrand'}.`);
+      return;
+    }
+    actor.x = nextX;
+    actor.y = nextY;
     this.addLog(`${actor.name} bewegt sich vor.`);
   }
 
@@ -91,6 +113,6 @@ export class BattleEngine {
   }
 
   private addLog(entry: string): void {
-    this.state.log = [...this.state.log.slice(-5), entry];
+    this.state.log = [...this.state.log.slice(-79), entry];
   }
 }

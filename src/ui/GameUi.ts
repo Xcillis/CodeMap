@@ -1,8 +1,8 @@
 import { gameEvents, type DialogPayload } from '../game/events';
 import { touchInput, type TouchDirection } from '../input/TouchInput';
-import { loadProgress, saveProgress } from '../gameplay/LocalProgress';
+import { loadProgress, saveProgress, saveProgramDraft } from '../gameplay/LocalProgress';
 import { blocksToSource, compileActionPlan } from '../combat/DecisionProgram';
-import type { BattleState, CombatAction, ProgramBlock } from '../combat/types';
+import type { ArkanId, BattleState, CombatAction, ProgramBlock, ProgramSources } from '../combat/types';
 
 type EditorMode = 'blocks' | 'text';
 
@@ -36,6 +36,9 @@ export class GameUi {
   private editorMode: EditorMode = 'blocks';
   private blockModel: ProgramBlock[] = [];
   private mission = 1;
+  private selectedActor: ArkanId = 'moosling';
+  private sources: ProgramSources = {};
+  private readonly drafts: Record<string, string> = {};
 
   constructor() {
     gameEvents.on('quest-updated', (objective: string, complete: boolean) => {
@@ -44,7 +47,7 @@ export class GameUi {
     });
     gameEvents.on('dialog-opened', (dialog: DialogPayload) => this.openDialog(dialog));
     gameEvents.on('interaction-hint', (text: string) => (this.hint.textContent = text));
-    gameEvents.on('battle-opened', (program: string, mission: number) => this.openBattle(program, mission));
+    gameEvents.on('battle-opened', (programs: ProgramSources, mission: number) => this.openBattle(programs, mission));
     gameEvents.on('battle-updated', (state: BattleState, feedback: string) => this.updateBattle(state, feedback));
     gameEvents.on('battle-closed', () => {
       this.battlePanel.hidden = true;
@@ -54,12 +57,15 @@ export class GameUi {
 
     this.requiredElement<HTMLButtonElement>('dialog-close').addEventListener('click', () => this.closeDialog());
     this.requiredElement<HTMLButtonElement>('interact-button').addEventListener('click', () => touchInput.requestInteraction());
-    this.requiredElement<HTMLButtonElement>('battle-step').addEventListener('click', () => gameEvents.emit('battle-step', this.getProgramSource()));
-    this.requiredElement<HTMLButtonElement>('battle-run-program').addEventListener('click', () => gameEvents.emit('battle-run-program', this.getProgramSource()));
+    this.requiredElement<HTMLButtonElement>('battle-step').addEventListener('click', () => gameEvents.emit('battle-step', this.getPrograms()));
+    this.requiredElement<HTMLButtonElement>('battle-run-program').addEventListener('click', () => gameEvents.emit('battle-run-program', this.getPrograms()));
     this.requiredElement<HTMLButtonElement>('battle-restart').addEventListener('click', () => gameEvents.emit('battle-restart'));
     this.requiredElement<HTMLButtonElement>('battle-next-mission').addEventListener('click', () => gameEvents.emit('battle-next-mission'));
     this.requiredElement<HTMLButtonElement>('battle-exit').addEventListener('click', () => gameEvents.emit('battle-exit'));
-    this.programSource.addEventListener('input', () => saveProgress({ lastProgram: this.programSource.value }));
+    this.programSource.addEventListener('input', () => this.captureDraft());
+    this.requiredElement<HTMLButtonElement>('select-moosling').addEventListener('click', () => this.selectActor('moosling'));
+    this.requiredElement<HTMLButtonElement>('select-glutling').addEventListener('click', () => this.selectActor('glutling'));
+    gameEvents.on('arkan-selected', (actor: ArkanId) => this.selectActor(actor));
     this.blocksModeButton.addEventListener('click', () => this.setEditorMode('blocks'));
     this.textModeButton.addEventListener('click', () => this.setEditorMode('text'));
     this.requiredElement<HTMLButtonElement>('add-loop-block').addEventListener('click', () => {
@@ -96,16 +102,22 @@ export class GameUi {
     this.pendingDialogAction = undefined;
   }
 
-  private openBattle(program: string, mission: number): void {
+  private openBattle(programs: ProgramSources, mission: number): void {
     this.setExplorationUiVisible(false);
     this.battlePanel.hidden = false;
     this.mission = mission;
     this.battleTitle.textContent = mission === 1 ? 'RUNENSKRIPT – DIE ERSTE SCHLEIFE' : mission === 2 ? 'RUNENSKRIPT – NÄHE PRÜFEN' : 'RUNENSKRIPT – DUO-FORMATION';
     this.requiredElement<HTMLButtonElement>('battle-next-mission').hidden = true;
-    this.programSource.value = mission === 1 ? (loadProgress().lastProgram || program) : program;
-    const parsed = compileActionPlan(this.programSource.value);
-    this.blockModel = parsed.blocks ?? [];
-    this.setEditorMode(parsed.blocks ? loadProgress().editorMode : 'text');
+    this.sources = {};
+    for (const actor of ['moosling', 'glutling'] as const) {
+      if (programs[actor] !== undefined) {
+        const key = `${mission}:${actor}`;
+        this.sources[actor] = this.drafts[key] ?? loadProgress().programs[key] ?? programs[actor];
+      }
+    }
+    this.selectedActor = 'moosling';
+    this.requiredElement<HTMLButtonElement>('select-glutling').hidden = !programs.glutling;
+    this.loadActorEditor();
     this.battleFeedback.textContent = '';
   }
 
@@ -117,7 +129,7 @@ export class GameUi {
     if (state.companion) this.updateHealth(this.companionHealth, this.companionHealthText, state.companion.hp, state.companion.maxHp);
     this.updateHealth(this.enemyHealth, this.enemyHealthText, state.enemy.hp, state.enemy.maxHp);
     this.requiredElement<HTMLButtonElement>('battle-step').disabled = state.outcome !== 'ongoing';
-    this.requiredElement<HTMLButtonElement>('battle-run-program').disabled = state.outcome !== 'ongoing';
+    this.requiredElement<HTMLButtonElement>('battle-run-program').disabled = false;
     this.battleLog.replaceChildren(...state.log.map((entry) => {
       const item = document.createElement('li');
       item.textContent = entry;
@@ -134,14 +146,14 @@ export class GameUi {
 
   private setEditorMode(mode: EditorMode): void {
     if (mode === 'blocks' && this.editorMode === 'text') {
-      const parsed = compileActionPlan(this.programSource.value);
+      const parsed = compileActionPlan(this.programSource.value, this.selectedActor);
       if (!parsed.blocks) {
         this.battleFeedback.textContent = 'Dieser Text kann nicht in Wiederholungsblöcke umgewandelt werden.';
         return;
       }
       this.blockModel = parsed.blocks;
     }
-    if (mode === 'text') this.programSource.value = blocksToSource(this.blockModel);
+    if (mode === 'text' && this.editorMode === 'blocks') this.programSource.value = blocksToSource(this.blockModel, this.selectedActor);
     this.editorMode = mode;
     this.blockEditor.hidden = mode !== 'blocks';
     this.programSource.hidden = mode !== 'text';
@@ -150,7 +162,8 @@ export class GameUi {
     this.blocksModeButton.setAttribute('aria-pressed', String(mode === 'blocks'));
     this.textModeButton.setAttribute('aria-pressed', String(mode === 'text'));
     if (mode === 'blocks') this.renderBlocks();
-    saveProgress({ lastProgram: this.programSource.value, editorMode: mode });
+    this.captureDraft();
+    saveProgress({ editorMode: mode });
   }
 
   private renderBlocks(): void {
@@ -213,7 +226,7 @@ export class GameUi {
       });
       row.append(condition, whenTrue, otherwise, whenFalse);
       this.attachTooltip(condition, () => 'Die Bedingung wird bei jedem Schleifendurchlauf erneut geprüft.');
-      this.attachTooltip(whenTrue, () => 'Diese Aktion wird gewählt, wenn Moosling direkt neben dem Konstrukt steht.');
+      this.attachTooltip(whenTrue, () => 'Diese Aktion wird gewählt, wenn der ausgewählte Arkan direkt neben dem Konstrukt steht.');
       this.attachTooltip(whenFalse, () => 'Diese Aktion wird gewählt, solange noch Abstand zum Konstrukt besteht.');
     }
     row.append(remove);
@@ -239,13 +252,13 @@ export class GameUi {
   }
 
   private syncBlocksToSource(): void {
-    this.programSource.value = blocksToSource(this.blockModel);
-    saveProgress({ lastProgram: this.programSource.value, editorMode: 'blocks' });
+    this.programSource.value = blocksToSource(this.blockModel, this.selectedActor);
+    this.captureDraft();
     this.renderBlocks();
   }
 
   private getProgramSource(): string {
-    return this.editorMode === 'blocks' ? blocksToSource(this.blockModel) : this.programSource.value;
+    return this.editorMode === 'blocks' ? blocksToSource(this.blockModel, this.selectedActor) : this.programSource.value;
   }
 
   private addLibraryCommand(command: string | undefined): void {
@@ -261,14 +274,57 @@ export class GameUi {
     const snippet = command === 'condition'
       ? 'repeat(1, () => {\n  if (moosling.enemyAdjacent) {\n    moosling.attack();\n  } else {\n    moosling.moveForward();\n  }\n});'
       : `repeat(1, () => {\n  moosling.${command === 'attack' ? 'attack' : 'moveForward'}();\n});`;
-    this.programSource.setRangeText(`${this.programSource.value.trim() ? '\n\n' : ''}${snippet}`, this.programSource.selectionStart, this.programSource.selectionEnd, 'end');
-    saveProgress({ lastProgram: this.programSource.value });
+    const ownedSnippet = snippet.replace(/moosling/g, this.selectedActor);
+    this.programSource.setRangeText(`${this.programSource.value.trim() ? '\n\n' : ''}${ownedSnippet}`, this.programSource.selectionStart, this.programSource.selectionEnd, 'end');
+    this.captureDraft();
+  }
+
+  private captureDraft(): void {
+    const source = this.getProgramSource();
+    this.sources[this.selectedActor] = source;
+    this.drafts[`${this.mission}:${this.selectedActor}`] = source;
+    saveProgramDraft(this.mission, this.selectedActor, source);
+  }
+
+  private getPrograms(): ProgramSources {
+    this.captureDraft();
+    return { ...this.sources };
+  }
+
+  private selectActor(actor: ArkanId): void {
+    if (actor === this.selectedActor || this.sources[actor] === undefined) return;
+    this.captureDraft();
+    this.selectedActor = actor;
+    this.loadActorEditor();
+  }
+
+  private loadActorEditor(): void {
+    const actor = this.selectedActor;
+    this.programSource.value = this.sources[actor] ?? '';
+    const parsed = compileActionPlan(this.programSource.value, actor);
+    this.blockModel = parsed.blocks ?? [];
+    this.editorMode = 'text';
+    this.setEditorMode(parsed.blocks ? loadProgress().editorMode : 'text');
+    this.requiredElement<HTMLElement>('program-owner').textContent = `Programm von ${actor === 'moosling' ? 'Moosling' : 'Glutling'}`;
+    for (const id of ['moosling', 'glutling'] as const) {
+      const button = this.requiredElement<HTMLButtonElement>(`select-${id}`);
+      button.setAttribute('aria-pressed', String(id === actor));
+      button.classList.toggle('editor-mode-active', id === actor);
+    }
+    const commands = { move: 'moveForward()', attack: 'attack()', condition: 'enemyAdjacent' };
+    document.querySelectorAll<HTMLButtonElement>('[data-command]').forEach((button) => {
+      const command = button.dataset.command as keyof typeof commands;
+      const code = button.querySelector('code');
+      if (code) code.textContent = `${actor}.${commands[command]}`;
+      button.hidden = command === 'condition' && this.mission === 1;
+    });
+    this.hideTooltip();
   }
 
   private actionHelp(action: CombatAction): string {
     return action === 'MOVE_TOWARD'
-      ? 'Zum Konstrukt gehen: Moosling bewegt sich ein Feld in Richtung des Konstrukts. Wiederhole diese Aktion, um die Distanz zu verringern.'
-      : 'Angreifen: Moosling verursacht ein Schadenspunkt, wenn er neben dem Konstrukt steht. Außerhalb der Reichweite hat der Angriff keine Wirkung.';
+      ? 'moveForward(): Der ausgewählte Arkan geht ein Feld zum Konstrukt. Belegte Felder blockieren den Schritt.'
+      : 'attack(): Der ausgewählte Arkan verursacht einen Schadenspunkt, wenn er neben dem Konstrukt steht.';
   }
 
   private attachTooltip(element: HTMLElement, getMessage: () => string): void {
