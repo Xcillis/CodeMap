@@ -64,6 +64,14 @@ export const CONDITION_PROGRAM = `repeat(6, () => {
   }
 });`;
 
+export const FORMATION_PROGRAM = `repeat(4, () => {
+  moveToward();
+});
+
+repeat(3, () => {
+  attack();
+});`;
+
 function toAction(command: string): CombatAction {
   return command === 'moveToward' ? 'MOVE_TOWARD' : 'ATTACK';
 }

@@ -1,6 +1,6 @@
 import Phaser from 'phaser';
 import { BattleEngine } from '../combat/BattleEngine';
-import { CONDITION_PROGRAM, DEFAULT_PROGRAM, compileActionPlan } from '../combat/DecisionProgram';
+import { CONDITION_PROGRAM, DEFAULT_PROGRAM, FORMATION_PROGRAM, compileActionPlan } from '../combat/DecisionProgram';
 import type { BattleState, CombatAction, Combatant, ProgramStep } from '../combat/types';
 import { gameEvents } from '../game/events';
 
@@ -17,11 +17,11 @@ export class BattleScene extends Phaser.Scene {
   private activeSource = '';
   private actionPlan: ProgramStep[] = [];
   private nextActionIndex = 0;
-  private mission: 1 | 2 = 1;
+  private mission: 1 | 2 | 3 = 1;
   private readonly onStep = (source: string) => this.step(source);
   private readonly onRunProgram = (source: string) => this.runProgram(source);
   private readonly onRestart = () => this.restart();
-  private readonly onNextMission = () => this.startMission(2);
+  private readonly onNextMission = () => this.startMission(this.mission === 1 ? 2 : 3);
   private readonly onExit = () => this.exit();
 
   constructor() {
@@ -43,21 +43,21 @@ export class BattleScene extends Phaser.Scene {
     this.startMission(1);
   }
 
-  private startMission(mission: 1 | 2): void {
+  private startMission(mission: 1 | 2 | 3): void {
     this.mission = mission;
-    this.battle.reset();
+    this.battle.reset(mission === 3, mission === 3 ? 5 : 3);
     this.activeSource = '';
     this.actionPlan = [];
     this.nextActionIndex = 0;
-    this.heading.setText(mission === 1 ? 'Trainingsarena: Die erste Schleife' : 'Trainingsarena: Nähe prüfen');
+    this.heading.setText(mission === 1 ? 'Trainingsarena: Die erste Schleife' : mission === 2 ? 'Trainingsarena: Nähe prüfen' : 'Trainingsarena: Duo-Formation');
     this.subtitle.setText(mission === 1
       ? 'Moosling folgt deinem Aktionsplan. Das Konstrukt bleibt passiv.'
-      : 'Das Konstrukt bewegt sich. Reagiere mit einer Bedingung auf seine Nähe.');
+      : mission === 2 ? 'Das Konstrukt bewegt sich. Reagiere mit einer Bedingung auf seine Nähe.' : 'Moosling und Glutling führen deinen gemeinsamen Aktionsplan aus.');
     this.render(this.battle.snapshot);
-    gameEvents.emit('battle-opened', mission === 1 ? DEFAULT_PROGRAM : CONDITION_PROGRAM, mission);
+    gameEvents.emit('battle-opened', mission === 1 ? DEFAULT_PROGRAM : mission === 2 ? CONDITION_PROGRAM : FORMATION_PROGRAM, mission);
     gameEvents.emit('battle-updated', this.battle.snapshot, mission === 1
       ? 'Führe die Schleife Schritt für Schritt aus und beobachte die Wiederholung.'
-      : 'Das Konstrukt bewegt sich nun. Prüfe bei jedem Schritt, ob es neben Moosling steht.');
+      : mission === 2 ? 'Das Konstrukt bewegt sich nun. Prüfe bei jedem Schritt, ob es neben Moosling steht.' : 'Ein Plan, zwei Arkane: Beide führen jede Aktion in fester Reihenfolge aus.');
     gameEvents.emit('battle-next-available', false);
   }
 
@@ -70,7 +70,7 @@ export class BattleScene extends Phaser.Scene {
     }
     this.nextActionIndex += 1;
     const action = this.resolveStep(step);
-    const state = this.battle.runStep(action, this.mission === 2);
+    const state = this.battle.runStep(action, this.mission === 2, this.mission === 3);
     this.render(state);
     const readableAction = action === 'MOVE_TOWARD' ? 'moveToward()' : 'attack()';
     gameEvents.emit('battle-updated', state, state.outcome === 'victory' ? this.victoryMessage() : `Schritt ${this.nextActionIndex}/${this.actionPlan.length}: ${readableAction}`);
@@ -81,7 +81,7 @@ export class BattleScene extends Phaser.Scene {
     this.battle.reset();
     const totalSteps = this.actionPlan.length;
     while (this.nextActionIndex < this.actionPlan.length && this.battle.snapshot.outcome === 'ongoing') {
-      this.battle.runStep(this.resolveStep(this.actionPlan[this.nextActionIndex]), this.mission === 2);
+      this.battle.runStep(this.resolveStep(this.actionPlan[this.nextActionIndex]), this.mission === 2, this.mission === 3);
       this.nextActionIndex += 1;
     }
     const state = this.battle.snapshot;
@@ -90,7 +90,7 @@ export class BattleScene extends Phaser.Scene {
   }
 
   private restart(): void {
-    this.battle.reset();
+    this.battle.reset(this.mission === 3, this.mission === 3 ? 5 : 3);
     this.activeSource = '';
     this.actionPlan = [];
     this.nextActionIndex = 0;
@@ -119,11 +119,11 @@ export class BattleScene extends Phaser.Scene {
   }
 
   private victoryMessage(): string {
-    if (this.mission === 1) {
+    if (this.mission < 3) {
       gameEvents.emit('battle-next-available', true);
-      return 'Sieg! Die nächste Mission führt Bedingungen ein.';
+      return this.mission === 1 ? 'Sieg! Die nächste Mission führt Bedingungen ein.' : 'Sieg! Jetzt wird Glutling für eine Duo-Formation freigeschaltet.';
     }
-    return 'Sieg! Moosling hat bei jedem Schritt passend auf die Nähe reagiert.';
+    return 'Sieg! Die Formation hat beide Arkane koordiniert.';
   }
 
   private exit(): void {
@@ -142,6 +142,7 @@ export class BattleScene extends Phaser.Scene {
     }
     this.actors.removeAll(true);
     this.drawActor(state.player, 0x63b76b, '#e8ffe4');
+    if (state.companion) this.drawActor(state.companion, 0xf29b4b, '#fff0d8');
     this.drawActor(state.enemy, 0xc95e58, '#ffe8db');
   }
 

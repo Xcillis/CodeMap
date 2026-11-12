@@ -21,6 +21,17 @@ describe('BattleEngine', () => {
     expect(result.outcome).toBe('victory');
     expect(result.enemy.hp).toBe(0);
   });
+
+  it('führt eine Duo-Formation in stabiler Reihenfolge aus', () => {
+    const battle = new BattleEngine();
+    battle.reset(true, 5);
+
+    for (let index = 0; index < 4; index += 1) battle.runStep('MOVE_TOWARD', false, true);
+    for (let index = 0; index < 3; index += 1) battle.runStep('ATTACK', false, true);
+
+    expect(battle.snapshot.companion?.name).toBe('Glutling');
+    expect(battle.snapshot.outcome).toBe('victory');
+  });
 });
 
 describe('compileActionPlan', () => {

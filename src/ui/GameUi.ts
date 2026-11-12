@@ -15,6 +15,7 @@ export class GameUi {
   private readonly hint = this.requiredElement<HTMLParagraphElement>('interaction-hint');
   private readonly touchControls = this.requiredElement<HTMLElement>('touch-controls');
   private readonly battlePanel = this.requiredElement<HTMLElement>('battle-panel');
+  private readonly battleTitle = this.requiredElement<HTMLElement>('battle-title');
   private readonly programSource = this.requiredElement<HTMLTextAreaElement>('program-source');
   private readonly editorTooltip = this.requiredElement<HTMLParagraphElement>('editor-tooltip');
   private readonly blockEditor = this.requiredElement<HTMLElement>('block-editor');
@@ -26,6 +27,9 @@ export class GameUi {
   private readonly battleRound = this.requiredElement<HTMLElement>('battle-round');
   private readonly playerHealth = this.requiredElement<HTMLProgressElement>('player-health');
   private readonly playerHealthText = this.requiredElement<HTMLElement>('player-health-text');
+  private readonly companionHealthStatus = this.requiredElement<HTMLElement>('companion-health-status');
+  private readonly companionHealth = this.requiredElement<HTMLProgressElement>('companion-health');
+  private readonly companionHealthText = this.requiredElement<HTMLElement>('companion-health-text');
   private readonly enemyHealth = this.requiredElement<HTMLProgressElement>('enemy-health');
   private readonly enemyHealthText = this.requiredElement<HTMLElement>('enemy-health-text');
   private pendingDialogAction: DialogPayload['action'];
@@ -95,6 +99,7 @@ export class GameUi {
     this.setExplorationUiVisible(false);
     this.battlePanel.hidden = false;
     this.mission = mission;
+    this.battleTitle.textContent = mission === 1 ? 'RUNENSKRIPT – DIE ERSTE SCHLEIFE' : mission === 2 ? 'RUNENSKRIPT – NÄHE PRÜFEN' : 'RUNENSKRIPT – DUO-FORMATION';
     this.requiredElement<HTMLButtonElement>('battle-next-mission').hidden = true;
     this.programSource.value = mission === 1 ? (loadProgress().lastProgram || program) : program;
     const parsed = compileActionPlan(this.programSource.value);
@@ -107,6 +112,8 @@ export class GameUi {
     this.battleFeedback.textContent = feedback;
     this.battleRound.textContent = String(state.tick);
     this.updateHealth(this.playerHealth, this.playerHealthText, state.player.hp, state.player.maxHp);
+    this.companionHealthStatus.hidden = !state.companion;
+    if (state.companion) this.updateHealth(this.companionHealth, this.companionHealthText, state.companion.hp, state.companion.maxHp);
     this.updateHealth(this.enemyHealth, this.enemyHealthText, state.enemy.hp, state.enemy.maxHp);
     this.requiredElement<HTMLButtonElement>('battle-step').disabled = state.outcome !== 'ongoing';
     this.requiredElement<HTMLButtonElement>('battle-run-program').disabled = state.outcome !== 'ongoing';

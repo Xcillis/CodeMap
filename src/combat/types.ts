@@ -26,7 +26,7 @@ export interface GridPosition {
 }
 
 export interface Combatant extends GridPosition {
-  id: 'moosling' | 'konstrukt';
+  id: 'moosling' | 'glutling' | 'konstrukt';
   name: string;
   hp: number;
   maxHp: number;
@@ -37,6 +37,7 @@ export interface BattleState {
   tick: number;
   outcome: BattleOutcome;
   player: Combatant;
+  companion?: Combatant;
   enemy: Combatant;
   log: string[];
 }

@@ -13,15 +13,18 @@ export class BattleEngine {
     return structuredClone(this.state);
   }
 
-  reset(): void {
-    this.state = this.initialState();
+  reset(withCompanion = false, enemyHp = 3): void {
+    this.state = this.initialState(withCompanion, enemyHp);
   }
 
-  runStep(playerAction: CombatAction, enemyActive = false): Readonly<BattleState> {
+  runStep(playerAction: CombatAction, enemyActive = false, formationActive = false): Readonly<BattleState> {
     if (this.state.outcome !== 'ongoing') return this.snapshot;
 
     this.state.tick += 1;
     this.act(this.state.player, this.state.enemy, playerAction);
+    if (formationActive && this.state.companion && this.state.outcome === 'ongoing') {
+      this.act(this.state.companion, this.state.enemy, playerAction);
+    }
     if (enemyActive && this.state.outcome === 'ongoing') {
       const enemyAction = this.areAdjacent(this.state.enemy, this.state.player) ? 'ATTACK' : 'MOVE_TOWARD';
       this.act(this.state.enemy, this.state.player, enemyAction);
@@ -29,12 +32,13 @@ export class BattleEngine {
     return this.snapshot;
   }
 
-  private initialState(): BattleState {
+  private initialState(withCompanion = false, enemyHp = 3): BattleState {
     return {
       tick: 0,
       outcome: 'ongoing',
       player: { id: 'moosling', name: 'Moosling', hp: 5, maxHp: 5, x: 1, y: 3, guarding: false },
-      enemy: { id: 'konstrukt', name: 'Übungskonstrukt', hp: 3, maxHp: 3, x: 5, y: 3, guarding: false },
+      companion: withCompanion ? { id: 'glutling', name: 'Glutling', hp: 4, maxHp: 4, x: 1, y: 2, guarding: false } : undefined,
+      enemy: { id: 'konstrukt', name: 'Übungskonstrukt', hp: enemyHp, maxHp: enemyHp, x: 5, y: 3, guarding: false },
       log: ['Trainingsarena bereit. Das Konstrukt beobachtet deinen Aktionsplan.'],
     };
   }
