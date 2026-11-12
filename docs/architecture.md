@@ -16,6 +16,8 @@ M1 zeichnet Tiles, Bäume, Gebäude und Figuren über Phaser Graphics. Das garan
 
 Die Trainingsarena verwendet einen reinen `BattleEngine` mit vollständigem Snapshot und festem Gegnerverhalten. Der erste Runenskript-Editor erkennt ausschließlich eine erlaubte `return`-Aktion aus JavaScript-ähnlichem Text; er führt Nutzereingaben nie mit `eval` oder einer vergleichbaren Browser-API aus. Damit bleibt das M2-Experiment nachvollziehbar und bildet eine sichere Grundlage für eine spätere, isolierte Runtime.
 
+Die nächste Ausbaustufe wertet zusätzlich die explizit erlaubte Zustandsabfrage `state.enemyAdjacent` aus. Der Parser bildet daraus eine Entscheidung; er führt weiterhin keinen Textcode aus. Queststatus und zuletzt bearbeitetes Skript liegen ausschließlich in `localStorage` und sind als lokale Vorstufe zur späteren Persistenz gedacht.
+
 ## Bewusst nicht enthalten
 
 Keine Kampfsimulation, Arkan-Programmierung, Blockly-/JavaScript-Editor, Speicherung, Login, Backend, NOVA oder Kompetenzengine. Diese bleiben Integrationspunkte für spätere Meilensteine.

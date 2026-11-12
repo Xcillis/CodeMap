@@ -3,6 +3,7 @@ import { gameEvents } from '../game/events';
 import { InteractionController } from '../gameplay/InteractionController';
 import { PlayerController } from '../gameplay/PlayerController';
 import { QuestStore } from '../gameplay/QuestStore';
+import { loadProgress, saveProgress } from '../gameplay/LocalProgress';
 
 const WORLD_WIDTH = 1600;
 const WORLD_HEIGHT = 1040;
@@ -14,8 +15,8 @@ export class WorldScene extends Phaser.Scene {
   private readonly quest = new QuestStore({
     id: 'm1-speak-to-the-arcanist',
     title: 'Sprich mit dem Arkanisten',
-    objective: 'Sprich mit dem Arkanisten.',
-    status: 'active',
+    objective: loadProgress().questCompleted ? 'Quest abgeschlossen: Sprich mit dem Arkanisten.' : 'Sprich mit dem Arkanisten.',
+    status: loadProgress().questCompleted ? 'complete' : 'active',
   });
   private dialogActive = false;
 
@@ -36,7 +37,7 @@ export class WorldScene extends Phaser.Scene {
     this.cameras.main.setBounds(0, 0, WORLD_WIDTH, WORLD_HEIGHT);
     this.cameras.main.startFollow(this.player, true, 0.12, 0.12);
     this.cameras.main.setZoom(1.12);
-    gameEvents.emit('quest-updated', this.quest.current.objective, false);
+    gameEvents.emit('quest-updated', this.quest.current.objective, this.quest.current.status === 'complete');
     gameEvents.on('dialog-closed', () => (this.dialogActive = false));
     gameEvents.on('start-battle', () => {
       this.scene.pause('world');
@@ -57,13 +58,17 @@ export class WorldScene extends Phaser.Scene {
   private startArcanistConversation(): void {
     this.dialogActive = true;
     const completed = this.quest.completeForInteraction('arkanist-eldren');
-    if (completed) gameEvents.emit('quest-updated', this.quest.current.objective, true);
+    if (completed) {
+      saveProgress({ questCompleted: true });
+      gameEvents.emit('quest-updated', this.quest.current.objective, true);
+    }
+    const canTrain = completed || this.quest.current.status === 'complete';
     gameEvents.emit('dialog-opened', {
       speaker: 'ARKANIST ELDREN',
-      text: completed
+      text: canTrain
         ? 'Willkommen, Lehrling. Dein erster Schritt ist getan. Jetzt zeigt dir Moosling in der Trainingsarena, wie Entscheidungen im Kampf wirken.'
         : 'Die Akademie zählt auf deinen wachen Blick. Erkunde das Gelände, wenn du bereit bist.',
-      action: completed ? 'start-battle' : undefined,
+      action: canTrain ? 'start-battle' : undefined,
     });
   }
 

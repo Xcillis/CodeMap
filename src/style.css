@@ -21,6 +21,11 @@ button { font: inherit; touch-action: none; }
 #program-source { width: 100%; min-height: 8rem; resize: vertical; padding: .65rem; color: #d9f7e4; border: 1px solid #71958a; border-radius: .25rem; background: #102326; font: .85rem/1.45 ui-monospace, Consolas, monospace; }
 #program-help, #battle-feedback { margin: .5rem 0; font-size: .82rem; line-height: 1.35; color: #c4ded7; }
 #battle-feedback { min-height: 1.2rem; color: #f1d779; font-weight: 700; }
+.battle-status { display: grid; gap: .5rem; margin: .8rem 0; padding: .65rem; border: 1px solid #416b68; border-radius: .3rem; background: #132b2d; }
+.battle-status p, .battle-status label { margin: 0; font-size: .85rem; }
+.battle-status label { display: grid; grid-template-columns: 1fr auto; gap: .2rem .6rem; }
+.battle-status progress { grid-column: 1 / -1; width: 100%; accent-color: #6ec976; }
+#enemy-health { accent-color: #d36b63; }
 .battle-actions { display: flex; flex-wrap: wrap; gap: .5rem; }
 .battle-actions button { min-height: 2.5rem; padding: .4rem .7rem; border-radius: .3rem; font-weight: 700; }
 #battle-log { margin: .8rem 0 0; padding-left: 1.25rem; color: #e8f1dc; font-size: .83rem; line-height: 1.4; }

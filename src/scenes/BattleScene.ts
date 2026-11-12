@@ -1,6 +1,6 @@
 import Phaser from 'phaser';
 import { BattleEngine } from '../combat/BattleEngine';
-import { DEFAULT_PROGRAM, parseDecisionProgram } from '../combat/DecisionProgram';
+import { DEFAULT_PROGRAM, chooseAction } from '../combat/DecisionProgram';
 import type { BattleState, Combatant } from '../combat/types';
 import { gameEvents } from '../game/events';
 
@@ -36,14 +36,14 @@ export class BattleScene extends Phaser.Scene {
   }
 
   private step(source: string): void {
-    const program = parseDecisionProgram(source);
+    const program = chooseAction(source, this.battle.snapshot);
     if (!program.action) {
       gameEvents.emit('battle-updated', this.battle.snapshot, program.error);
       return;
     }
     const state = this.battle.runRound(program.action);
     this.render(state);
-    const feedback = state.outcome === 'victory' ? 'Sieg! Du kannst zur Erkundung zurückkehren.' : state.outcome === 'defeat' ? 'Niederlage – starte direkt neu.' : `Ausgeführt: ${program.action}`;
+    const feedback = state.outcome === 'victory' ? 'Sieg! Die Bedingung hat Moosling zum richtigen Zeitpunkt angreifen lassen.' : state.outcome === 'defeat' ? 'Niederlage – starte direkt neu.' : `Ausgeführt: ${program.action}`;
     gameEvents.emit('battle-updated', state, feedback);
   }
 

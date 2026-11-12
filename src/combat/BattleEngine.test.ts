@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { BattleEngine } from './BattleEngine';
-import { parseDecisionProgram } from './DecisionProgram';
+import { chooseAction } from './DecisionProgram';
 
 describe('BattleEngine', () => {
   it('führt identische Runden deterministisch aus', () => {
@@ -26,9 +26,18 @@ describe('BattleEngine', () => {
   });
 });
 
-describe('parseDecisionProgram', () => {
-  it('liest ausschließlich erlaubte Aktionen aus', () => {
-    expect(parseDecisionProgram('function chooseAction() { return "ATTACK"; }').action).toBe('ATTACK');
-    expect(parseDecisionProgram('return window.alert("x");').error).toBeDefined();
+describe('chooseAction', () => {
+  it('wertet eine sichtbare Nachbarschaftsbedingung ohne Codeausführung aus', () => {
+    const battle = new BattleEngine();
+    const source = 'if (state.enemyAdjacent) { return "ATTACK"; } return "MOVE_TOWARD";';
+    expect(chooseAction(source, battle.snapshot).action).toBe('MOVE_TOWARD');
+    battle.runRound('MOVE_TOWARD');
+    battle.runRound('MOVE_TOWARD');
+    expect(chooseAction(source, battle.snapshot).action).toBe('ATTACK');
+  });
+
+  it('lehnt fremde Browser-APIs ab', () => {
+    const battle = new BattleEngine();
+    expect(chooseAction('return window.alert("x");', battle.snapshot).error).toBeDefined();
   });
 });
