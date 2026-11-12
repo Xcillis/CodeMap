@@ -41,6 +41,7 @@ button { font: inherit; touch-action: none; }
 .battle-status { display: grid; gap: .5rem; margin: .8rem 0; padding: .65rem; border: 1px solid #416b68; border-radius: .3rem; background: #132b2d; }
 .battle-status p, .battle-status label { margin: 0; font-size: .85rem; }
 .battle-status label { display: grid; grid-template-columns: 1fr auto; gap: .2rem .6rem; }
+#companion-health-status[hidden] { display: none; }
 .battle-status progress { grid-column: 1 / -1; width: 100%; accent-color: #6ec976; }
 #enemy-health { accent-color: #d36b63; }
 .battle-actions { display: flex; flex-wrap: wrap; gap: .5rem; }
