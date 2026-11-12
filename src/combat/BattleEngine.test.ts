@@ -36,7 +36,7 @@ describe('BattleEngine', () => {
 
 describe('compileActionPlan', () => {
   it('übersetzt repeat-Blöcke in einen begrenzten Aktionsplan', () => {
-    const source = 'repeat(2, () => { moveToward(); }); repeat(3, () => { attack(); });';
+    const source = 'repeat(2, () => { moosling.moveForward(); }); repeat(3, () => { moosling.attack(); });';
     expect(compileActionPlan(source).steps).toEqual([
       { kind: 'action', action: 'MOVE_TOWARD' }, { kind: 'action', action: 'MOVE_TOWARD' },
       { kind: 'action', action: 'ATTACK' }, { kind: 'action', action: 'ATTACK' }, { kind: 'action', action: 'ATTACK' },
@@ -49,12 +49,12 @@ describe('compileActionPlan', () => {
   });
 
   it('erhält Bedingungen in der gemeinsamen Programmstruktur', () => {
-    const source = 'repeat(2, () => { if (state.enemyAdjacent) { attack(); } else { moveToward(); } });';
+    const source = 'repeat(2, () => { if (moosling.enemyAdjacent) { moosling.attack(); } else { moosling.moveForward(); } });';
     expect(compileActionPlan(source).blocks).toEqual([{ kind: 'condition', count: 2, whenTrue: 'ATTACK', whenFalse: 'MOVE_TOWARD' }]);
   });
 
   it('lehnt freie JavaScript-APIs und unbeschränkte Wiederholungen ab', () => {
-    expect(compileActionPlan('while (true) { attack(); }').error).toBeDefined();
-    expect(compileActionPlan('repeat(7, () => { attack(); });').error).toContain('1 bis 6');
+    expect(compileActionPlan('while (true) { moosling.attack(); }').error).toBeDefined();
+    expect(compileActionPlan('repeat(7, () => { moosling.attack(); });').error).toContain('1 bis 6');
   });
 });

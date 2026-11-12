@@ -9,7 +9,7 @@ const MAX_ACTIONS = 12;
  * parsed, never evaluated, so loops cannot freeze the browser.
  */
 export function compileActionPlan(source: string): ActionPlanResult {
-  const blockPattern = /repeat\s*\(\s*(\d+)\s*,\s*\(\s*\)\s*=>\s*\{\s*(?:(moveToward|attack)\s*\(\s*\)\s*;?|if\s*\(\s*state\.enemyAdjacent\s*\)\s*\{\s*(moveToward|attack)\s*\(\s*\)\s*;?\s*\}\s*else\s*\{\s*(moveToward|attack)\s*\(\s*\)\s*;?\s*\})\s*\}\s*\)\s*;?/gs;
+  const blockPattern = /repeat\s*\(\s*(\d+)\s*,\s*\(\s*\)\s*=>\s*\{\s*(?:(?:moosling|glutling)\.(moveForward|attack)\s*\(\s*\)\s*;?|if\s*\(\s*moosling\.enemyAdjacent\s*\)\s*\{\s*moosling\.(moveForward|attack)\s*\(\s*\)\s*;?\s*\}\s*else\s*\{\s*moosling\.(moveForward|attack)\s*\(\s*\)\s*;?\s*\})\s*\}\s*\)\s*;?/gs;
   const steps: ProgramStep[] = [];
   const blocks: ProgramBlock[] = [];
   let cursor = 0;
@@ -33,7 +33,7 @@ export function compileActionPlan(source: string): ActionPlanResult {
   }
 
   if (!steps.length || source.slice(cursor).trim()) {
-    return { error: 'Beginne mit einer repeat-Schleife und nutze moveToward() oder attack().' };
+    return { error: 'Befehle müssen einem Arkan zugeordnet sein, etwa moosling.moveForward() oder glutling.attack().' };
   }
   if (steps.length > MAX_ACTIONS) {
     return { error: `Ein Plan darf höchstens ${MAX_ACTIONS} Schritte enthalten.` };
@@ -43,39 +43,39 @@ export function compileActionPlan(source: string): ActionPlanResult {
 
 export function blocksToSource(blocks: readonly ProgramBlock[]): string {
   return blocks.map((block) => {
-    if (block.kind === 'action') return `repeat(${block.count}, () => {\n  ${toCommand(block.action)}();\n});`;
-    return `repeat(${block.count}, () => {\n  if (state.enemyAdjacent) {\n    ${toCommand(block.whenTrue)}();\n  } else {\n    ${toCommand(block.whenFalse)}();\n  }\n});`;
+    if (block.kind === 'action') return `repeat(${block.count}, () => {\n  moosling.${toCommand(block.action)}();\n});`;
+    return `repeat(${block.count}, () => {\n  if (moosling.enemyAdjacent) {\n    moosling.${toCommand(block.whenTrue)}();\n  } else {\n    moosling.${toCommand(block.whenFalse)}();\n  }\n});`;
   }).join('\n\n');
 }
 
 export const DEFAULT_PROGRAM = `repeat(3, () => {
-  moveToward();
+  moosling.moveForward();
 });
 
 repeat(3, () => {
-  attack();
+  moosling.attack();
 });`;
 
 export const CONDITION_PROGRAM = `repeat(6, () => {
-  if (state.enemyAdjacent) {
-    attack();
+  if (moosling.enemyAdjacent) {
+    moosling.attack();
   } else {
-    moveToward();
+    moosling.moveForward();
   }
 });`;
 
 export const FORMATION_PROGRAM = `repeat(4, () => {
-  moveToward();
+  moosling.moveForward();
 });
 
 repeat(3, () => {
-  attack();
+  moosling.attack();
 });`;
 
 function toAction(command: string): CombatAction {
-  return command === 'moveToward' ? 'MOVE_TOWARD' : 'ATTACK';
+  return command === 'moveForward' ? 'MOVE_TOWARD' : 'ATTACK';
 }
 
-function toCommand(action: CombatAction): 'moveToward' | 'attack' {
-  return action === 'MOVE_TOWARD' ? 'moveToward' : 'attack';
+function toCommand(action: CombatAction): 'moveForward' | 'attack' {
+  return action === 'MOVE_TOWARD' ? 'moveForward' : 'attack';
 }
