@@ -43,7 +43,7 @@ export interface CommandDefinition {
 }
 
 export const COMMANDS: readonly CommandDefinition[] = [
-  { id: 'move', category: 'movement', label: 'Zum Gegner gehen', description: 'Ein Feld zum Gegner. Belegte Felder blockieren die Bewegung.', requires: ['moveForward'], syntax: (actor) => `${actor}.moveForward()`, block: () => ({ kind: 'action', count: 1, action: 'MOVE_TOWARD' }) },
+  { id: 'move', category: 'movement', label: 'Zum nächsten Gegner gehen', description: 'Ein Feld zum nächsten Gegner. Direkt daneben bleibt das Arkana stehen. Belegte Felder blockieren die Bewegung.', requires: ['moveForward'], syntax: (actor) => `${actor}.moveForward()`, block: () => ({ kind: 'action', count: 1, action: 'MOVE_TOWARD' }) },
   ...(['MOVE_RIGHT', 'MOVE_LEFT', 'MOVE_UP', 'MOVE_DOWN'] as const).map((action): CommandDefinition => ({
     id: ACTIONS[action].method, category: 'movement', label: ACTIONS[action].label,
     description: 'Ein Rasterfeld in diese Richtung. Hindernisse und belegte Felder blockieren den Schritt.',

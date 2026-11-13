@@ -12,7 +12,7 @@ export const ARKANA_TYPES: Record<ArkanaType, { name: string; role: string }> = 
 };
 
 export const SKILL_NAMES: Record<SkillId, string> = {
-  moveForward: 'Zum Gegner gehen', attack: 'Basisangriff', repeat: 'Wiederholen', enemyAdjacent: 'Gegnernähe abfragen',
+  moveForward: 'Zum nächsten Gegner gehen', attack: 'Basisangriff', repeat: 'Wiederholen', enemyAdjacent: 'Gegnernähe abfragen',
   moveRight: 'Nach rechts gehen', moveLeft: 'Nach links gehen', moveUp: 'Nach oben gehen', moveDown: 'Nach unten gehen',
 };
 

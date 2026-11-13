@@ -164,6 +164,18 @@ Unter Charakter → Sammlung erlaubt `AdventureControls` einen bewusst bestätig
 
 Automatisierte Prüfungen decken den Start ohne Arkana, Glutlings erste Aufnahme, alle gesperrten Phasen, die spätere Freischaltung ohne automatische Vergabe, Entfernen der Interaktion, gespeicherten Besitz, bestätigten Neustart, Abbruch, Wiederherstellung, Entwurferhalt sowie Schreibfehler und beschädigte Sicherungen ab. Diese Änderung ersetzt die frühere Fundfreigabe für Moosling nach Q03, ohne vorhandene Sammlungen stillschweigend zu löschen.
 
+## ADR 020 – Aufklappbare Questinformation und größere Arbeitsfläche
+
+`QuestBriefingView` verwaltet ausschließlich die DOM-Zustände für Ziele, Tipps und Bedienhinweise. Alle Lernquests, Wiederholungen und freies Training verwenden dieselben nativen `details`/`summary`-Elemente; sie sind mit Tastatur und Touch bedienbar. Bei jedem Öffnen einer Begegnung sind die Ziele geöffnet, die übrigen Bereiche geschlossen und die Tipps zurückgesetzt. Es gibt keinen automatischen Lesetimer. Der ausdrückliche Button zum Programmieren oder der erste tatsächliche Wiedergabestart minimiert die Informationen einmalig. Danach bleibt eine manuelle Öffnung auch über weitere Schritte und Pausen erhalten. Ungültige oder leere Entwürfe ohne Wiedergabestart minimieren die Ziele nicht. Neue Begegnungen beginnen wieder mit sichtbaren Zielen.
+
+Tipps besitzen einen eigenen aufklappbaren Bereich. Dessen erstes Öffnen zeigt Tipp 1; erneutes Öffnen erhält den aktuellen Tipp. Weitere Tipps werden ausdrücklich angefordert. Diese Ansicht ändert weder Lernfreigaben noch Questnachweise. Der kompakte Situationszähler bleibt bei Entscheidungsquests außerhalb der eingeklappten Ziele sichtbar.
+
+Das Begegnungsfenster verwendet eine flexible Resthöhe für Block- und Texteditor. Kompakte Figurenwahl und Werkzeugleisten sowie begrenzte, scrollbar bleibende Informationsbereiche halten mehr Platz zum Programmieren frei. Die Ausführungsleiste liegt außerhalb des scrollbaren Statusbereichs. Eine zusätzliche Fensteransicht vergrößert den Editor; ein Wiedergabestart stellt die gemeinsame Ansicht von Arena und Editor wieder her. Umklappen und Vergrößern laden keine Programme neu. `GameUi` beobachtet neben dem Fenster auch die Editorfläche und passt Blockly nach Größen- und Aufklappänderungen an. Die bestehende Viewport-Meldung informiert die Phaser-Darstellung über den verfügbaren Raum. Auf sehr kleinen Anzeigen bleibt der gesamte Karteninhalt scrollbar, statt Bedienelemente abzuschneiden.
+
+Der Block heißt nun „zum nächsten Gegner gehen“, während die bestehende API `arkana.moveForward()` und gespeicherte Blocktypen unverändert bleiben. Aktionstexte, Textbibliothek, Fähigkeitenübersicht und Q05-Einführung verwenden dieselbe Formulierung. Der aktuelle Begegnungsumfang bleibt ein Gegner; Mehrgegnerlogik wird hier nicht ergänzt.
+
+Automatisierte UI-Prüfungen decken alle fünf Quests, einmaliges Minimieren, erneut geöffnete Ziele, unabhängige Tipps, Fokuswechsel, erhaltene Entwürfe, Vergrößern und die Rückkehr zur Arena ab. Die echte Blockly-Prüfung sichert die neue Beschriftung bei unverändertem Textbefehl ab.
+
 ## Noch nicht enthalten
 
-Dreier-Formation, Variablen und Funktionen in der Programmiersprache, freie JavaScript-Runtime, Online-Speicherung, Login, Backend, NOVA und Kompetenzengine bleiben spätere Erweiterungen. Frühere ADRs beschreiben die Entwicklungsschritte; ADR 014 bis ADR 019 ergänzen den aktuellen Stand der Lernquests und des Charakterfensters.
+Dreier-Formation, Variablen und Funktionen in der Programmiersprache, freie JavaScript-Runtime, Online-Speicherung, Login, Backend, NOVA und Kompetenzengine bleiben spätere Erweiterungen. Frühere ADRs beschreiben die Entwicklungsschritte; ADR 014 bis ADR 020 ergänzen den aktuellen Stand der Lernquests und des Charakterfensters.

@@ -32,7 +32,8 @@ vi.mock('./SnapEditor', () => ({ SnapEditor: class {
   source() { return nodesToSource(this.nodes, this.actor); }
   save() { return JSON.stringify({ nodes: this.nodes, loose: this.loose }); }
   hasLooseBlocks() { return this.loose; }
-  resize() {}
+  resizes = 0;
+  resize() { this.resizes++; }
   setReadOnly(readOnly: boolean) { this.readOnly = readOnly; }
   highlight(path?: string) { this.highlightedPath = path; }
   mutate(nodes: ProgramNode[], loose = false) { this.nodes = nodes; this.loose = loose; this.changed(); }
@@ -48,6 +49,83 @@ beforeEach(() => {
   document.body.innerHTML = readFileSync('index.html', 'utf8'); new GameUi();
 });
 afterEach(() => vi.useRealTimers());
+
+describe('Platz für das Programm bei allen Aufgaben', () => {
+  const details = (id: string) => document.getElementById(id) as HTMLDetailsElement;
+  const openLesson = (index: number) => {
+    const lesson = WORLD_QUESTS[index];
+    gameEvents.emit('battle-opened', { glutling: lesson.starter }, lesson.id, { glutling: lesson.allowed }, {
+      title: lesson.title, mode: 'lesson', instructions: lesson.introduction, objective: lesson.objective, hints: lesson.hints,
+    });
+    return lesson;
+  };
+  for (const [index, lesson] of WORLD_QUESTS.entries()) it(`${lesson.id}: zeigt Ziele zuerst und minimiert sie nur einmal beim tatsächlichen Start`, () => {
+    openLesson(index);
+    const goals = details('encounter-goals'); const tips = details('lesson-hints');
+    expect(goals.open).toBe(true); expect(tips.open).toBe(false);
+    expect(document.getElementById('encounter-objective')!.textContent).toBe(lesson.objective);
+    // Editing, validation errors and state updates must not prematurely hide the task.
+    click('text-mode'); type('glutling.'); click('battle-step');
+    expect(goals.open).toBe(true);
+    gameEvents.emit('battle-playback', 'running'); expect(goals.open).toBe(false);
+    goals.open = true; tips.open = true;
+    gameEvents.emit('battle-playback', 'paused'); gameEvents.emit('battle-playback', 'running');
+    gameEvents.emit('battle-playback', 'idle'); gameEvents.emit('battle-playback', 'running');
+    expect(goals.open).toBe(true); expect(tips.open).toBe(true);
+    gameEvents.emit('battle-playback', 'idle'); click('battle-restart');
+    expect(goals.open).toBe(true);
+    gameEvents.emit('battle-closed'); openLesson(index);
+    expect(goals.open).toBe(true); expect(tips.open).toBe(false);
+  });
+  it('hält Tipps getrennt, bewahrt den gelesenen Tipp beim Zuklappen und beginnt die nächste Quest frisch', () => {
+    const lesson = openLesson(0); const tips = details('lesson-hints');
+    tips.open = true; tips.dispatchEvent(new Event('toggle'));
+    expect(document.getElementById('lesson-hint')!.textContent).toBe(lesson.hints[0]);
+    click('lesson-hint-button'); expect(document.getElementById('lesson-hint')!.textContent).toBe(lesson.hints[1]);
+    tips.open = false; tips.dispatchEvent(new Event('toggle')); tips.open = true; tips.dispatchEvent(new Event('toggle'));
+    expect(document.getElementById('lesson-hint')!.textContent).toBe(lesson.hints[1]);
+    expect(details('encounter-goals').open).toBe(true);
+    openLesson(1); expect(tips.open).toBe(false); expect(document.getElementById('lesson-hint')!.hidden).toBe(true);
+    tips.open = true; tips.dispatchEvent(new Event('toggle'));
+    expect(document.getElementById('lesson-hint')!.textContent).toBe(WORLD_QUESTS[1].hints[0]);
+    for (let index = 1; index < WORLD_QUESTS[1].hints.length; index++) click('lesson-hint-button');
+    expect(button('lesson-hint-button').disabled).toBe(true);
+    expect(document.getElementById('lesson-hint-count')!.textContent).toBe(`(${WORLD_QUESTS[1].hints.length}/${WORLD_QUESTS[1].hints.length})`);
+  });
+  it('minimiert per Button ohne Ausführung, fokussiert den Editor und erhält beide Darstellungen', () => {
+    openLesson(0); click('text-mode'); type('glutling.moveRight();');
+    let executions = 0; gameEvents.on('battle-run-program', () => { executions++; });
+    click('briefing-ready');
+    expect(details('encounter-goals').open).toBe(false); expect(document.activeElement).toBe(text());
+    expect(text().value).toBe('glutling.moveRight();'); expect(executions).toBe(0);
+    click('blocks-mode'); details('encounter-goals').open = true; click('briefing-ready');
+    expect(document.activeElement?.id).toBe('program-area-title');
+    click('text-mode'); expect(text().value).toBe('glutling.moveRight();');
+  });
+  it('vergrößert die Arbeitsfläche ohne Entwurfsverlust und zeigt die Arena beim Abspielen wieder', () => {
+    openLesson(0); click('text-mode'); type('glutling.');
+    const panel = document.getElementById('battle-panel')!;
+    click('editor-expand'); expect(panel.classList.contains('editor-expanded')).toBe(true);
+    expect(button('editor-expand').getAttribute('aria-pressed')).toBe('true');
+    expect(text().value).toBe('glutling.');
+    click('editor-expand'); expect(panel.classList.contains('editor-expanded')).toBe(false);
+    click('editor-expand'); gameEvents.emit('battle-playback', 'running');
+    expect(panel.classList.contains('editor-expanded')).toBe(false);
+    expect(button('editor-expand').getAttribute('aria-pressed')).toBe('false'); expect(text().value).toBe('glutling.');
+  });
+  it('passt Blockly bei aufgeklappten Bereichen an und behandelt freies Training ebenso', () => {
+    gameEvents.emit('battle-opened', missionPrograms(1), 1);
+    expect(details('encounter-goals').open).toBe(true); expect(details('lesson-hints').hidden).toBe(true);
+    const snap = snaps.at(-1) as { resizes: number }; const before = snap.resizes;
+    details('editor-help').open = true; details('editor-help').dispatchEvent(new Event('toggle'));
+    expect(snap.resizes).toBeGreaterThan(before);
+    gameEvents.emit('battle-playback', 'running');
+    expect(details('editor-help').open).toBe(false); expect(details('encounter-goals').open).toBe(false);
+    details('editor-help').open = true;
+    gameEvents.emit('battle-playback', 'idle'); gameEvents.emit('battle-playback', 'running');
+    expect(details('editor-help').open).toBe(true);
+  });
+});
 
 describe('Editorzustand und Arkan-Zuordnung', () => {
   it('zeigt Q05 mit beiden Situationen, passender Palette und Abschluss erst nach der zweiten Animation', () => {

@@ -12,6 +12,7 @@ import type { EncounterPresentation, QuestCompletion } from '../gameplay/WorldQu
 import { ACTIONS } from '../combat/ActionCatalog';
 import { setLearningText } from './LearningText';
 import { QuestCompletionView } from './QuestCompletionView';
+import { QuestBriefingView } from './QuestBriefingView';
 
 type EditorMode = 'blocks' | 'text';
 
@@ -31,10 +32,12 @@ export class GameUi {
   private readonly feedback = this.el<HTMLElement>('battle-feedback');
   private readonly drag: ProgramDrag;
   private readonly completion = new QuestCompletionView(() => gameEvents.emit('battle-exit'));
+  private readonly briefing = new QuestBriefingView(() => this.resize(), () => {
+    const target = this.editorMode === 'text' ? this.text : this.el('program-area-title'); target.focus({ preventScroll: true });
+  });
   private playbackState: PlaybackState = 'idle';
   private activeFrame?: ActionFrame<EncounterState>;
   private presentation?: EncounterPresentation;
-  private hintIndex = 0;
   private skills?: Partial<Record<ArkanId, readonly SkillId[]>>;
 
   constructor() {
@@ -64,6 +67,7 @@ export class GameUi {
     this.click('dialog-dismiss', () => { this.el('dialog').hidden = true; this.pendingDialogAction = undefined; gameEvents.emit('dialog-closed'); });
     gameEvents.on('battle-opened', (programs: ProgramSources, mission: string | number, skills?: Partial<Record<ArkanId, readonly SkillId[]>>, presentation?: EncounterPresentation) => this.open(programs, mission, skills, presentation));
     gameEvents.on('battle-closed', () => {
+      this.setExpanded(false);
       this.completion.clear();
       this.capture(); this.drag.cancel(); this.panel.hidden = true;
       this.exploration(true);
@@ -74,6 +78,7 @@ export class GameUi {
     });
     gameEvents.on('battle-updated', (state: EncounterState, feedback: string) => this.update(state, feedback));
     gameEvents.on('battle-playback', (state: PlaybackState) => {
+      if (state === 'running') { this.briefing.workStarted(); this.setExpanded(false); }
       this.playbackState = state; this.applyPlaybackState();
     });
     gameEvents.on('battle-frame', (frame: ActionFrame<EncounterState>) => {
@@ -96,12 +101,7 @@ export class GameUi {
     this.click('battle-restart', () => gameEvents.emit('battle-restart'));
     this.click('battle-next-mission', () => gameEvents.emit('battle-next-mission'));
     this.click('battle-exit', () => gameEvents.emit('battle-exit'));
-    this.click('lesson-hint-button', () => {
-      const hints = this.presentation?.hints ?? [];
-      if (!hints.length) return;
-      setLearningText(this.el('lesson-hint'), hints[Math.min(this.hintIndex++, hints.length - 1)]);
-      this.el('lesson-hint').hidden = false;
-    });
+    this.click('editor-expand', () => this.setExpanded(!this.panel.classList.contains('editor-expanded')));
     this.click('interact-button', () => touchInput.requestInteraction());
     this.text.addEventListener('input', () => {
       if (this.playbackState !== 'idle') return;
@@ -125,24 +125,23 @@ export class GameUi {
       for (const event of ['mouseenter', 'focus']) element.addEventListener(event, () => { this.el('editor-tooltip').textContent = text; this.el('editor-tooltip').hidden = false; });
       for (const event of ['mouseleave', 'blur']) element.addEventListener(event, () => { this.el('editor-tooltip').hidden = true; });
     }
-    if (typeof ResizeObserver !== 'undefined') new ResizeObserver(() => this.resize()).observe(this.panel);
+    if (typeof ResizeObserver !== 'undefined') {
+      const observer = new ResizeObserver(() => this.resize()); observer.observe(this.panel); observer.observe(this.el('editor-columns'));
+    }
     window.addEventListener('resize', () => this.resize());
   }
 
   private key(): string { return `${this.mission}:${this.selectedActor}`; }
 
   private open(programs: ProgramSources, mission: number | string, skills?: Partial<Record<ArkanId, readonly SkillId[]>>, presentation?: EncounterPresentation): void {
+    this.setExpanded(false);
     this.completion.clear(); this.el('battle-exit').textContent = 'Zur Erkundung';
     this.drag.cancel(); this.panel.hidden = false; this.exploration(false);
     this.mission = mission;
     this.skills = skills;
-    this.presentation = presentation; this.hintIndex = 0;
+    this.presentation = presentation;
     this.el('lesson-trial').hidden = true;
-    setLearningText(this.el('encounter-objective'), presentation?.objective ?? 'Probiere dein Programm auf dem Raster aus.');
-    setLearningText(this.el('encounter-instructions'), presentation?.instructions ?? '');
-    this.el('encounter-instructions').hidden = !presentation?.instructions;
-    this.el('lesson-hint-button').hidden = !presentation?.hints.length;
-    this.el('lesson-hint').hidden = true;
+    this.el('lesson-trial-summary').hidden = true; this.briefing.open(presentation);
     this.sources = {};
     const progress = loadProgress();
     for (const actor of ['moosling', 'glutling'] as const) if (programs[actor] !== undefined) {
@@ -278,6 +277,8 @@ export class GameUi {
     if (state.outcome === 'ongoing') this.completion.clear();
     const trial = state.lessonTrial;
     this.el('lesson-trial').hidden = !trial;
+    this.el('lesson-trial-summary').hidden = !trial;
+    if (trial) this.el('lesson-trial-summary').textContent = `Situation ${trial.current}/${trial.total} · ${trial.passed}/${trial.total} geschafft`;
     if (trial) setLearningText(this.el('lesson-trial'), `Situation ${trial.current}/${trial.total}: ${trial.title}. ${trial.passed}/${trial.total} geschafft. ${trial.message}`);
     setLearningText(this.feedback, feedback); this.el('battle-round').textContent = String(state.tick);
     for (const [prefix, actor] of [['player', state.player], ['companion', state.companion], ['enemy', state.enemy]] as const) {
@@ -356,6 +357,11 @@ export class GameUi {
     const rect = this.panel.getBoundingClientRect(); if (!rect.width) return;
     const stacked = rect.width > window.innerWidth * .85;
     gameEvents.emit('battle-viewport', { width: stacked ? window.innerWidth : Math.max(1, rect.left - 8), height: stacked ? Math.max(1, rect.top - 8) : window.innerHeight });
+  }
+  private setExpanded(expanded: boolean): void {
+    this.panel.classList.toggle('editor-expanded', expanded);
+    this.el('editor-expand').setAttribute('aria-pressed', String(expanded));
+    this.el('editor-expand').textContent = expanded ? 'Arena & Editor' : 'Editor vergrößern'; this.resize();
   }
   private click(id: string, handler: () => void): void { this.el(id).addEventListener('click', handler); }
   private el<T extends HTMLElement = HTMLElement>(id: string): T {

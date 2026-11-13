@@ -1,7 +1,7 @@
 import type { CombatAction, GridPosition } from './types';
 
 export const ACTIONS = {
-  MOVE_TOWARD: { method: 'moveForward', block: 'cm_move', label: 'zum Gegner gehen' },
+  MOVE_TOWARD: { method: 'moveForward', block: 'cm_move', label: 'zum nächsten Gegner gehen' },
   ATTACK: { method: 'attack', block: 'cm_attack', label: 'angreifen' },
   MOVE_RIGHT: { method: 'moveRight', block: 'cm_move_right', label: 'gehe nach rechts' },
   MOVE_LEFT: { method: 'moveLeft', block: 'cm_move_left', label: 'gehe nach links' },

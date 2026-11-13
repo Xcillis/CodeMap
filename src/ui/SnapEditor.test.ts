@@ -69,8 +69,10 @@ describe('Echte Blockly-Verbindungen', () => {
       loadNodes(workspace, [{ kind: 'action', action: 'ATTACK' }, { kind: 'if', then: [{ kind: 'action', action: 'MOVE_TOWARD' }], otherwise: [] }], 'glutling');
       const labels = workspace.getAllBlocks(false).map((block) => block.toString()).join(' ');
       expect(labels).toContain('angreifen');
+      expect(labels).toContain('zum nächsten Gegner gehen');
       expect(labels).not.toMatch(/moosling|glutling/);
       expect(nodesToSource(workspaceNodes(workspace), 'glutling')).toContain('glutling.attack()');
+      expect(nodesToSource(workspaceNodes(workspace), 'glutling')).toContain('glutling.moveForward()');
       expect(JSON.stringify(snapToolbox('glutling', 3))).not.toContain('ACTOR');
     } finally { workspace.dispose(); }
   });

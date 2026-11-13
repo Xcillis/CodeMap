@@ -27,7 +27,11 @@ Ist Glutling bereits gesammelt, aber das aktive Team passt noch nicht, bietet de
 
 Die Reiter lassen sich anklicken, antippen oder mit Links/Rechts wechseln; Pos1/Ende springt zum ersten/letzten Reiter. **J** öffnet das Questjournal, **Esc** schließt die Ansicht. Während einer geöffneten Ansicht bewegt sich die Spielfigur nicht. Entdeckte Quests lassen sich mit passendem Team direkt im Journal wiederholen. Neue Quests werden über ihre Weltorte oder Eldren entdeckt. Die Rückkehr behält die Position in der Welt.
 
-Ziel und eine aufklappbare Einführung stehen über dem Editor. **Hinweis anzeigen** liefert nacheinander genauere Hilfen. Die Anfänge enthalten eine einzelne Anweisung oder einen leeren Entwurf, keine vollständige Lösung. Der Startblock ist auch vor der Schleifeneinführung unter **Programmstart** verfügbar.
+Bei jeder Quest stehen **Ziele & Aufgabe** zunächst geöffnet über dem Editor. Mit **Ziele minimieren · Programmieren** oder beim ersten tatsächlichen Ausführen werden sie eingeklappt. Du kannst sie jederzeit wieder öffnen; deine Auswahl bleibt bei weiteren Schritten erhalten. **Einführung nachlesen**, **Tipps** und **Bedienung** sind getrennt aufklappbar. Beim Öffnen der Tipps erscheint die erste Hilfe; **Nächster Tipp** führt schrittweise weiter. Ein neuer Questbesuch zeigt die Ziele erneut und beginnt die Tipps von vorn. Das gilt auch beim Wiederholen bekannter Quests; freies Training verwendet dieselbe Ansicht.
+
+Die Arbeitsfläche nutzt den übrigen Fensterplatz. Figurenwahl und Werkzeugleisten sind kompakt; **Editor vergrößern** erweitert den Programmbereich auf das Fenster. **Arena & Editor** stellt die gemeinsame Ansicht wieder her. Beim Ausführen wird die Arena automatisch wieder sichtbar. Block- und Textentwürfe bleiben beim Vergrößern und beim Aufklappen erhalten. Auf kleineren Bildschirmen sind längere Ziele und Statusmeldungen scrollbar; die Ausführungsbuttons stehen außerhalb dieser Bereiche.
+
+Die Anfänge enthalten eine einzelne Anweisung oder einen leeren Entwurf, keine vollständige Lösung. Der Startblock ist auch vor der Schleifeneinführung unter **Programmstart** verfügbar.
 
 Die Einführung erklärt Begriffe wie „Sequenz“ anhand von Glutlings beobachtbaren Handlungen. Fachbegriffe werden in Dialogen, Einführungen und Hinweisen **fett und goldfarben hervorgehoben**. Aufgaben formulieren konkrete Schritte; Programmierwissen wird dabei nicht vorausgesetzt.
 
@@ -70,7 +74,7 @@ Sammlung, Team, entdeckte und abgeschlossene Quests sowie Programme werden lokal
 - Lose Blöcke bleiben pro Arkan und Mission als Entwurf gespeichert. Vor der Ausführung oder dem Wechsel zum Textmodus müssen sie verbunden oder gelöscht werden; der Textmodus zeigt genau den verbundenen Ablauf.
 - Im Textmodus fügt ein Drop in den Programmbereich den Codebaustein an der zuvor gesetzten Textcursorposition ein. Bestehender Text wird dabei erhalten, abgesehen von einer ausdrücklich markierten Auswahl.
 - Wähle ein aktives Arkana über seinen Button im Editor oder direkt auf dem Spielfeld. Die Arena und der Editor zeigen die tatsächlich gewählte Besetzung. Teamwechsel erfolgen in der Spielwelt.
-- Die Blocksprache verwendet kurze Beschriftungen wie „angreifen“ und „vorwärts gehen“. Die ausgewählte Arkan-Karte und „Du programmierst gerade: …“ legen das Objekt fest. Im Textmodus bleiben die Befehle ausdrücklich benannt, etwa `glutling.attack()`.
+- Die Blocksprache verwendet Beschriftungen wie „angreifen“ und „zum nächsten Gegner gehen“. Letzteres bewegt das Arkana ein Feld näher und bleibt direkt neben dem Gegner stehen. Die ausgewählte Arkan-Karte und „Du programmierst gerade: …“ legen das Objekt fest. Im Textmodus bleiben die Befehle ausdrücklich benannt, etwa `glutling.attack()` und `glutling.moveForward()`.
 - Block- und Textmodus bearbeiten das Programm des ausgewählten Arkanen. Entwürfe werden pro Mission und Arkan im Browser gespeichert, auch unvollständiger Text.
 - „Nächsten Schritt ausführen“ führt einen Tick in Teamreihenfolge aus, anschließend handelt gegebenenfalls das Konstrukt. Ein beendetes Programm wartet.
 - „Programm ausführen“ startet alle Programme vom frischen Missionszustand. Nach einer Programmänderung startet auch der nächste Einzelschritt einen neuen Versuch; reine Darstellungswechsel setzen ihn nicht zurück.
