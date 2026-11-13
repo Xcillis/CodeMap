@@ -14,6 +14,7 @@
 - Halte Module klein, benenne Zustände als union types oder Enums und teste zustandsbehaftete reine Logik.
 - Jede Änderung muss mindestens `npm run build` und `npm test` bestehen.
 - Bediene Tastatur und Touch gleichwertig; wichtige Hinweise dürfen nicht nur über Farbe vermittelt werden.
+- Lerntexte erklären neue Fachbegriffe anhand einer konkreten Handlung, bevor sie diese Begriffe in Aufgaben verwenden. Beginne mit vertrauten Worten und führe das Fachwort anschließend ein.
 - Platzhaltergrafik wird zur Laufzeit mit Phaser-Grafikobjekten erstellt. Keine externen Assets ohne klare Lizenz.
 
 ## Änderungen und Dokumentation

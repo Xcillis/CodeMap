@@ -111,7 +111,7 @@ export class GameUi {
       button.addEventListener('pointerdown', (event) => { event.preventDefault(); touchInput.setDirection(direction, true); });
       for (const name of ['pointerup', 'pointercancel', 'pointerleave']) button.addEventListener(name, () => touchInput.setDirection(direction, false));
     });
-    for (const [id, text] of Object.entries({ 'battle-step': 'Führt einen Spielschritt aller Arkane aus. Während einer Pause: nächste einzelne Aktion.', 'battle-run-program': 'Startet die Mission neu und spielt alle verbundenen Programme sichtbar ab.', 'battle-pause': 'Pausiert die Wiedergabe oder setzt sie fort. Neu starten beendet den Versuch.', 'battle-restart': 'Setzt den Kampf zurück. Deine Programme bleiben erhalten.', 'blocks-mode': 'Blöcke einrasten oder in Schleifen und Bedingungen ziehen.', 'text-mode': 'Dasselbe Programm als Text bearbeiten.' })) {
+    for (const [id, text] of Object.entries({ 'battle-step': 'Führt einen Spielschritt aller Arkane aus. Während einer Pause: nächste einzelne Aktion.', 'battle-run-program': 'Startet die Mission neu und spielt alle verbundenen Programme sichtbar ab.', 'battle-pause': 'Pausiert die Wiedergabe oder setzt sie fort. Neu starten beendet den Versuch.', 'battle-restart': 'Setzt die Aufgabe zurück. Deine Programme bleiben erhalten.', 'blocks-mode': 'Verbinde Blöcke unter dem Startblock. Ihre Reihenfolge bestimmt, was dein Arkana nacheinander tut.', 'text-mode': 'Dasselbe Programm als Text bearbeiten.' })) {
       const element = this.el(id);
       element.title = text;
       for (const event of ['mouseenter', 'focus']) element.addEventListener(event, () => { this.el('editor-tooltip').textContent = text; this.el('editor-tooltip').hidden = false; });

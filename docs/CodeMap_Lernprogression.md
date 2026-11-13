@@ -11,6 +11,7 @@ Dieser Plan ordnet die Programmiergrundlagen in eine verständliche Lernfolge in
 ## Regeln für jede Lernquest
 
 - Eine Einführungsquest konzentriert sich auf ein neues Konzept. Vorwissen wird angewendet, spätere Konzepte bleiben ausgeblendet.
+- Lerntexte setzen kein Programmierwissen voraus. Sie beschreiben zuerst eine konkrete Handlung und nennen danach den Fachbegriff: Glutling führt Befehle von oben nach unten nacheinander aus; eine solche geordnete Befehlsfolge heißt Sequenz. Ziele und Hilfen verwenden verständliche Handlungsbeschreibungen. Das gilt ebenso für Lebenspunkte, Angriffsreichweite und Schleifen; ein neuer Begriff wird nicht durch weitere unerklärte Begriffe erläutert.
 - Der Held bewegt sich in der offenen Welt direkt. Innerhalb der Aufgabe wird Glutling ausschließlich durch sein Programm bewegt.
 - Ein Weltort oder NPC führt die Aufgabe ein. Der Dialog erklärt Ziel, neue Befehle und deren Wirkung. Danach folgt ein kleiner, übersichtlicher Aufgabenraum.
 - Neue Befehle werden nach Annahme der zugehörigen Einführung für die Aufgabe freigeschaltet. Ein Sieg bestätigt den Abschluss und öffnet die nächste Einführung. Ein Fehlversuch entzieht bereits gelernte Befehle nicht.

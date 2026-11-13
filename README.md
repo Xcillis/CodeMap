@@ -19,6 +19,8 @@ Die ersten drei Quests aus dem [Lern- und Questplan](docs/CodeMap_Lernprogressio
 
 Ziel und eine aufklappbare Einführung stehen über dem Editor. **Hinweis anzeigen** liefert nacheinander genauere Hilfen. Die Anfänge enthalten eine einzelne Anweisung oder einen leeren Entwurf, keine vollständige Lösung. Der Startblock ist auch vor der Schleifeneinführung unter **Programmstart** verfügbar.
 
+Die Einführung erklärt Begriffe wie „Sequenz“ anhand von Glutlings beobachtbaren Handlungen. Aufgaben formulieren konkrete Schritte; Programmierwissen wird dabei nicht vorausgesetzt.
+
 ## Freie Trainingsarena und bestehende Spielstände
 
 Über **Freie Trainingsarena** im Weltmenü oder den Trainingsstein südöstlich der Akademie bereitest du Solo- oder Duo-Versuche vor. Wähle die Trainingsaufgabe und die gesammelten Arkana. Dort sind alle implementierten Bewegungs-, Angriffs-, Wiederholungs- und Bedingungsbefehle verfügbar. Dieses Training vergibt keine Lernfreigaben und schließt keine Weltquest ab. Die Auswahl verändert dein aktives Weltteam nicht.

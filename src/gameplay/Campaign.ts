@@ -118,7 +118,7 @@ export class Campaign {
   interact(target: string): CampaignDialog {
     if (target === 'training') return { speaker: 'FREIE TRAININGSARENA', text: 'Hier sind alle implementierten Befehle zum Experimentieren verfügbar. Das Training schaltet keine Weltquest und keine Lernfähigkeit frei. Wähle ein Solo- oder Duo-Training mit gesammelten Arkana.', action: 'open-training', actionLabel: 'Training vorbereiten' };
     if (target === 'arkanist-eldren') {
-      if (!this.state.introduced) return { speaker: 'ARKANIST ELDREN', text: 'Willkommen! Am westlichen Akademieweg wartet Glutling. Finde es und hilf ihm, einen Runenstein mit einzelnen Bewegungsanweisungen zu erreichen. Angriff und Schleifen lernst du später.', action: 'meet-eldren', actionLabel: 'Glutling suchen' };
+      if (!this.state.introduced) return { speaker: 'ARKANIST ELDREN', text: 'Willkommen! Am westlichen Akademieweg wartet Glutling. Finde es. Danach hilfst du ihm, eine goldene Rune zu erreichen: Du gibst ihm Befehle für seine Bewegungen. Ich zeige dir Schritt für Schritt, wie das geht.', action: 'meet-eldren', actionLabel: 'Glutling suchen' };
       if (!this.has('glutling')) return { speaker: 'ARKANIST ELDREN', text: this.objective };
       return this.questDialog(LESSON_IDS.find((id) => !this.state.completed.includes(id)) ?? LESSON_IDS[0]);
     }
@@ -136,7 +136,7 @@ export class Campaign {
     const quest = getLesson(id); const error = this.missionError(id);
     const index = LESSON_IDS.indexOf(id);
     const ready = index === 0 || this.state.completed.includes(LESSON_IDS[index - 1]);
-    return { speaker: quest.title.toUpperCase(), text: `${ready ? quest.introduction : 'Hier wartet die nächste Lernaufgabe auf dich.'}${error ? ` ${error}` : ''}`,
+    return { speaker: quest.title.toUpperCase(), text: `${ready ? quest.introduction : 'Hier wartet die nächste Lernaufgabe auf dich.'}${error ? `\n\n${error}` : ''}`,
       ...(error ? {} : { action: `lesson:${id}`, actionLabel: this.state.completed.includes(id) ? 'Quest wiederholen' : 'Einführung annehmen' }) };
   }
 }
