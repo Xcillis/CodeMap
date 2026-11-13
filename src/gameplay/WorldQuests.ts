@@ -63,5 +63,6 @@ export const WORLD_QUESTS: readonly WorldQuest[] = [
 export const getLesson = (id: LessonId): WorldQuest => WORLD_QUESTS.find((quest) => quest.id === id)!;
 
 export interface EncounterPresentation { title: string; instructions: string; objective: string; hints: readonly string[]; mode: 'lesson' | 'training' }
+export interface QuestCompletion { lesson: LessonId; title: string; text: string; nextObjective: string; repeated: boolean }
 export type CampaignAction = 'meet-eldren' | 'recruit-moosling' | 'recruit-glutling' | 'open-training' | `lesson:${LessonId}` | `prepare-lesson:${LessonId}`;
 export interface CampaignDialog { speaker: string; text: string; action?: CampaignAction; actionLabel?: string }

@@ -22,7 +22,6 @@ export class WorldScene extends Phaser.Scene {
   private readonly arkanaVisuals = new Map<ArkanId, readonly Phaser.GameObjects.GameObject[]>();
   private dialogActive = false;
   private overlayActive = false;
-  private pendingReward?: string;
   private readonly onDialogClosed = () => { this.dialogActive = false; this.clearInput(); };
   private readonly onOverlay = (open: boolean) => { this.overlayActive = open; this.clearInput(); };
   private readonly onTeamToggle = (id: string) => { const message = this.campaign.toggleTeam(id); this.publishCampaign(); gameEvents.emit('world-notice', message); };
@@ -37,16 +36,11 @@ export class WorldScene extends Phaser.Scene {
     }
   };
   private readonly onVictory = (id: LessonId) => {
-    const reward = this.campaign.completeMission(id);
-    if (reward) { this.pendingReward = reward; this.publishCampaign(); }
+    const completion = this.campaign.finishMission(id);
+    if (completion) { this.publishCampaign(); gameEvents.emit('quest-completed', completion); }
   };
   private readonly onReturned = () => {
     this.campaign.leaveMission(); this.publishCampaign(); this.clearInput();
-    if (this.pendingReward) {
-      this.dialogActive = true;
-      gameEvents.emit('dialog-opened', { speaker: 'QUEST ABGESCHLOSSEN', text: this.pendingReward });
-      this.pendingReward = undefined;
-    }
   };
 
   constructor() {

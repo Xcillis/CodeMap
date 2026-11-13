@@ -8,9 +8,10 @@ import { availableCommands, COMMAND_CATEGORIES, commandSource, type CommandCateg
 import { SnapEditor } from './SnapEditor';
 import { ProgramDrag } from './ProgramDrag';
 import { isArkanId, type SkillId } from '../gameplay/ArkanaCatalog';
-import type { EncounterPresentation } from '../gameplay/WorldQuests';
+import type { EncounterPresentation, QuestCompletion } from '../gameplay/WorldQuests';
 import { ACTIONS } from '../combat/ActionCatalog';
 import { setLearningText } from './LearningText';
+import { QuestCompletionView } from './QuestCompletionView';
 
 type EditorMode = 'blocks' | 'text';
 
@@ -29,6 +30,7 @@ export class GameUi {
   private readonly text = this.el<HTMLTextAreaElement>('program-source');
   private readonly feedback = this.el<HTMLElement>('battle-feedback');
   private readonly drag: ProgramDrag;
+  private readonly completion = new QuestCompletionView(() => gameEvents.emit('battle-exit'));
   private playbackState: PlaybackState = 'idle';
   private activeFrame?: ActionFrame<EncounterState>;
   private presentation?: EncounterPresentation;
@@ -62,8 +64,13 @@ export class GameUi {
     this.click('dialog-dismiss', () => { this.el('dialog').hidden = true; this.pendingDialogAction = undefined; gameEvents.emit('dialog-closed'); });
     gameEvents.on('battle-opened', (programs: ProgramSources, mission: string | number, skills?: Partial<Record<ArkanId, readonly SkillId[]>>, presentation?: EncounterPresentation) => this.open(programs, mission, skills, presentation));
     gameEvents.on('battle-closed', () => {
+      this.completion.clear();
       this.capture(); this.drag.cancel(); this.panel.hidden = true;
       this.exploration(true);
+    });
+    gameEvents.on('quest-completed', (completion: QuestCompletion) => {
+      if (this.panel.hidden || this.presentation?.mode !== 'lesson' || completion.lesson !== this.mission) return;
+      this.drag.cancel(); this.el('editor-tooltip').hidden = true; this.completion.show(completion);
     });
     gameEvents.on('battle-updated', (state: EncounterState, feedback: string) => this.update(state, feedback));
     gameEvents.on('battle-playback', (state: PlaybackState) => {
@@ -125,6 +132,7 @@ export class GameUi {
   private key(): string { return `${this.mission}:${this.selectedActor}`; }
 
   private open(programs: ProgramSources, mission: number | string, skills?: Partial<Record<ArkanId, readonly SkillId[]>>, presentation?: EncounterPresentation): void {
+    this.completion.clear(); this.el('battle-exit').textContent = 'Zur Erkundung';
     this.drag.cancel(); this.panel.hidden = false; this.exploration(false);
     this.mission = mission;
     this.skills = skills;
@@ -266,6 +274,7 @@ export class GameUi {
   }
 
   private update(state: EncounterState, feedback: string): void {
+    if (state.outcome === 'ongoing') this.completion.clear();
     setLearningText(this.feedback, feedback); this.el('battle-round').textContent = String(state.tick);
     for (const [prefix, actor] of [['player', state.player], ['companion', state.companion], ['enemy', state.enemy]] as const) {
       if (!actor) continue;
@@ -285,6 +294,7 @@ export class GameUi {
   private skillsFor(actor: ArkanId): readonly SkillId[] | undefined { return this.skills ? this.skills[actor] ?? [] : undefined; }
   private get catalogMission(): number { return typeof this.mission === 'number' ? this.mission : 0; }
   private programChanged(): void {
+    this.completion.clear();
     this.activeFrame = undefined; this.showTrace();
     this.el<HTMLButtonElement>('battle-step').disabled = false;
   }

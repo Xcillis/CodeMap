@@ -57,6 +57,20 @@ button { font: inherit; touch-action: none; }
 #dialog-close { min-height: 2.75rem; padding: .5rem 1rem; border-radius: .35rem; font-weight: 700; }
 #battle-panel { position: fixed; z-index: 2; top: max(1rem, env(safe-area-inset-top)); right: max(1rem, env(safe-area-inset-right)); bottom: max(1rem, env(safe-area-inset-bottom)); width: min(56vw, 60rem); }
 .battle-card { position: relative; display: flex; flex-direction: column; height: 100%; padding: .85rem; border: 1px solid #d8c275; border-radius: .5rem; background: #112226; box-shadow: 0 8px 26px rgb(0 0 0 / .36); overflow: hidden; }
+#quest-completion { position: absolute; z-index: 5; inset: 0; display: grid; align-items: start; overflow: auto; overscroll-behavior: contain; padding: clamp(.75rem, 2vw, 1.5rem); border: 2px solid #e7ce76; border-radius: .5rem; background: #182e30; box-shadow: 0 8px 26px #0007; }
+.quest-completion-card { min-width: 0; }
+.quest-completion-check { display: inline-grid; place-items: center; width: 3rem; height: 3rem; color: #172d2c; background: #ecd075; border-radius: 50%; font-size: 2rem; font-weight: 800; }
+#quest-completion-heading { margin: .7rem 0 .4rem; color: #ffe39a; font: bold clamp(1.4rem, 2vw, 2rem) Georgia, serif; }
+#quest-completion-title { margin: 0 0 1rem; color: #f7f1dc; font-size: 1.05rem; }
+#quest-completion-text { white-space: pre-line; font: clamp(1rem, 1.4vw, 1.2rem)/1.55 Georgia, serif; }
+.quest-completion-saved { color: #bfe0bd; font-size: .85rem; }
+.quest-completion-next { margin: 1rem 0; padding: .8rem; border-left: 4px solid #e3c775; background: #264446; }
+.quest-completion-next h3 { margin: 0; color: #ffe39a; font-size: .95rem; }
+.quest-completion-next p { margin: .4rem 0 0; line-height: 1.5; }
+.quest-completion-actions { position: sticky; bottom: -.1rem; display: flex; flex-wrap: wrap; gap: .65rem; padding: .65rem 0; background: #182e30; }
+.quest-completion-actions button { min-height: 2.75rem; padding: .65rem 1rem; border: 1px solid #e3c775; border-radius: .35rem; color: #f7f1dc; background: #305050; font: inherit; font-weight: 700; cursor: pointer; touch-action: manipulation; }
+#quest-completion-exit { color: #162c30; background: #ecd075; }
+#quest-completion-status { flex: none; margin: .3rem 0 .7rem; padding: .6rem; border: 1px solid #b6ce85; border-left: 4px solid #b6ce85; border-radius: .3rem; color: #f2eccb; background: #284638; font-weight: 800; font-size: .9rem; }
 .editor-columns { display: grid; grid-template-columns: minmax(14rem, 1fr) minmax(0, 1.5fr); flex: 1; min-height: 10rem; overflow: hidden; border: 1px solid #527c79; border-radius: .4rem; }
 .library-shell { display: grid; grid-template-columns: 4.8rem minmax(0, 1fr); min-height: 0; min-width: 0; }
 .command-categories { min-height: 0; overflow: auto; padding: .4rem .2rem; border-right: 1px solid #527c79; background: #192b32; }

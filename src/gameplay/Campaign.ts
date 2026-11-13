@@ -1,7 +1,7 @@
 import type { ArkanId } from '../combat/types';
 import type { MissionId } from '../combat/BattleSession';
 import { ARKANA_SPECIES, instanceId, isArkanId, startingSkills, type OwnedArkana, type SkillId } from './ArkanaCatalog';
-import { LESSON_IDS, getLesson, isLessonId, type LessonId, type CampaignAction, type CampaignDialog } from './WorldQuests';
+import { LESSON_IDS, getLesson, isLessonId, type LessonId, type CampaignAction, type CampaignDialog, type QuestCompletion } from './WorldQuests';
 
 export interface CampaignState {
   version: 2;
@@ -114,6 +114,13 @@ export class Campaign {
   completeMission(id: LessonId): string | undefined {
     if (this.active?.kind !== 'lesson' || this.active.lesson !== id || this.state.completed.includes(id)) return;
     this.state.completed.push(id); return getLesson(id).reward;
+  }
+  finishMission(id: LessonId): QuestCompletion | undefined {
+    if (this.active?.kind !== 'lesson' || this.active.lesson !== id) return;
+    const repeated = this.state.completed.includes(id);
+    this.completeMission(id);
+    const quest = getLesson(id);
+    return { lesson: id, title: quest.title, text: quest.reward, nextObjective: this.objective, repeated };
   }
   leaveMission(): void { this.active = undefined; }
   apply(action: CampaignAction): string {

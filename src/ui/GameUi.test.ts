@@ -1,14 +1,16 @@
 // @vitest-environment jsdom
 import { readFileSync } from 'node:fs';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { nodesToSource } from '../combat/DecisionProgram';
 import type { ArkanId, ProgramNode } from '../combat/types';
 import { GameUi } from './GameUi';
 import { gameEvents } from '../game/events';
 import { BattleSession, missionPrograms } from '../combat/BattleSession';
-import { getLesson } from '../gameplay/WorldQuests';
+import { getLesson, LESSON_IDS, WORLD_QUESTS } from '../gameplay/WorldQuests';
 import { LessonSession } from '../combat/LessonSession';
 import { Campaign } from '../gameplay/Campaign';
+import { instanceId } from '../gameplay/ArkanaCatalog';
+import { Playback } from '../combat/Playback';
 
 const listeners = vi.hoisted(() => new Map<string, ((...args: unknown[]) => void)[]>());
 const snaps = vi.hoisted(() => [] as unknown[]);
@@ -45,8 +47,80 @@ beforeEach(() => {
   listeners.clear(); snaps.length = 0; localStorage.clear();
   document.body.innerHTML = readFileSync('index.html', 'utf8'); new GameUi();
 });
+afterEach(() => vi.useRealTimers());
 
 describe('Editorzustand und Arkan-Zuordnung', () => {
+  for (const [index, lesson] of WORLD_QUESTS.entries()) it(`${lesson.id}: zeigt den bestätigten Abschluss in der Arena und kehrt ohne Welt-Abschlussdialog zurück`, () => {
+    const campaign = new Campaign({ version: 2, introduced: true, completed: LESSON_IDS.slice(0, index), owned: [{ speciesId: 'glutling' }], team: [instanceId('glutling')] });
+    campaign.interact(`lesson:${lesson.id}`); campaign.beginMission(lesson.id);
+    const presentation = { title: lesson.title, mode: 'lesson', instructions: lesson.introduction, objective: lesson.objective, hints: lesson.hints };
+    gameEvents.emit('battle-opened', { glutling: lesson.starter }, lesson.id, { glutling: lesson.allowed }, presentation);
+    gameEvents.emit('quest-completed', campaign.finishMission(lesson.id));
+    const dialog = document.getElementById('quest-completion')!;
+    expect(dialog.hidden).toBe(false); expect(dialog.closest('#battle-panel')).not.toBeNull();
+    expect(document.getElementById('quest-completion-heading')!.textContent).toBe('Quest abgeschlossen!');
+    expect(document.getElementById('quest-completion-text')!.textContent).toBe(lesson.reward);
+    expect(document.getElementById('quest-completion-next')!.textContent).toBe(campaign.objective);
+    expect(document.getElementById('dialog')!.hidden).toBe(true);
+    expect(document.activeElement?.id).toBe('quest-completion-exit'); expect(document.getElementById('battle-card')!.inert).toBe(true);
+    let exits = 0; gameEvents.on('battle-exit', () => { exits++; gameEvents.emit('battle-closed'); });
+    click('quest-completion-exit'); expect(exits).toBe(1); expect(document.getElementById('battle-panel')!.hidden).toBe(true);
+    expect(dialog.hidden).toBe(true); expect(document.getElementById('game')!.inert).toBe(false);
+    expect(document.getElementById('dialog')!.hidden).toBe(true);
+  });
+  it('wartet bis nach der letzten Animation und zeigt bei Abbruch keinen Questabschluss', () => {
+    vi.useFakeTimers();
+    const lesson = getLesson('q04-musterpfad');
+    const campaign = new Campaign({ version: 2, introduced: true, completed: LESSON_IDS.slice(0, 3), owned: [{ speciesId: 'glutling' }], team: [instanceId('glutling')] });
+    campaign.interact(`lesson:${lesson.id}`); campaign.beginMission(lesson.id);
+    const presentation = { title: lesson.title, mode: 'lesson', instructions: lesson.introduction, objective: lesson.objective, hints: lesson.hints };
+    gameEvents.emit('battle-opened', { glutling: lesson.starter }, lesson.id, { glutling: lesson.allowed }, presentation);
+    const session = new LessonSession(lesson, lesson.allowed);
+    session.execute({ glutling: 'repeat(3, () => { glutling.moveRight(); glutling.moveUp(); });' }, true);
+    const playback = new Playback<typeof session.frames[number]>((frame) => gameEvents.emit('battle-updated', frame.after, 'Bewegung'), (state) => gameEvents.emit('battle-playback', state));
+    const completed = () => { gameEvents.emit('quest-completed', campaign.finishMission(lesson.id)); };
+    playback.play(session.frames, completed); vi.advanceTimersByTime(5 * 850);
+    // Even the last displayed frame carries victory before its animation finishes.
+    expect(document.getElementById('quest-completion')!.hidden).toBe(true);
+    expect(campaign.snapshot.completed).not.toContain(lesson.id);
+    playback.stop(); vi.runAllTimers(); expect(document.getElementById('quest-completion')!.hidden).toBe(true);
+    playback.play(session.frames, completed); vi.advanceTimersByTime(6 * 850);
+    expect(document.getElementById('quest-completion')!.hidden).toBe(false);
+    expect(campaign.snapshot.completed).toContain(lesson.id);
+    expect(document.querySelector('#quest-completion-text strong[data-term="loop-body"]')?.textContent).toBe('Schleifenrumpf');
+  });
+  it('hält den Fokus im Abschluss, erlaubt die Programmprüfung und zeigt Wiederholungen erneut', () => {
+    const lesson = getLesson('q01-glutspur');
+    const presentation = { title: lesson.title, mode: 'lesson', instructions: lesson.introduction, objective: lesson.objective, hints: lesson.hints };
+    const campaign = new Campaign({ version: 2, introduced: true, owned: [{ speciesId: 'glutling' }], team: [instanceId('glutling')] });
+    campaign.interact(`lesson:${lesson.id}`); campaign.beginMission(lesson.id);
+    gameEvents.emit('battle-opened', { glutling: lesson.starter }, lesson.id, { glutling: lesson.allowed }, presentation);
+    button('battle-run-program').focus(); gameEvents.emit('quest-completed', campaign.finishMission(lesson.id));
+    const tab = new KeyboardEvent('keydown', { key: 'Tab', shiftKey: true, bubbles: true, cancelable: true });
+    button('quest-completion-exit').dispatchEvent(tab); expect(tab.defaultPrevented).toBe(true);
+    expect(document.activeElement?.id).toBe('quest-completion-review');
+    click('quest-completion-review'); expect(document.getElementById('quest-completion')!.hidden).toBe(true);
+    expect(document.getElementById('quest-completion-status')!.hidden).toBe(false);
+    expect(document.activeElement?.id).toBe('battle-run-program'); expect(document.getElementById('battle-card')!.inert).toBe(false);
+    gameEvents.emit('quest-completed', campaign.finishMission(lesson.id));
+    expect(document.getElementById('quest-completion-heading')!.textContent).toBe('Quest erneut geschafft!');
+    button('quest-completion-exit').dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+    expect(document.getElementById('quest-completion')!.hidden).toBe(true);
+    const session = new LessonSession(lesson, lesson.allowed); gameEvents.emit('battle-updated', session.snapshot, 'Neu gestartet');
+    expect(document.getElementById('quest-completion-status')!.hidden).toBe(true);
+  });
+  it('zeigt weder bei einer offenen Lernübung noch im freien Training einen Questabschluss', () => {
+    const lesson = getLesson('q04-musterpfad');
+    const presentation = { title: lesson.title, mode: 'lesson', instructions: lesson.introduction, objective: lesson.objective, hints: lesson.hints };
+    gameEvents.emit('battle-opened', { glutling: lesson.starter }, lesson.id, { glutling: lesson.allowed }, presentation);
+    const session = new LessonSession(lesson, lesson.allowed);
+    const feedback = session.execute({ glutling: 'glutling.moveRight(); glutling.moveUp(); glutling.moveRight(); glutling.moveUp(); glutling.moveRight(); glutling.moveUp();' }, true);
+    expect(session.snapshot.outcome).toBe('incomplete'); gameEvents.emit('battle-updated', session.snapshot, feedback);
+    expect(document.getElementById('quest-completion')!.hidden).toBe(true);
+    gameEvents.emit('battle-opened', missionPrograms(1), 1);
+    gameEvents.emit('quest-completed', { lesson: lesson.id, title: lesson.title, text: lesson.reward, nextObjective: '', repeated: false });
+    expect(document.getElementById('quest-completion')!.hidden).toBe(true);
+  });
   it('zeigt Q04 mit Bewegung und Ablauf, erklärt den Rumpf und behält das Programm beim Moduswechsel', () => {
     const lesson = getLesson('q04-musterpfad');
     const presentation = { title: lesson.title, mode: 'lesson', instructions: lesson.introduction, objective: lesson.objective, hints: lesson.hints };

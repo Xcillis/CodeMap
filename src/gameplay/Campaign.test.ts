@@ -27,6 +27,20 @@ function win(campaign: Campaign, id: LessonId): void {
 afterEach(() => vi.useRealTimers());
 
 describe('Gestufte Lernquests und freie Trainingsarena', () => {
+  it('erstellt den Arenaabschluss mit nächstem Ziel und kennzeichnet Wiederholungen ohne doppelte Belohnung', () => {
+    const campaign = introduced();
+    expect(campaign.finishMission(LESSON_IDS[0])).toBeUndefined();
+    begin(campaign, LESSON_IDS[0]);
+    expect(campaign.finishMission(LESSON_IDS[1])).toBeUndefined();
+    const completion = campaign.finishMission(LESSON_IDS[0]);
+    expect(completion).toMatchObject({ lesson: LESSON_IDS[0], title: 'Glutlings erste Schritte', text: getLesson(LESSON_IDS[0]).reward, repeated: false });
+    expect(completion?.nextObjective).toContain('Übungskonstrukt');
+    const saved = campaign.snapshot;
+    expect(campaign.finishMission(LESSON_IDS[0])).toMatchObject({ repeated: true });
+    expect(campaign.snapshot).toEqual(saved);
+    campaign.leaveMission(); expect(campaign.finishMission(LESSON_IDS[0])).toBeUndefined();
+    campaign.beginTraining(1, ['glutling']); expect(campaign.finishMission(LESSON_IDS[0])).toBeUndefined();
+  });
   it('bietet bei falscher Besetzung einen direkten Queststart an und wählt Glutling allein', () => {
     const campaign = new Campaign({ version: 1, introduced: true, owned: [{ speciesId: 'moosling' }, { speciesId: 'glutling' }], team: [instanceId('moosling'), instanceId('glutling')], completed: [1, 2] });
     const owned = campaign.snapshot.owned;

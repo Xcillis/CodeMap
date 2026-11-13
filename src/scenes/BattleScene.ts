@@ -31,7 +31,6 @@ export class BattleScene extends Phaser.Scene {
   private subtitle!: Phaser.GameObjects.Text;
   private goalLabel!: Phaser.GameObjects.Text;
   private encounter: WorldEncounter = { kind: 'training', mission: 1, team: ['moosling'], skills: { moosling: ARKANA_SPECIES.moosling.supported } };
-  private awarded = false;
   private readonly onStep = (sources: ProgramSources) => this.execute(sources);
   private readonly onRunProgram = (sources: ProgramSources) => this.execute(sources, true);
   private readonly onRestart = () => this.restart();
@@ -51,7 +50,6 @@ export class BattleScene extends Phaser.Scene {
 
   create(encounter?: WorldEncounter): void {
     this.encounter = encounter?.team ? encounter : { kind: 'training', mission: 1, team: ['moosling'], skills: { moosling: ARKANA_SPECIES.moosling.supported } };
-    this.awarded = false;
     this.cameras.main.setBackgroundColor('#142c35');
     this.grid = this.add.graphics();
     this.actors = this.add.container();
@@ -103,13 +101,12 @@ export class BattleScene extends Phaser.Scene {
     gameEvents.emit('battle-trace-clear');
     const feedback = this.session.execute(sources, full);
     const finalState = this.session.snapshot;
+    const questWon = this.encounter.kind === 'lesson' && finalState.outcome === 'victory' && this.session.frames.at(-1)?.after.outcome === 'victory';
     gameEvents.emit('battle-next-available', false);
     this.playback.play([...this.session.frames], () => {
       this.render(finalState);
       gameEvents.emit('battle-updated', finalState, feedback);
-      if (finalState.outcome === 'victory' && !this.awarded && this.encounter.kind === 'lesson') {
-        this.awarded = true; gameEvents.emit('world-quest-victory', this.encounter.lesson);
-      }
+      if (questWon && this.encounter.kind === 'lesson') gameEvents.emit('world-quest-victory', this.encounter.lesson);
     });
   }
 

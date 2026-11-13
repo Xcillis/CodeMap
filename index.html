@@ -42,8 +42,9 @@
         </div>
       </section>
       <section id="battle-panel" aria-labelledby="battle-title" hidden>
-        <div class="battle-card">
+        <div class="battle-card" id="battle-card">
           <p class="eyebrow" id="battle-title">RUNENSKRIPT</p>
+          <p id="quest-completion-status" role="status" hidden></p>
           <div class="encounter-briefing">
             <p id="encounter-objective"></p>
             <details id="encounter-guide"><summary>Aufgabe & Einführung</summary><p id="encounter-instructions"></p></details>
@@ -112,6 +113,20 @@
           </details>
           </div>
         </div>
+        <section id="quest-completion" role="dialog" aria-modal="true" aria-labelledby="quest-completion-heading" aria-describedby="quest-completion-title quest-completion-text" hidden>
+          <div class="quest-completion-card">
+            <span class="quest-completion-check" aria-hidden="true">✓</span>
+            <h2 id="quest-completion-heading">Quest abgeschlossen!</h2>
+            <h3 id="quest-completion-title"></h3>
+            <p id="quest-completion-text"></p>
+            <p class="quest-completion-saved">Im Questjournal als abgeschlossen markiert.</p>
+            <div class="quest-completion-next"><h3>So geht es weiter</h3><p id="quest-completion-next"></p></div>
+            <div class="quest-completion-actions">
+              <button id="quest-completion-exit" type="button">Zur Spielwelt</button>
+              <button id="quest-completion-review" type="button">Programm ansehen</button>
+            </div>
+          </div>
+        </section>
       </section>
       <div id="touch-controls" aria-label="Touchsteuerung">
         <div class="dpad" role="group" aria-label="Bewegung">
