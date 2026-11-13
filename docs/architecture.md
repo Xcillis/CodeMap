@@ -92,6 +92,14 @@ Die erfolgreiche Wiedergabe meldet den Weltquest-Sieg nach dem letzten Frame; ei
 
 Automatisierte Tests prüfen die komplette Questkette mit echten Kampfsimulationen, beide Teamrollen, Belohnungszeitpunkt und Abbruch, Feldbelegung, gespeicherte Entwürfe, Wiederholungen und beschädigte Daten sowie die Sammlung, Journalbedienung und den dynamischen Editor. Artenwerte sind vorläufig; Typenschadensmultiplikatoren sind weiterhin offen. Spezialfähigkeiten, weitere Arten und programmierbares Fangen folgen als eigene Erweiterungen.
 
+## ADR 013 – Geplanter gestufter Lerneinstieg
+
+Die Nutzerkorrektur zur Lernreihenfolge ersetzt den sofortigen Einstieg mit Schleifen. `CodeMap_Lernprogression.md` spezifiziert zunächst gerichtete Bewegungsanweisungen und Sequenzen in einem Rätsel ohne Gegner, dann den Basisangriff und anschließend feste Wiederholungen. Eine spätere Einführung vermittelt Bedingungen; die Teamkoordination folgt nach den Grundlagen.
+
+Für den Spielumbau werden Aufgabenart, Startzustand, Weltziel, Einführungsfreigaben und erlaubte Strukturen als Missionsdaten benötigt. Die Darstellung und Ausführung müssen ein Rätsel ohne Gegner tragen. Artenunterstützung, erlernte Fähigkeiten und aufgabenspezifisch erlaubte Befehle werden bei der Bibliothek und Ausführungsprüfung gemeinsam berücksichtigt. Der Startblock bleibt unabhängig von einer Schleifenfreigabe verfügbar.
+
+Neue Aufgaben erhalten stabile IDs mit einer eigenen Fortschrittsversion. Die vorhandenen numerischen Missionen und ihre gespeicherten Programme dürfen nicht durch Umbenennen zu anderen Aufgaben werden. Sammlung und Entwürfe bleiben bei der späteren Migration erhalten. ADR 013 dokumentiert den Plan; die aktuelle Laufzeit entspricht bis zu diesem Umbau weiterhin ADR 012.
+
 ## Noch nicht enthalten
 
 Dreier-Formation, Variablen und Funktionen in der Programmiersprache, freie JavaScript-Runtime, Online-Speicherung, Login, Backend, NOVA und Kompetenzengine bleiben spätere Erweiterungen. Frühere ADRs beschreiben die Entwicklungsschritte; ADR 010 bis ADR 012 beschreiben den aktuellen Stand von Editor, Wiedergabe und Weltquests.

@@ -4,6 +4,8 @@ Lokaler Phaser-/TypeScript-Prototyp aus *Die Chroniken von Aetheria* mit Erkundu
 
 Jedes aktive Arkana besitzt sein eigenes Programm mit ausdrücklich benannten Befehlen, beispielsweise `moosling.attack()` und `glutling.moveForward()`.
 
+Der [neue Lern- und Questplan](docs/CodeMap_Lernprogression.md) legt den nächsten Umbau fest: Glutlings Bewegungsrätsel mit Anweisungen und Sequenzen, anschließend Basisangriff, danach Schleifen. Die unten beschriebene Spielversion enthält noch die bisherige Questfolge.
+
 ## Erster Spieldurchlauf
 
 1. Sprich mit **Arkanist Eldren** an der Akademie (E oder REDEN). Er zeigt dir Mooslings Fundort.
