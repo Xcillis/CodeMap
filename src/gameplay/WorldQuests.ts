@@ -51,7 +51,7 @@ export const WORLD_QUESTS: readonly WorldQuest[] = [
     introduction: 'Manchmal brauchst du denselben Befehl mehrmals. Statt ihn mehrfach einzufügen, kannst du ihn wiederholen lassen. Das nennt man eine Schleife.\n\nDer Block „wiederhole … mal“ führt die Befehle in seinem Inneren so oft aus, wie die eingestellte Zahl angibt. Lege „gehe nach rechts“ hinein und wähle eine Anzahl.\n\nIm Text ist repeat(2, () => { glutling.moveRight(); }); ein Beispiel für zwei Schritte nach rechts. Mit „Nächsten Schritt ausführen“ siehst du jede einzelne Bewegung.',
     objective: 'Bringe Glutling zur Rune. Lass dafür einen Bewegungsbefehl mit „wiederhole … mal“ mindestens zweimal ausführen.',
     introduces: ['repeat'], allowed: ['moveRight', 'repeat'], starter: '',
-    reward: 'Der Runenweg leuchtet! Du hast eine Bewegung mit einer Schleife wiederholt. Am Musterstein am Nordweg wartet ein Treppenweg auf dich: Dort wiederholst du mehrere Befehle gemeinsam. Auch Moosling wartet jetzt am östlichen Weg.',
+    reward: 'Der Runenweg leuchtet! Du hast eine Bewegung mit einer Schleife wiederholt. Am Musterstein am Nordweg wartet ein Treppenweg auf dich: Dort wiederholst du mehrere Befehle gemeinsam.',
     hints: ['Die Rune liegt auf derselben Zeile. Zähle die Felder zwischen Start und Ziel.', 'Verbinde einen Wiederholungsblock mit dem Start und lege „gehe nach rechts“ in sein Inneres.', 'Vier Schritte nach rechts führen zur Rune. Verändere die Wiederholungszahl und vergleiche deine Vorhersage mit dem Ablauf.'] },
   { id: 'q04-musterpfad', title: 'Der Musterpfad', target: 'Musterstein am Nordweg', x: 775, y: 400,
     kind: 'puzzle', start: { x: 1, y: 4 }, goal: { x: 4, y: 1 }, walls: patternWalls, repeatGoal: 'movement-sequence',
@@ -70,7 +70,7 @@ export const WORLD_QUESTS: readonly WorldQuest[] = [
     objective: 'Wähle mit demselben falls/sonst-Block in beiden Situationen passend: direkt daneben angreifen, sonst einen Schritt näher herangehen.',
     introduces: ['enemyAdjacent', 'moveForward'], allowed: ['moveRight', 'moveUp', 'moveForward', 'attack', 'enemyAdjacent'],
     starter: 'if (glutling.enemyAdjacent) {\n  glutling.attack();\n}',
-    reward: 'Glutling hat in beiden Situationen passend entschieden! Dieselbe Bedingung wurde einmal mit ja und einmal mit nein beantwortet. Die Verzweigung hat jeweils den passenden Befehl ausgewählt. Im Charakterfenster findest du Bedingung und Verzweigung mit Beispielen. Die nächste Lernquest verbindet diese Entscheidung mit einer Schleife und einem beweglichen Wächter; sie folgt später.',
+    reward: 'Glutling hat in beiden Situationen passend entschieden! Dieselbe Bedingung wurde einmal mit ja und einmal mit nein beantwortet. Die Verzweigung hat jeweils den passenden Befehl ausgewählt. Im Charakterfenster findest du Bedingung und Verzweigung mit Beispielen. Jetzt kannst du den südöstlichen Hain erkunden und dort Moosling finden und aufnehmen. Die nächste Lernquest mit einem beweglichen Wächter folgt später.',
     hints: ['Beobachte die Entfernung: Ein Angriff trifft nur direkt daneben. Bei größerem Abstand muss Glutling zuerst näher herangehen.', 'Im vorbereiteten falls/sonst-Block steht der Angriff bereits im dann-Teil. Ergänze im sonst-Teil eine Bewegung zum Gegner.', 'Im Text ergänzt du nach der schließenden Klammer else { glutling.moveForward(); }. Führe dasselbe Programm in beiden Situationen aus und vergleiche die Antworten auf die Bedingung.'] },
 ];
 export const getLesson = (id: LessonId): WorldQuest => WORLD_QUESTS.find((quest) => quest.id === id)!;

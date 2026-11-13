@@ -2,6 +2,7 @@ import type { ArkanId } from '../combat/types';
 import type { MissionId } from '../combat/BattleSession';
 import { ARKANA_SPECIES, instanceId, isArkanId, startingSkills, type OwnedArkana, type SkillId } from './ArkanaCatalog';
 import { LESSON_IDS, getLesson, isLessonId, type LessonId, type CampaignAction, type CampaignDialog, type QuestCompletion } from './WorldQuests';
+import { availableArkanaEncounters, encounterUnlocked } from './ArkanaEncounters';
 
 export interface CampaignState {
   version: 2;
@@ -49,6 +50,7 @@ export class Campaign {
   private active?: WorldEncounter;
   constructor(saved?: unknown, legacyIntroduction = false) { this.state = normalizeCampaign(saved, legacyIntroduction); }
   get snapshot(): CampaignState { return structuredClone(this.state); }
+  get availableEncounters() { return availableArkanaEncounters(this.state); }
   get teamLimit(): number { return this.state.legacyProgress.completed.includes(2) ? 2 : 1; }
   get activeTeam(): OwnedArkana[] { return this.state.team.map((id) => this.state.owned.find((item) => item.id === id)!).filter(Boolean).map((item) => structuredClone(item)); }
   get objective(): string {
@@ -57,7 +59,7 @@ export class Campaign {
     const next = LESSON_IDS.find((id) => !this.state.completed.includes(id));
     if (next && (this.activeTeam.length !== 1 || this.activeTeam[0].speciesId !== 'glutling')) return 'Wähle Glutling als einziges aktives Arkana für die ersten Lernquests.';
     if (next) return `${getLesson(next).title}: Untersuche ${getLesson(next).target}.`;
-    return this.has('moosling') ? 'Die ersten Grundlagen sind abgeschlossen. Wiederhole eine Quest oder experimentiere in der freien Trainingsarena.' : 'Die Grundlagen sind geschafft! Finde Moosling am östlichen Weg oder besuche die freie Trainingsarena.';
+    return this.has('moosling') ? 'Die ersten Grundlagen sind abgeschlossen. Wiederhole eine Quest oder experimentiere in der freien Trainingsarena.' : 'Die Grundlagen sind geschafft! Erkunde den südöstlichen Hain, finde Moosling und sprich es an, um es aufzunehmen.';
   }
   has(species: ArkanId): boolean { return this.state.owned.some((item) => item.speciesId === species); }
   toggleTeam(id: string): string {
@@ -128,8 +130,9 @@ export class Campaign {
     if (action === 'meet-eldren') { this.state.introduced = true; return 'Eldren zeigt dir Glutlings Fundort am westlichen Akademieweg.'; }
     if (action === 'recruit-moosling' || action === 'recruit-glutling') {
       const species = action === 'recruit-moosling' ? 'moosling' : 'glutling';
-      if (species === 'moosling' && !this.state.completed.includes('q03-wiederkehr')) return 'Hilf zuerst Glutling bei den drei Grundlagenquests. Danach vertraut dir Moosling.';
       if (this.has(species)) return `${ARKANA_SPECIES[species].name} ist bereits in deiner Sammlung.`;
+      if (!this.state.introduced) return 'Sprich zuerst mit Arkanist Eldren. Er hilft dir, dein erstes Arkana zu finden.';
+      if (!encounterUnlocked(this.state, species)) return 'Löse zuerst die fünf Einführungsquests mit Glutling. Danach kannst du Moosling im südöstlichen Hain finden.';
       const owned: OwnedArkana = { id: instanceId(species), speciesId: species, learned: [...new Set([...startingSkills(), ...this.state.introductions.flatMap((id) => getLesson(id).introduces)])] };
       this.state.owned.push(owned);
       if (this.state.team.length < this.teamLimit) this.state.team.push(owned.id);
@@ -142,12 +145,14 @@ export class Campaign {
     if (target === 'arkanist-eldren') {
       if (!this.state.introduced) return { speaker: 'ARKANIST ELDREN', text: 'Willkommen! Am westlichen Akademieweg wartet Glutling. Finde es. Danach hilfst du ihm, eine goldene Rune zu erreichen: Du gibst ihm Befehle für seine Bewegungen. Ich zeige dir Schritt für Schritt, wie das geht.', action: 'meet-eldren', actionLabel: 'Glutling suchen' };
       if (!this.has('glutling')) return { speaker: 'ARKANIST ELDREN', text: this.objective };
-      return this.questDialog(LESSON_IDS.find((id) => !this.state.completed.includes(id)) ?? LESSON_IDS[0]);
+      const next = LESSON_IDS.find((id) => !this.state.completed.includes(id));
+      return next ? this.questDialog(next) : { speaker: 'ARKANIST ELDREN', text: this.objective };
     }
     if (isArkanId(target)) {
       const species = ARKANA_SPECIES[target];
       if (this.has(target)) return { speaker: species.name.toUpperCase(), text: 'Dieses Arkana ist bereits Teil deiner Sammlung.' };
-      if (target === 'moosling' && !this.state.completed.includes('q03-wiederkehr')) return { speaker: 'MOOSSPUR', text: 'Ein scheues Naturwesen beobachtet dich. Hilf zuerst Glutling bei den drei Grundlagenquests.' };
+      if (!this.state.introduced) return { speaker: 'AETHERIA', text: 'Sprich zuerst mit Arkanist Eldren. Danach kannst du Glutling als erstes Arkana aufnehmen.' };
+      if (!encounterUnlocked(this.state, target)) return { speaker: 'AETHERIA', text: 'Weitere Arkana findest du später beim Erkunden. Löse zuerst die fünf Einführungsquests mit Glutling.' };
       return { speaker: species.name.toUpperCase(), text: `Du hast ${species.name} gefunden! ${species.strength} ${species.weakness} Nimm es auf und lerne seine Befehle Schritt für Schritt.`, action: target === 'moosling' ? 'recruit-moosling' : 'recruit-glutling', actionLabel: 'In Sammlung aufnehmen' };
     }
     const id = target.startsWith('lesson:') ? target.slice(7) : undefined;

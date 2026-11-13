@@ -28,6 +28,27 @@ function win(campaign: Campaign, id: LessonId): void {
 afterEach(() => vi.useRealTimers());
 
 describe('Gestufte Lernquests und freie Trainingsarena', () => {
+  it('startet ohne Arkana, erlaubt zuerst nur Glutling und schaltet Mooslings Begegnung erst nach Q05 frei', () => {
+    const campaign = new Campaign();
+    expect(campaign.snapshot.owned).toEqual([]); expect(campaign.activeTeam).toEqual([]);
+    expect(campaign.availableEncounters.map((encounter) => encounter.id)).toEqual(['glutling']);
+    expect(campaign.interact('glutling').action).toBeUndefined(); expect(campaign.apply('recruit-glutling')).toContain('Eldren');
+    campaign.apply('meet-eldren'); campaign.apply('recruit-glutling');
+    for (const id of LESSON_IDS) {
+      expect(campaign.interact('moosling').action).toBeUndefined();
+      expect(campaign.apply('recruit-moosling')).toContain('fünf Einführungsquests');
+      expect(campaign.availableEncounters.map((encounter) => encounter.id)).not.toContain('moosling');
+      win(campaign, id); expect(campaign.snapshot.owned.map((item) => item.speciesId)).toEqual(['glutling']);
+    }
+    expect(campaign.availableEncounters.map((encounter) => encounter.id)).toEqual(['moosling']);
+    expect(campaign.objective).toContain('südöstlichen Hain'); expect(campaign.interact('arkanist-eldren').text).toContain('Moosling');
+    expect(campaign.interact('moosling').action).toBe('recruit-moosling');
+    campaign.apply('recruit-moosling'); campaign.apply('recruit-moosling');
+    expect(campaign.snapshot.owned.map((item) => item.speciesId)).toEqual(['glutling', 'moosling']);
+    expect(campaign.snapshot.owned[1].learned).toContain('enemyAdjacent'); expect(campaign.availableEncounters).toEqual([]);
+    const loaded = new Campaign(JSON.parse(JSON.stringify(campaign.snapshot))); expect(loaded.availableEncounters).toEqual([]);
+    loaded.toggleTeam(instanceId('glutling')); expect(loaded.availableEncounters).toEqual([]);
+  });
   it('öffnet Q05 erst nach dem Musterpfad und führt die neue Entscheidung ohne vorzeitige Questbelohnung ein', () => {
     const campaign = introduced();
     for (const id of LESSON_IDS.slice(0, 3)) win(campaign, id);
@@ -118,17 +139,16 @@ describe('Gestufte Lernquests und freie Trainingsarena', () => {
     expect(campaign.snapshot.owned[0].learned).toContain('repeat');
     expect(campaign.snapshot.owned[0].learned).not.toContain('enemyAdjacent');
     expect(campaign.snapshot.completed).toEqual([...LESSON_IDS.slice(0, 3)]);
-    campaign.apply('recruit-moosling'); expect(campaign.has('moosling')).toBe(true);
-    expect(campaign.snapshot.owned[1].learned).toContain('repeat');
+    campaign.apply('recruit-moosling'); expect(campaign.has('moosling')).toBe(false);
     expect(campaign.teamLimit).toBe(1);
   });
-  it('führt nach Q03 zum Musterpfad, erhält Mooslings Fund und belohnt Q04 nur einmal', () => {
+  it('führt nach Q03 zum Musterpfad und hält Mooslings späteren Fund noch gesperrt', () => {
     const campaign = introduced();
     campaign.interact('lesson:q04-musterpfad'); expect(campaign.lessonOffer('q04-musterpfad').action).toBeUndefined();
     expect(campaign.prepareMission('q04-musterpfad')).toContain('vorherige');
     for (const id of LESSON_IDS.slice(0, 3)) win(campaign, id);
     expect(campaign.objective).toContain('Musterstein am Nordweg');
-    expect(campaign.interact('moosling').action).toBe('recruit-moosling');
+    expect(campaign.interact('moosling').action).toBeUndefined();
     expect(campaign.interact('arkanist-eldren').speaker).toBe('DER MUSTERPFAD');
     expect(campaign.lessonOffer('q04-musterpfad').action).toBe('lesson:q04-musterpfad');
     const skills = campaign.snapshot.owned[0].learned;

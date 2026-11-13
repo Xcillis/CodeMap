@@ -17,7 +17,7 @@ Ist Glutling bereits gesammelt, aber das aktive Team passt noch nicht, bietet de
 5. **„Der lange Runenweg“** führt erst jetzt `repeat` ein. Erreiche die Rune mit einer Schleife, die eine Bewegung mindestens zweimal ausführt. Vier Einzelbefehle oder eine leere Schleife genügen für den Lernabschluss nicht.
 6. Nach Q03 führt Eldren zu **„Der Musterpfad“** am **Musterstein am Nordweg** (nördlich der ersten Rune). Ein schmaler Treppenweg verlangt, rechts und oben gemeinsam mit derselben Schleife zu wiederholen. Der Abschluss prüft mindestens zwei erfolgreiche gemeinsame Durchläufe. Einzelbefehle, getrennte Schleifen und Durchläufe mit blockierten Schritten zählen dafür nicht. Ein unvollständiger Wiederholungsblock ist vorbereitet; Hinweise helfen schrittweise.
 7. **„Der aufmerksame Begleiter“** am **Prüfstein südlich der Akademie** folgt nach Q04. Glutling soll mit demselben falls/sonst-Block in zwei Situationen entscheiden: neben dem Konstrukt angreifen, sonst einen Schritt näher herangehen. Die erste Aktion je Situation zählt; das Konstrukt muss hier nicht besiegt werden. `glutling.enemyAdjacent` und `glutling.moveForward()` werden erklärt und eingeführt. Schleifen bleiben für diese einzelne Entscheidung ausgeblendet; die Kombination folgt später in Q06.
-8. **Moosling am östlichen Weg** bleibt bereits nach den ersten drei Grundlagenquests auffindbar. Q04 und Q05 spielen weiter mit Glutling allein. Die Einführung mehrerer aktiver Teammitglieder folgt später. Im freien Training kannst du bereits mit beiden gesammelten Arten experimentieren.
+8. Erst nach den **fünf Einführungsquests** erscheint **Moosling im südöstlichen Hain**. Erkunde den Hain, sprich Moosling an und bestätige die Aufnahme. Es wird nicht automatisch vergeben und steht vorher weder als Weltfigur noch als Interaktion bereit. Die Einführung weiterer aktiver Teammitglieder folgt später. Im freien Training kannst du mit beiden Arten experimentieren, sobald du sie tatsächlich gesammelt hast.
 
 **C** oder der Button **Charakter** öffnet das Charakterfenster mit drei Reitern:
 
@@ -30,6 +30,14 @@ Die Reiter lassen sich anklicken, antippen oder mit Links/Rechts wechseln; Pos1/
 Ziel und eine aufklappbare Einführung stehen über dem Editor. **Hinweis anzeigen** liefert nacheinander genauere Hilfen. Die Anfänge enthalten eine einzelne Anweisung oder einen leeren Entwurf, keine vollständige Lösung. Der Startblock ist auch vor der Schleifeneinführung unter **Programmstart** verfügbar.
 
 Die Einführung erklärt Begriffe wie „Sequenz“ anhand von Glutlings beobachtbaren Handlungen. Fachbegriffe werden in Dialogen, Einführungen und Hinweisen **fett und goldfarben hervorgehoben**. Aufgaben formulieren konkrete Schritte; Programmierwissen wird dabei nicht vorausgesetzt.
+
+## Neues Abenteuer und Sicherung
+
+Neue Spielstände starten **ohne Arkana**. Nach Eldrens Einführung findest und sammelst du zuerst Glutling; weitere Arkana kommen während des Spielverlaufs hinzu. Ein bereits gespeicherter Teststand kann weiterhin zwei gesammelte Arten enthalten. Vorhandener Besitz wird durch ein Update nicht entfernt.
+
+Für einen frischen Einstieg: **C → Sammlung → Neues Abenteuer → Sichern & neu beginnen**. Erst die Bestätigung ersetzt den aktiven Spielstand und lädt die Seite neu. Der bisherige Stand mit Sammlung, Team, Questfortschritt, Fachbegriffen sowie Text- und Blockentwürfen wird zuvor lokal gesichert. Eine vorhandene ältere Sicherung wird dabei ersetzt; ein noch leerer neuer Stand überschreibt sie nicht.
+
+Unter **Gesicherten Spielstand laden** kannst du die Sicherung wiederherstellen. Der gerade aktive Stand wird dabei seinerseits gesichert, sodass du zurückwechseln kannst. Die Sicherungsanzeige nennt die enthaltenen Arkana und Questabschlüsse. Bei einem Speicherfehler wird der Wechsel abgebrochen. Während Dialogen oder Begegnungen ist die Spielstandverwaltung gesperrt.
 
 ## Freie Trainingsarena und bestehende Spielstände
 

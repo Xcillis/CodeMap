@@ -8,6 +8,7 @@ export interface InteractionTarget {
 
 export class InteractionController {
   constructor(private targets: readonly InteractionTarget[]) {}
+  setTargets(targets: readonly InteractionTarget[]): void { this.targets = targets; }
 
   removeTarget(id: string): void {
     this.targets = this.targets.filter((target) => target.id !== id);

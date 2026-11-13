@@ -1,6 +1,6 @@
 import Phaser from 'phaser';
 import { gameEvents } from '../game/events';
-import { InteractionController } from '../gameplay/InteractionController';
+import { InteractionController, type InteractionTarget } from '../gameplay/InteractionController';
 import { PlayerController } from '../gameplay/PlayerController';
 import { loadProgress, saveProgress } from '../gameplay/LocalProgress';
 import { Campaign, type WorldEncounter } from '../gameplay/Campaign';
@@ -20,6 +20,11 @@ export class WorldScene extends Phaser.Scene {
   private readonly campaign = new Campaign(loadProgress().campaign);
   private readonly encounterLabels = new Map<string, Phaser.GameObjects.Text>();
   private readonly arkanaVisuals = new Map<ArkanId, readonly Phaser.GameObjects.GameObject[]>();
+  private readonly fixedTargets: readonly InteractionTarget[] = [
+    { id: 'arkanist-eldren', label: 'Arkanist Eldren', x: 915, y: 540, range: 75 },
+    { id: 'training', label: 'Freie Trainingsarena', x: 1000, y: 720, range: 70 },
+    ...WORLD_QUESTS.map((quest) => ({ id: `lesson:${quest.id}`, label: quest.target, x: quest.x, y: quest.y, range: 70 })),
+  ];
   private dialogActive = false;
   private overlayActive = false;
   private readonly onDialogClosed = () => { this.dialogActive = false; this.clearInput(); };
@@ -55,17 +60,9 @@ export class WorldScene extends Phaser.Scene {
     this.physics.add.collider(this.player, obstacles);
     this.playerController = new PlayerController(this, this.player);
     this.createNpc(915, 540);
-    this.createWorldEncounter('glutling', 'Glutling', 600, 650, 0xef934a);
-    this.createWorldEncounter('moosling', 'Moosling', 1290, 650, 0x78bc69);
     this.createWorldEncounter('training', 'Freie Trainingsarena', 1000, 720, 0x80c6d3);
     for (const quest of WORLD_QUESTS) this.createWorldEncounter(`lesson:${quest.id}`, quest.target, quest.x, quest.y, 0xe1c970);
-    this.interactionController = new InteractionController([
-      { id: 'arkanist-eldren', label: 'Arkanist Eldren', x: 915, y: 540, range: 75 },
-      { id: 'glutling', label: 'Glutling begegnen', x: 600, y: 650, range: 70 },
-      { id: 'moosling', label: 'Moosspur untersuchen', x: 1290, y: 650, range: 70 },
-      { id: 'training', label: 'Freie Trainingsarena', x: 1000, y: 720, range: 70 },
-      ...WORLD_QUESTS.map((quest) => ({ id: `lesson:${quest.id}`, label: quest.target, x: quest.x, y: quest.y, range: 70 })),
-    ]);
+    this.interactionController = new InteractionController(this.fixedTargets);
 
     this.cameras.main.setBounds(0, 0, WORLD_WIDTH, WORLD_HEIGHT);
     this.cameras.main.startFollow(this.player, true, 0.12, 0.12);
@@ -105,8 +102,9 @@ export class WorldScene extends Phaser.Scene {
     saveProgress({ campaign: state, questCompleted: state.introduced });
     gameEvents.emit('campaign-updated', state);
     gameEvents.emit('quest-updated', this.campaign.objective, WORLD_QUESTS.every((quest) => state.completed.includes(quest.id)));
+    const encounters = this.campaign.availableEncounters;
     for (const id of ['moosling', 'glutling'] as const) {
-      if (!this.campaign.has(id)) continue;
+      if (encounters.some((encounter) => encounter.id === id)) continue;
       const visuals = this.arkanaVisuals.get(id);
       if (visuals) {
         for (const visual of visuals) visual.destroy();
@@ -114,8 +112,9 @@ export class WorldScene extends Phaser.Scene {
         this.encounterLabels.delete(id);
         gameEvents.emit('interaction-hint', '');
       }
-      this.interactionController.removeTarget(id);
     }
+    for (const encounter of encounters) if (!this.arkanaVisuals.has(encounter.id)) this.createWorldEncounter(encounter.id, encounter.name, encounter.x, encounter.y, encounter.color);
+    this.interactionController.setTargets([...this.fixedTargets, ...encounters.map((encounter) => ({ id: encounter.id, label: `${encounter.name} begegnen`, x: encounter.x, y: encounter.y, range: 70 }))]);
     for (const quest of WORLD_QUESTS) this.encounterLabels.get(`lesson:${quest.id}`)?.setText(`${state.completed.includes(quest.id) ? '✓' : '!'} ${quest.target}`);
   }
 

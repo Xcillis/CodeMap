@@ -6,6 +6,8 @@ import type { ArkanId } from '../combat/types';
 import { CHARACTER_TABS, isCharacterTab, renderCharacterView, type CharacterTab } from './CharacterView';
 import { learnedTerms } from '../gameplay/LearningTerms';
 import { setLearningText } from './LearningText';
+import { adventureBackup, restoreAdventure, startNewAdventure, type AdventureChange } from '../gameplay/LocalProgress';
+import { renderAdventureControls } from './AdventureControls';
 
 /** Collection and journal are views; ownership and quest validation stay in Campaign. */
 export class WorldUi {
@@ -15,7 +17,7 @@ export class WorldUi {
   private blocked = false;
   private returnFocus?: HTMLElement;
   private readonly panel = this.el('world-panel');
-  constructor() {
+  constructor(private readonly restartGame: () => void = () => window.location.reload()) {
     this.el('open-collection').addEventListener('click', () => this.open(this.characterTab));
     this.el('open-journal').addEventListener('click', () => this.open('journal'));
     this.el('open-training').addEventListener('click', () => this.open('training'));
@@ -96,7 +98,11 @@ export class WorldUi {
     if (isCharacterTab(this.tab)) {
       renderCharacterView(content, this.tab, this.campaign, {
         toggleTeam: (id) => { gameEvents.emit('team-toggle', id); }, selectTab: (tab) => this.selectCharacterTab(tab),
-      }); return;
+      });
+      if (this.tab === 'collection') renderAdventureControls(content, adventureBackup(), {
+        start: () => this.changeAdventure(startNewAdventure), restore: () => this.changeAdventure(restoreAdventure),
+      });
+      return;
     }
     if (this.tab === 'training') { this.renderTraining(content); return; }
     for (const [index, quest] of WORLD_QUESTS.entries()) {
@@ -113,6 +119,11 @@ export class WorldUi {
       button.addEventListener('click', () => { if (offer.action) { this.close(); gameEvents.emit('campaign-action', offer.action); } });
       card.append(button); content.append(card);
     }
+  }
+  private changeAdventure(change: () => AdventureChange): void {
+    if (this.blocked || this.panel.hidden) return;
+    const result = change();
+    if (result.ok) this.restartGame(); else this.el('world-panel-feedback').textContent = result.message;
   }
   private renderTraining(content: HTMLElement): void {
     const owned = this.campaign.snapshot.owned;

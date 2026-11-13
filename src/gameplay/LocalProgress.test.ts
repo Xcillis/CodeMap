@@ -7,6 +7,45 @@ const key = 'codemap-m2-progress';
 beforeEach(() => { vi.restoreAllMocks(); vi.resetModules(); localStorage.clear(); });
 
 describe('Lokaler Weltfortschritt', () => {
+  it('sichert beim bewussten Neustart Sammlung, Team, Quests und Entwürfe und kann zwischen beiden Ständen wechseln', async () => {
+    const saved = { version: 2, introduced: true, completed: LESSON_IDS, owned: [{ speciesId: 'glutling' }, { speciesId: 'moosling' }], team: [instanceId('glutling')] };
+    localStorage.setItem(key, JSON.stringify({ programVersion: 3, campaign: saved, programs: { 'q05-aufmerksam:glutling': 'glutling.' }, blockWorkspaces: { 'q04-musterpfad:glutling': '{"draft":true}' }, editorMode: 'text' }));
+    const storage = await import('./LocalProgress'); const before = storage.loadProgress();
+    expect(storage.startNewAdventure()).toEqual({ ok: true });
+    const fresh = storage.loadProgress(); expect(fresh).toMatchObject({ campaign: { introduced: false, owned: [], team: [], completed: [], introductions: [] }, programs: {}, blockWorkspaces: {}, editorMode: 'blocks' });
+    expect(storage.adventureBackup()).toEqual({ arkana: 2, quests: 5 });
+    expect(storage.startNewAdventure()).toEqual({ ok: true }); expect(storage.adventureBackup()).toEqual({ arkana: 2, quests: 5 });
+    vi.resetModules(); const reloaded = await import('./LocalProgress');
+    expect(reloaded.restoreAdventure()).toEqual({ ok: true }); expect(reloaded.loadProgress()).toEqual(before);
+    expect(reloaded.restoreAdventure()).toEqual({ ok: true }); expect(reloaded.loadProgress()).toEqual(fresh);
+  });
+  it('bricht einen Neustart ab, wenn die Sicherung nicht geschrieben werden kann', async () => {
+    const storage = await import('./LocalProgress'); const campaign = new Campaign(); campaign.apply('meet-eldren'); campaign.apply('recruit-glutling');
+    storage.saveProgress({ campaign: campaign.snapshot }); const before = localStorage.getItem(key);
+    const setItem = Storage.prototype.setItem;
+    vi.spyOn(Storage.prototype, 'setItem').mockImplementation(function (this: Storage, name, value) {
+      if (name === `${key}-backup`) throw new Error('quota'); setItem.call(this, name, value);
+    });
+    expect(storage.startNewAdventure().ok).toBe(false); expect(localStorage.getItem(key)).toBe(before);
+    expect(storage.loadProgress().campaign).toEqual(campaign.snapshot);
+  });
+  it('stellt die frühere Sicherung wieder her, wenn das Schreiben des neuen Hauptstands fehlschlägt', async () => {
+    const storage = await import('./LocalProgress'); const campaign = new Campaign(); campaign.apply('meet-eldren');
+    storage.saveProgress({ campaign: campaign.snapshot }); const before = localStorage.getItem(key);
+    const backup = JSON.stringify({ programVersion: 3, campaign: { owned: [{ speciesId: 'moosling' }] } }); localStorage.setItem(`${key}-backup`, backup);
+    const setItem = Storage.prototype.setItem;
+    vi.spyOn(Storage.prototype, 'setItem').mockImplementation(function (this: Storage, name, value) {
+      if (name === key) throw new Error('quota'); setItem.call(this, name, value);
+    });
+    expect(storage.startNewAdventure().ok).toBe(false); expect(localStorage.getItem(key)).toBe(before); expect(localStorage.getItem(`${key}-backup`)).toBe(backup);
+  });
+  it('lädt keine beschädigte Sicherung über einen vorhandenen Spielstand', async () => {
+    const storage = await import('./LocalProgress'); const campaign = new Campaign(); campaign.apply('meet-eldren');
+    storage.saveProgress({ campaign: campaign.snapshot }); const before = localStorage.getItem(key);
+    for (const invalid of ['{broken', 'null', '{"programVersion":999}']) {
+      localStorage.setItem(`${key}-backup`, invalid); expect(storage.adventureBackup()).toBeUndefined(); expect(storage.restoreAdventure().ok).toBe(false); expect(localStorage.getItem(key)).toBe(before);
+    }
+  });
   it('erhält den Q04-Spielstand und Q05-Entwürfe, ohne eine begonnene Prüfung als bestanden zu speichern', async () => {
     const programs = { 'q04-musterpfad:glutling': 'repeat(3, () => { glutling.moveRight(); glutling.moveUp(); });' };
     localStorage.setItem(key, JSON.stringify({ programVersion: 3, campaign: { version: 2, introduced: true, owned: [{ speciesId: 'glutling' }], team: [instanceId('glutling')], completed: LESSON_IDS.slice(0, 4) }, programs }));

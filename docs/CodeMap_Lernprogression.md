@@ -75,7 +75,7 @@ Die Einführung beschreibt zuerst die beiden gemeinsam wiederholten Bewegungen. 
 
 Das Lernkriterium ist vor dem Start sichtbar: Mindestens zwei Durchläufe derselben Schleife müssen dieselbe Folge aus mehreren Anweisungen mit verschiedenen Bewegungsrichtungen erfolgreich ausführen. Einzelschritte außerhalb einer Schleife, bloße Einzelschleifen je Richtung und blockierte Durchläufe erfüllen dieses Musterkriterium nicht. Das räumliche Ziel allein führt dann zu einer noch offenen Lernübung. Gültige Varianten, etwa eine einzelne erste Stufe und zwei gemeinsam wiederholte weitere Stufen, werden akzeptiert.
 
-Die Ausführungsmarkierung zeigt jede innere Anweisung und den zugehörigen Durchlauf. Block- und Textmodus verwenden denselben Nachweis. Nach dem Abschluss erweitert sich der Begriff **Schleife** um ein Beispiel mit zwei inneren Anweisungen; **Schleifenrumpf** erhält einen eigenen Eintrag. Mooslings garantierter Fund bleibt nach Q03 möglich. Ein zweiter Teamplatz und Bedingungen werden durch Q04 nicht vorweggenommen.
+Die Ausführungsmarkierung zeigt jede innere Anweisung und den zugehörigen Durchlauf. Block- und Textmodus verwenden denselben Nachweis. Nach dem Abschluss erweitert sich der Begriff **Schleife** um ein Beispiel mit zwei inneren Anweisungen; **Schleifenrumpf** erhält einen eigenen Eintrag. Weitere Arkana werden erst nach dem Einstieg gefunden. Ein zweiter Teamplatz und Bedingungen werden durch Q04 nicht vorweggenommen.
 
 ### Q05 Der aufmerksame Begleiter
 
@@ -91,7 +91,9 @@ Die Einführung schaltet Gegnernähe und den Bewegungsschritt zum Gegner für al
 
 Die Sammlung ist nach Glutlings Fund zugänglich. Sie trennt Artenprofil, gesammelte Instanz und erlernte Fähigkeiten. Glutlings Feuer-Typ ist die erzählerische Wahl für den Einstieg; Anweisungen, Sequenzen und Schleifen stehen grundsätzlich allen Arkana offen.
 
-Weitere Arkana können beim Erkunden entdeckt werden. Ein für eine Pflichtaufgabe benötigtes Arkana wird garantiert rechtzeitig verfügbar. Die Einführung bleibt zunächst bei einem aktiven Arkana. Ein zweiter Teamplatz folgt nach den Grundlagen von Q01 bis Q06 und einer eigenen Einführung in die Koordination.
+Ein neuer Spielstand beginnt ohne Arkana. Nach Eldrens Einführung wird zuerst Glutling gefunden und ausdrücklich aufgenommen. Die fünf spielbaren Einführungsquests bleiben bei diesem einen Begleiter. Erst nach Q05 erscheint Moosling im südöstlichen Hain und kann dort durch eine eigene Begegnung gesammelt werden. Ein Questabschluss gewährt keinen automatischen Besitz. Vorher gibt es weder die Weltfigur noch eine unsichtbare Interaktion an ihrem Fundort. Gesammelte Arkana verschwinden dauerhaft aus der Welt, auch wenn sie aus dem Team genommen werden.
+
+Weitere Arkana können beim Erkunden entdeckt werden. Ein für eine Pflichtaufgabe benötigtes Arkana wird garantiert rechtzeitig verfügbar. Ein zweiter Teamplatz folgt nach den Grundlagen von Q01 bis Q06 und einer eigenen Einführung in die Koordination. Bestehende Sammlungen aus Testständen bleiben erhalten; für den neuen Einstieg gibt es einen ausdrücklich bestätigten Neustart mit wiederherstellbarer Sicherung.
 
 | Ausbauabschnitt | Aufgabe und Zweck |
 | --- | --- |

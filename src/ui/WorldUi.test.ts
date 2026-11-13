@@ -6,6 +6,7 @@ import { Campaign } from '../gameplay/Campaign';
 import { gameEvents } from '../game/events';
 import { LESSON_IDS } from '../gameplay/WorldQuests';
 import { instanceId } from '../gameplay/ArkanaCatalog';
+import { loadProgress } from '../gameplay/LocalProgress';
 
 const listeners = vi.hoisted(() => new Map<string, ((...args: unknown[]) => void)[]>());
 vi.mock('../game/events', () => ({ gameEvents: {
@@ -13,22 +14,37 @@ vi.mock('../game/events', () => ({ gameEvents: {
   emit: (name: string, ...args: unknown[]) => listeners.get(name)?.forEach((callback) => callback(...args)),
 } }));
 let campaign: Campaign;
+let restartGame: ReturnType<typeof vi.fn>;
 const click = (id: string) => document.getElementById(id)!.click();
 const el = (id: string) => document.getElementById(id)!;
 let domListeners: [string, EventListenerOrEventListenerObject][];
 beforeEach(() => {
-  listeners.clear(); document.body.innerHTML = readFileSync('index.html', 'utf8');
+  listeners.clear(); localStorage.clear(); document.body.innerHTML = readFileSync('index.html', 'utf8');
   domListeners = [];
   const addListener = document.addEventListener.bind(document);
   vi.spyOn(document, 'addEventListener').mockImplementation((name, callback, options) => {
     domListeners.push([name, callback]); addListener(name, callback, options);
   });
-  campaign = new Campaign(); new WorldUi();
+  campaign = new Campaign(); restartGame = vi.fn(); new WorldUi(restartGame);
   gameEvents.on('team-toggle', (id: string) => { gameEvents.emit('world-notice', campaign.toggleTeam(id)); gameEvents.emit('campaign-updated', campaign.snapshot); });
 });
 afterEach(() => { for (const [name, callback] of domListeners) document.removeEventListener(name, callback); vi.restoreAllMocks(); });
 
 describe('Sammlung und Questjournal', () => {
+  it('beginnt erst nach Bestätigung ein neues Abenteuer und bietet die Sicherung zum Laden an', () => {
+    campaign = new Campaign({ version: 2, introduced: true, owned: [{ speciesId: 'glutling' }, { speciesId: 'moosling' }], completed: LESSON_IDS });
+    const saved = JSON.stringify({ programVersion: 3, campaign: campaign.snapshot }); localStorage.setItem('codemap-m2-progress', saved);
+    gameEvents.emit('campaign-updated', campaign.snapshot); click('open-collection'); click('adventure-new');
+    expect(el('adventure-confirmation').hidden).toBe(false); expect(restartGame).not.toHaveBeenCalled();
+    click('adventure-cancel'); expect(el('adventure-confirmation').hidden).toBe(true); expect(localStorage.getItem('codemap-m2-progress')).toBe(saved);
+    click('adventure-new'); click('adventure-confirm'); expect(restartGame).toHaveBeenCalledTimes(1); expect(loadProgress().campaign.owned).toEqual([]);
+    click('world-panel-close'); click('open-collection'); expect(el('world-panel-content').textContent).toContain('Gesichert: 2 Arkana');
+    click('adventure-restore'); click('adventure-confirm'); expect(restartGame).toHaveBeenCalledTimes(2); expect(loadProgress().campaign.owned).toHaveLength(2);
+  });
+  it('wechselt bei einer zwischenzeitlich gestarteten Begegnung keinen Spielstand', () => {
+    click('open-collection'); click('adventure-new'); gameEvents.emit('battle-opened'); click('adventure-confirm');
+    expect(restartGame).not.toHaveBeenCalled(); expect(localStorage.getItem('codemap-m2-progress')).toBeNull();
+  });
   it('bietet Q05 nach dem Musterpfad an und trägt Bedingung und Verzweigung erst nach dem Abschluss ein', () => {
     campaign = new Campaign({ version: 2, introduced: true, completed: LESSON_IDS.slice(0, 4), owned: [{ speciesId: 'glutling' }], team: [] });
     campaign.interact('arkanist-eldren'); gameEvents.emit('campaign-updated', campaign.snapshot); click('open-journal');
