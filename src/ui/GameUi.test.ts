@@ -8,6 +8,7 @@ import { gameEvents } from '../game/events';
 import { BattleSession, missionPrograms } from '../combat/BattleSession';
 import { getLesson } from '../gameplay/WorldQuests';
 import { LessonSession } from '../combat/LessonSession';
+import { Campaign } from '../gameplay/Campaign';
 
 const listeners = vi.hoisted(() => new Map<string, ((...args: unknown[]) => void)[]>());
 const snaps = vi.hoisted(() => [] as unknown[]);
@@ -46,6 +47,14 @@ beforeEach(() => {
 });
 
 describe('Editorzustand und Arkan-Zuordnung', () => {
+  it('sendet vom gesperrten Questdialog die Aktion zum Auswählen und Starten statt nur zu schließen', () => {
+    const campaign = new Campaign({ introduced: true, owned: [{ speciesId: 'glutling' }], team: [] });
+    gameEvents.emit('dialog-opened', campaign.interact('lesson:q01-glutspur'));
+    expect(document.getElementById('dialog-close')!.textContent).toBe('Glutling wählen & Quest starten');
+    let action = ''; gameEvents.on('campaign-action', (value: string) => { action = value; });
+    click('dialog-close'); expect(action).toBe('prepare-lesson:q01-glutspur');
+    expect(document.getElementById('dialog')!.hidden).toBe(true);
+  });
   it('zeigt in der ersten Lernquest nur Bewegung, einen unvollständigen Start und gestufte Hinweise', () => {
     const lesson = getLesson('q01-glutspur');
     const presentation = { title: lesson.title, mode: 'lesson', instructions: lesson.introduction, objective: lesson.objective, hints: lesson.hints };

@@ -83,12 +83,13 @@ export class WorldUi {
       const heading = document.createElement('h3'); heading.textContent = quest.title; card.append(heading);
       const discovered = state.discovered.includes(quest.id); const completed = state.completed.includes(quest.id);
       const error = this.campaign.missionError(quest.id);
+      const offer = this.campaign.lessonOffer(quest.id);
       card.append(this.paragraph(completed ? 'Abgeschlossen' : discovered ? 'Entdeckt' : 'Noch nicht entdeckt'), this.paragraph(`Fundort: ${quest.target}`));
       if (discovered && (index === 0 || state.completed.includes(WORLD_QUESTS[index - 1].id))) card.append(this.paragraph(quest.introduction));
       if (error) card.append(this.paragraph(error));
       const button = document.createElement('button'); button.type = 'button'; button.id = `journal-quest-${quest.id}`;
-      button.textContent = completed ? 'Erneut spielen' : 'Quest starten'; button.disabled = Boolean(error);
-      button.addEventListener('click', () => { this.close(); gameEvents.emit('campaign-action', `lesson:${quest.id}`); });
+      button.textContent = offer.action?.startsWith('prepare-lesson:') ? 'Glutling wählen & starten' : completed ? 'Erneut spielen' : 'Quest starten'; button.disabled = !offer.action;
+      button.addEventListener('click', () => { if (offer.action) { this.close(); gameEvents.emit('campaign-action', offer.action); } });
       card.append(button); content.append(card);
     }
   }

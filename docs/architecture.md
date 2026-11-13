@@ -118,6 +118,8 @@ Kampagnenversion 2 archiviert die numerischen Abschlüsse und Fundorte des bishe
 
 Automatisierte Tests decken die drei Aufgaben in Einzel- und Gesamtausführung, Hindernisse und Grenzen, unzulässige Befehle, wirksame Wiederholungen, separate Trainingssiege, Freigaben, Migration und beide Editoransichten ab. Die Einführung von Bedingungen, weiteren Grundlagenquests und eines zweiten regulären Weltteamplatzes folgt später. Bereits bestehende Zweierteams und freies Duo-Training bleiben verwendbar. ADR 014 ersetzt den in ADR 013 beschriebenen Planungsstand für Q01 bis Q03.
 
+Questdialog und Journal beziehen ihre Startaktion gemeinsam aus `Campaign.lessonOffer`. Passt nur die Teamzusammenstellung nicht, bietet die Oberfläche die ausdrücklich beschriftete Aktion „Glutling wählen & Quest starten“ an. `prepareMission` prüft zuerst Einführung, vorherige Aufgaben, Entdeckung und Besitz; erst danach setzt es Glutling allein aktiv und startet die Begegnung. Gesammelte Instanzen bleiben erhalten. Fehlt das Arkana, erklärt der Dialog seinen Fundort und bietet die Rückkehr zur Suche an. Die Teamkorrektur umgeht keine Storyvoraussetzung.
+
 ## Noch nicht enthalten
 
 Dreier-Formation, Variablen und Funktionen in der Programmiersprache, freie JavaScript-Runtime, Online-Speicherung, Login, Backend, NOVA und Kompetenzengine bleiben spätere Erweiterungen. Frühere ADRs beschreiben die Entwicklungsschritte; ADR 010 bis ADR 012 beschreiben den aktuellen Stand von Editor, Wiedergabe und Weltquests.

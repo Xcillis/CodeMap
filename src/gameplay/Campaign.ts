@@ -70,13 +70,28 @@ export class Campaign {
     else return 'Dein Team ist voll. Nimm zuerst ein Arkana aus dem Team.';
     return `${ARKANA_SPECIES[found.speciesId].name}: Team aktualisiert.`;
   }
-  missionError(id: LessonId): string | undefined {
+  private lessonPrerequisiteError(id: LessonId): string | undefined {
     if (!this.state.introduced) return 'Sprich zuerst mit Arkanist Eldren.';
     const index = LESSON_IDS.indexOf(id);
     if (index > 0 && !this.state.completed.includes(LESSON_IDS[index - 1])) return 'Schließe zuerst die vorherige Lernquest ab.';
     if (!this.state.discovered.includes(id)) return 'Entdecke diesen Questort in der Spielwelt oder sprich mit Eldren.';
+    if (!this.has('glutling')) return 'Finde zuerst Glutling am westlichen Akademieweg. Sprich es dort an und wähle „In Sammlung aufnehmen“.';
+  }
+  missionError(id: LessonId): string | undefined {
+    const error = this.lessonPrerequisiteError(id); if (error) return error;
     const team = this.activeTeam;
     if (team.length !== 1 || team[0].speciesId !== 'glutling') return 'Wähle Glutling als einziges aktives Arkana in Sammlung & Team.';
+  }
+  lessonOffer(id: LessonId): Pick<CampaignDialog, 'action' | 'actionLabel'> {
+    if (this.active || this.lessonPrerequisiteError(id)) return {};
+    if (this.missionError(id)) return { action: `prepare-lesson:${id}`, actionLabel: 'Glutling wählen & Quest starten' };
+    return { action: `lesson:${id}`, actionLabel: this.state.completed.includes(id) ? 'Quest wiederholen' : 'Einführung annehmen' };
+  }
+  prepareMission(id: LessonId): WorldEncounter | string {
+    if (this.active) return 'Eine Begegnung läuft bereits.';
+    const error = this.lessonPrerequisiteError(id); if (error) return error;
+    this.state.team = [instanceId('glutling')];
+    return this.beginMission(id);
   }
   beginMission(id: LessonId): WorldEncounter | string {
     if (this.active) return 'Eine Begegnung läuft bereits.';
@@ -134,9 +149,12 @@ export class Campaign {
   private questDialog(id: LessonId): CampaignDialog {
     if (!this.state.discovered.includes(id)) this.state.discovered.push(id);
     const quest = getLesson(id); const error = this.missionError(id);
+    const offer = this.lessonOffer(id);
     const index = LESSON_IDS.indexOf(id);
     const ready = index === 0 || this.state.completed.includes(LESSON_IDS[index - 1]);
-    return { speaker: quest.title.toUpperCase(), text: `${ready ? quest.introduction : 'Hier wartet die nächste Lernaufgabe auf dich.'}${error ? `\n\n${error}` : ''}`,
-      ...(error ? {} : { action: `lesson:${id}`, actionLabel: this.state.completed.includes(id) ? 'Quest wiederholen' : 'Einführung annehmen' }) };
+    const needsTeam = offer.action?.startsWith('prepare-lesson:');
+    const explanation = needsTeam ? 'Für diese Aufgabe spielt Glutling allein. Mit „Glutling wählen & Quest starten“ wird es dein einziges aktives Arkana und die Aufgabe beginnt. Deine anderen Arkana bleiben in der Sammlung.' : error;
+    return { speaker: quest.title.toUpperCase(), text: `${ready && this.state.introduced && this.has('glutling') ? quest.introduction : 'Hier wartet eine Lernaufgabe auf dich.'}${explanation ? `\n\n${explanation}` : ''}`,
+      actionLabel: !this.state.introduced ? 'Zur Spielwelt: Eldren aufsuchen' : !this.has('glutling') ? 'Zur Spielwelt: Glutling suchen' : 'Zur Spielwelt', ...offer };
   }
 }

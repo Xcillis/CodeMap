@@ -29,9 +29,9 @@ export class WorldScene extends Phaser.Scene {
   private readonly onTraining = (mission: MissionId, team: ArkanId[]) => this.launchEncounter(this.campaign.beginTraining(mission, team));
   private readonly onCampaignAction = (action: CampaignAction) => {
     if (action === 'open-training') { gameEvents.emit('world-training-open'); return; }
-    if (action.startsWith('lesson:')) {
-      const id = action.slice(7);
-      if (isLessonId(id)) this.launchEncounter(this.campaign.beginMission(id));
+    if (action.startsWith('lesson:') || action.startsWith('prepare-lesson:')) {
+      const id = action.slice(action.indexOf(':') + 1);
+      if (isLessonId(id)) this.launchEncounter(action.startsWith('prepare-lesson:') ? this.campaign.prepareMission(id) : this.campaign.beginMission(id));
     } else {
       const message = this.campaign.apply(action); this.publishCampaign(); gameEvents.emit('world-notice', message);
     }

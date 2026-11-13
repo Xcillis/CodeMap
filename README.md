@@ -8,6 +8,8 @@ Die ersten drei Quests aus dem [Lern- und Questplan](docs/CodeMap_Lernprogressio
 
 ## Erster Spieldurchlauf
 
+Ist Glutling bereits gesammelt, aber das aktive Team passt noch nicht, bietet der Questdialog **Glutling wählen & Quest starten** an. Dieser Klick setzt Glutling allein aktiv und öffnet die Aufgabe direkt. Im Journal ist derselbe Weg verfügbar. Fehlt Glutling noch, zeigt der Dialog seinen Fundort und kehrt mit **Zur Spielwelt: Glutling suchen** zur Erkundung zurück.
+
 1. Sprich mit **Arkanist Eldren** an der Akademie (E oder REDEN). Er zeigt dir Glutlings Fundort.
 2. Begegne **Glutling am westlichen Akademieweg** und bestätige „In Sammlung aufnehmen“. Es kennt zunächst nur Bewegung nach rechts und oben. Für die Lernquests wird Glutling als einziges aktives Arkana gewählt.
 3. Untersuche den **Runenstein am Weg** oder sprich erneut mit Eldren. **„Glutlings erste Schritte“** ist ein Rätsel ohne Gegner: Führe die erste vorbereitete Anweisung einzeln aus und ergänze eine Bewegungssequenz zur goldenen Rune. Steine blockieren Felder.

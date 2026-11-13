@@ -26,6 +26,41 @@ function win(campaign: Campaign, id: LessonId): void {
 afterEach(() => vi.useRealTimers());
 
 describe('Gestufte Lernquests und freie Trainingsarena', () => {
+  it('bietet bei falscher Besetzung einen direkten Queststart an und wählt Glutling allein', () => {
+    const campaign = new Campaign({ version: 1, introduced: true, owned: [{ speciesId: 'moosling' }, { speciesId: 'glutling' }], team: [instanceId('moosling'), instanceId('glutling')], completed: [1, 2] });
+    const owned = campaign.snapshot.owned;
+    const dialog = campaign.interact('lesson:q01-glutspur');
+    expect(dialog.action).toBe('prepare-lesson:q01-glutspur');
+    expect(dialog.actionLabel).toBe('Glutling wählen & Quest starten');
+    expect(dialog.text).toContain('dein einziges aktives Arkana');
+    const encounter = campaign.prepareMission(LESSON_IDS[0]);
+    if (typeof encounter === 'string') throw new Error(encounter);
+    expect(encounter).toMatchObject({ kind: 'lesson', lesson: LESSON_IDS[0], team: ['glutling'] });
+    expect(campaign.activeTeam.map((item) => item.speciesId)).toEqual(['glutling']);
+    expect(campaign.snapshot.owned).toEqual(owned);
+    const session = new LessonSession(getLesson(LESSON_IDS[0]), encounter.skills.glutling ?? []);
+    session.execute({ glutling: solutions[LESSON_IDS[0]] }, true); expect(session.snapshot.outcome).toBe('victory');
+    expect(campaign.prepareMission(LESSON_IDS[0])).toContain('läuft bereits');
+  });
+  it('weist ohne Glutling auf den Fundort hin und verändert die vorhandene Sammlung nicht', () => {
+    const campaign = new Campaign({ introduced: true, owned: [{ speciesId: 'moosling' }], team: [instanceId('moosling')] });
+    const dialog = campaign.interact('lesson:q01-glutspur');
+    expect(dialog.action).toBeUndefined(); expect(dialog.actionLabel).toContain('Glutling suchen');
+    expect(dialog.text).toContain('westlichen Akademieweg');
+    const before = campaign.snapshot;
+    expect(campaign.prepareMission(LESSON_IDS[0])).toContain('Finde zuerst Glutling');
+    expect(campaign.snapshot).toEqual(before);
+  });
+  it('umgeht beim vorbereiteten Start weder vorherige Quests noch die Einführung bei Eldren', () => {
+    const campaign = introduced(); campaign.toggleTeam(instanceId('glutling'));
+    campaign.interact('lesson:q03-wiederkehr'); const before = campaign.snapshot;
+    expect(campaign.lessonOffer(LESSON_IDS[2]).action).toBeUndefined();
+    expect(campaign.prepareMission(LESSON_IDS[2])).toContain('vorherige'); expect(campaign.snapshot).toEqual(before);
+    const unintroduced = new Campaign({ owned: [{ speciesId: 'glutling' }] });
+    unintroduced.interact('lesson:q01-glutspur');
+    expect(unintroduced.prepareMission(LESSON_IDS[0])).toContain('Eldren');
+    expect(unintroduced.activeTeam).toEqual([]);
+  });
   it('beginnt mit Glutling und ausschließlich Bewegungsanweisungen', () => {
     const campaign = new Campaign(); expect(campaign.snapshot.owned).toEqual([]);
     expect(campaign.interact('arkanist-eldren').action).toBe('meet-eldren');

@@ -27,6 +27,14 @@ beforeEach(() => {
 afterEach(() => { for (const [name, callback] of domListeners) document.removeEventListener(name, callback); vi.restoreAllMocks(); });
 
 describe('Sammlung und Questjournal', () => {
+  it('bietet im Journal den direkten Start mit Glutling bei einer ungeeigneten Weltbesetzung an', () => {
+    campaign = new Campaign({ introduced: true, owned: [{ speciesId: 'glutling' }], team: [] });
+    campaign.interact('lesson:q01-glutspur'); gameEvents.emit('campaign-updated', campaign.snapshot); click('open-journal');
+    const button = el('journal-quest-q01-glutspur') as HTMLButtonElement;
+    expect(button.disabled).toBe(false); expect(button.textContent).toBe('Glutling wählen & starten');
+    let action = ''; gameEvents.on('campaign-action', (value: string) => { action = value; });
+    button.click(); expect(action).toBe('prepare-lesson:q01-glutspur'); expect(el('world-panel').hidden).toBe(true);
+  });
   it('trennt die freie Trainingsvorbereitung von Lernquests und validiert die Besetzung', () => {
     campaign.apply('meet-eldren'); campaign.apply('recruit-glutling');
     gameEvents.emit('campaign-updated', campaign.snapshot); click('open-training');
