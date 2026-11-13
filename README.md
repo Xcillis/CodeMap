@@ -17,11 +17,17 @@ Ist Glutling bereits gesammelt, aber das aktive Team passt noch nicht, bietet de
 5. **„Der lange Runenweg“** führt erst jetzt `repeat` ein. Erreiche die Rune mit einer Schleife, die eine Bewegung mindestens zweimal ausführt. Vier Einzelbefehle oder eine leere Schleife genügen für den Lernabschluss nicht.
 6. Nach den drei Grundlagenquests kann **Moosling am östlichen Weg** aufgenommen werden. Weitere Lernquests, Bedingungen und die Einführung mehrerer aktiver Teammitglieder folgen später. Im freien Training kannst du bereits mit beiden gesammelten Arten experimentieren.
 
-**C** öffnet Sammlung & Team, **J** das Questjournal. Beide Ansichten haben Touchbuttons; **Esc** schließt sie. Während einer geöffneten Ansicht bewegt sich die Spielfigur nicht. Entdeckte Quests lassen sich mit passendem Team direkt im Journal wiederholen. Neue Quests werden über ihre Weltorte oder Eldren entdeckt. Die Rückkehr behält die Position in der Welt.
+**C** oder der Button **Charakter** öffnet das Charakterfenster mit drei Reitern:
+
+- **Sammlung** zeigt die gefundenen Arkana, ihre Eigenschaften und gelernten Befehle.
+- **Aktuelles Team** zeigt aktive Teamplätze und weitere gesammelte Arkana. Hier setzt du Begleiter aktiv oder nimmst sie aus dem Team.
+- **Gelernte Fachbegriffe** erklärt bereits gelernte Begriffe mit einem konkreten Beispiel und passendem Programmtext. Nach Quest 1 erscheinen **Anweisung** und **Sequenz**, nach Quest 2 **Lebenspunkte**, nach Quest 3 **Schleife**. Bestehende Questabschlüsse werden automatisch berücksichtigt; freies Training schaltet keine Einträge frei.
+
+Die Reiter lassen sich anklicken, antippen oder mit Links/Rechts wechseln; Pos1/Ende springt zum ersten/letzten Reiter. **J** öffnet das Questjournal, **Esc** schließt die Ansicht. Während einer geöffneten Ansicht bewegt sich die Spielfigur nicht. Entdeckte Quests lassen sich mit passendem Team direkt im Journal wiederholen. Neue Quests werden über ihre Weltorte oder Eldren entdeckt. Die Rückkehr behält die Position in der Welt.
 
 Ziel und eine aufklappbare Einführung stehen über dem Editor. **Hinweis anzeigen** liefert nacheinander genauere Hilfen. Die Anfänge enthalten eine einzelne Anweisung oder einen leeren Entwurf, keine vollständige Lösung. Der Startblock ist auch vor der Schleifeneinführung unter **Programmstart** verfügbar.
 
-Die Einführung erklärt Begriffe wie „Sequenz“ anhand von Glutlings beobachtbaren Handlungen. Aufgaben formulieren konkrete Schritte; Programmierwissen wird dabei nicht vorausgesetzt.
+Die Einführung erklärt Begriffe wie „Sequenz“ anhand von Glutlings beobachtbaren Handlungen. Fachbegriffe werden in Dialogen, Einführungen und Hinweisen **fett und goldfarben hervorgehoben**. Aufgaben formulieren konkrete Schritte; Programmierwissen wird dabei nicht vorausgesetzt.
 
 ## Freie Trainingsarena und bestehende Spielstände
 

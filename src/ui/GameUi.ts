@@ -10,6 +10,7 @@ import { ProgramDrag } from './ProgramDrag';
 import { isArkanId, type SkillId } from '../gameplay/ArkanaCatalog';
 import type { EncounterPresentation } from '../gameplay/WorldQuests';
 import { ACTIONS } from '../combat/ActionCatalog';
+import { setLearningText } from './LearningText';
 
 type EditorMode = 'blocks' | 'text';
 
@@ -39,14 +40,14 @@ export class GameUi {
       if (item.kind === 'command' && this.editorMode === 'text') this.insertTextCommand(item.command);
     });
     gameEvents.on('quest-updated', (objective: string, complete: boolean) => {
-      this.el('quest-text').textContent = objective;
+      setLearningText(this.el('quest-text'), objective);
       this.el('hud').classList.toggle('complete', complete);
     });
     gameEvents.on('interaction-hint', (text: string) => { this.el('interaction-hint').textContent = text; });
     gameEvents.on('dialog-opened', (dialog: DialogPayload) => {
       this.pendingDialogAction = dialog.action;
       this.el('dialog-speaker').textContent = dialog.speaker;
-      this.el('dialog-text').textContent = dialog.text;
+      setLearningText(this.el('dialog-text'), dialog.text);
       this.el('dialog-close').textContent = dialog.actionLabel ?? 'Verstanden';
       this.el('dialog-dismiss').hidden = !dialog.action;
       this.el('dialog').hidden = false;
@@ -91,7 +92,7 @@ export class GameUi {
     this.click('lesson-hint-button', () => {
       const hints = this.presentation?.hints ?? [];
       if (!hints.length) return;
-      this.el('lesson-hint').textContent = hints[Math.min(this.hintIndex++, hints.length - 1)];
+      setLearningText(this.el('lesson-hint'), hints[Math.min(this.hintIndex++, hints.length - 1)]);
       this.el('lesson-hint').hidden = false;
     });
     this.click('interact-button', () => touchInput.requestInteraction());
@@ -128,8 +129,8 @@ export class GameUi {
     this.mission = mission;
     this.skills = skills;
     this.presentation = presentation; this.hintIndex = 0;
-    this.el('encounter-objective').textContent = presentation?.objective ?? 'Probiere dein Programm auf dem Raster aus.';
-    this.el('encounter-instructions').textContent = presentation?.instructions ?? '';
+    setLearningText(this.el('encounter-objective'), presentation?.objective ?? 'Probiere dein Programm auf dem Raster aus.');
+    setLearningText(this.el('encounter-instructions'), presentation?.instructions ?? '');
     this.el('encounter-instructions').hidden = !presentation?.instructions;
     this.el('lesson-hint-button').hidden = !presentation?.hints.length;
     this.el('lesson-hint').hidden = true;
@@ -265,7 +266,7 @@ export class GameUi {
   }
 
   private update(state: EncounterState, feedback: string): void {
-    this.feedback.textContent = feedback; this.el('battle-round').textContent = String(state.tick);
+    setLearningText(this.feedback, feedback); this.el('battle-round').textContent = String(state.tick);
     for (const [prefix, actor] of [['player', state.player], ['companion', state.companion], ['enemy', state.enemy]] as const) {
       if (!actor) continue;
       const bar = this.el<HTMLProgressElement>(`${prefix}-health`); bar.max = actor.maxHp; bar.value = actor.hp;

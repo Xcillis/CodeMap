@@ -17,6 +17,23 @@
 #world-panel-feedback { margin: 0 0 .6rem; color: #f2d579; }
 #world-panel-feedback:empty { display: none; }
 #world-panel-content { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 20rem), 1fr)); gap: 1rem; }
+.learning-term { color: #ffe29a; font-weight: 800; background: #f4d77e12; border-radius: .15em; }
+#character-tabs { display: flex; flex-wrap: wrap; gap: .5rem; margin-top: 1rem; padding-bottom: .75rem; border-bottom: 1px solid #5f8175; }
+#character-tabs button { flex: 1 1 auto; }
+#character-tabs button[aria-selected='true'] { color: #142d32; background: #edcf6c; border-color: #edcf6c; font-weight: 800; box-shadow: inset 0 -3px #aa842c; }
+#world-panel-content:focus-visible { outline: 2px solid #f0d778; outline-offset: 4px; }
+.team-overview { grid-column: 1 / -1; min-width: 0; }
+.team-overview > h3 { color: #fff0c0; }
+.team-overview > p { line-height: 1.5; }
+.team-members { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 18rem), 1fr)); gap: 1rem; padding: 0; list-style: none; }
+.team-card, .glossary-card { min-width: 0; padding: 1rem; border: 1px solid #5f8175; border-top: 4px solid #dfc164; border-radius: .5rem; background: #1c383c; }
+.team-card h3, .glossary-card h3 { margin: 0 0 .6rem; color: #fff0c0; }
+.team-card p, .glossary-card p { font-size: .9rem; line-height: 1.5; }
+.team-card.type-fire { border-top-color: #f49e63; }
+.team-card.type-nature { border-top-color: #8ac778; }
+.glossary-card .eyebrow { font-size: .7rem; }
+.glossary-example-label { margin-bottom: .3rem; font-weight: 800; color: #fff0c0; }
+.glossary-card pre { margin-bottom: 0; padding: .75rem; white-space: pre-wrap; overflow-wrap: anywhere; border: 1px solid #51766e; border-radius: .3rem; background: #102326; color: #d9f7e4; font: .85rem/1.6 ui-monospace, Consolas, monospace; }
 .collection-card, .journal-card { padding: 1rem; border: 1px solid #5f8175; border-top: 4px solid #dfc164; border-radius: .5rem; background: #1c383c; }
 .collection-card h3, .journal-card h3 { margin: 0 0 .6rem; color: #fff0c0; }
 .collection-card p, .journal-card p { font-size: .9rem; line-height: 1.5; }

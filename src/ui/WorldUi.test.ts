@@ -56,10 +56,48 @@ describe('Sammlung und Questjournal', () => {
     expect(content).toContain('Glutling · Feuer'); expect(content).toContain('Stärke:'); expect(content).toContain('Schwäche:');
     expect(content).toContain('noch nicht freigeschaltet'); expect(content).not.toContain('Moosling · Natur');
     expect(el('active-team-summary').textContent).toContain('Team 1/1: Glutling');
+    expect(document.getElementById('team-glutling')).toBeNull();
+    click('character-tab-team');
+    expect(el('team-active-members').textContent).toContain('Platz 1: Glutling');
     click('team-glutling'); expect(campaign.activeTeam).toEqual([]);
     expect(el('world-panel-content').textContent).toContain('In der Sammlung');
     click('team-glutling'); expect(campaign.activeTeam).toHaveLength(1);
     expect(document.activeElement?.id).toBe('team-glutling');
+  });
+
+  it('zeigt nur gelernte Begriffe samt Beispielen und behält den gewählten Charakterreiter', () => {
+    click('open-collection'); click('character-tab-glossary');
+    expect(el('world-panel-content').textContent).toContain('noch leer');
+    expect(document.querySelectorAll('.glossary-card')).toHaveLength(0);
+    campaign = new Campaign({ version: 2, completed: ['q01-glutspur'] });
+    gameEvents.emit('campaign-updated', campaign.snapshot);
+    expect(Array.from(document.querySelectorAll('.glossary-card h3')).map((h) => h.textContent)).toEqual(['Anweisung', 'Sequenz']);
+    expect(document.querySelector('[data-term="sequence"] pre code')?.textContent).toBe('glutling.moveRight();\nglutling.moveRight();\nglutling.moveUp();');
+    expect(el('world-panel-content').textContent).toContain('Beispiel');
+    expect(el('world-panel-content').textContent).not.toContain('Schleife');
+    click('world-panel-close'); click('open-journal'); expect(el('character-tabs').hidden).toBe(true);
+    click('world-panel-close');
+    document.dispatchEvent(new KeyboardEvent('keydown', { key: 'c' }));
+    expect(el('world-panel-title').textContent).toBe('Charakter'); expect(el('character-tabs').hidden).toBe(false);
+    expect(el('character-tab-glossary').getAttribute('aria-selected')).toBe('true');
+    expect(el('world-panel-content').getAttribute('aria-labelledby')).toBe('character-tab-glossary');
+  });
+
+  it('bedient Charakterreiter mit Pfeiltasten und hält nur den aktiven Reiter in der Tabfolge', () => {
+    click('open-collection'); click('character-tab-collection');
+    el('character-tab-collection').dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowLeft', bubbles: true, cancelable: true }));
+    expect(document.activeElement?.id).toBe('character-tab-glossary');
+    expect(el('character-tab-glossary').tabIndex).toBe(0); expect(el('character-tab-collection').tabIndex).toBe(-1);
+    expect(el('character-tab-glossary').getAttribute('aria-selected')).toBe('true');
+    el('character-tab-glossary').dispatchEvent(new KeyboardEvent('keydown', { key: 'Home', bubbles: true }));
+    expect(document.activeElement?.id).toBe('character-tab-collection');
+    el('character-tab-collection').dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowRight', bubbles: true }));
+    expect(document.activeElement?.id).toBe('character-tab-team');
+    el('character-tab-team').dispatchEvent(new KeyboardEvent('keydown', { key: 'End', bubbles: true }));
+    el('world-panel-content').focus();
+    const tab = new KeyboardEvent('keydown', { key: 'Tab', bubbles: true, cancelable: true });
+    el('world-panel-content').dispatchEvent(tab);
+    expect(tab.defaultPrevented).toBe(true); expect(document.activeElement?.id).toBe('world-panel-close');
   });
 
   it('sperrt unentdeckte Quests und startet eine entdeckte Quest mit gültigem Team', () => {

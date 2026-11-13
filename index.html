@@ -13,16 +13,21 @@
         <p class="eyebrow">HAUPTQUEST</p>
         <p id="quest-text">Sprich mit dem Arkanisten.</p>
       </aside>
-      <nav id="world-tools" aria-label="Sammlung und Quests">
+      <nav id="world-tools" aria-label="Charakter und Quests">
         <p id="active-team-summary">Team: noch leer</p>
-        <button id="open-collection" type="button">Sammlung & Team · C</button>
+        <button id="open-collection" type="button">Charakter · C</button>
         <button id="open-journal" type="button">Questjournal · J</button>
         <button id="open-training" type="button">Freie Trainingsarena</button>
         <p id="world-notice" role="status"></p>
       </nav>
       <section id="world-panel" role="dialog" aria-modal="true" aria-labelledby="world-panel-title" hidden>
         <div class="world-panel-card">
-          <header><h2 id="world-panel-title">Arkana-Sammlung & Team</h2><button id="world-panel-close" type="button">Zur Spielwelt · Esc</button></header>
+          <header><h2 id="world-panel-title">Charakter</h2><button id="world-panel-close" type="button">Zur Spielwelt · Esc</button></header>
+          <div id="character-tabs" role="tablist" aria-label="Charakterbereiche">
+            <button id="character-tab-collection" type="button" role="tab" aria-controls="world-panel-content" aria-selected="true">Sammlung</button>
+            <button id="character-tab-team" type="button" role="tab" aria-controls="world-panel-content" aria-selected="false" tabindex="-1">Aktuelles Team</button>
+            <button id="character-tab-glossary" type="button" role="tab" aria-controls="world-panel-content" aria-selected="false" tabindex="-1">Gelernte Fachbegriffe</button>
+          </div>
           <p id="world-panel-intro"></p>
           <p id="world-panel-feedback" role="status"></p>
           <div id="world-panel-content"></div>

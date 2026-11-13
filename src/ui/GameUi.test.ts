@@ -47,6 +47,15 @@ beforeEach(() => {
 });
 
 describe('Editorzustand und Arkan-Zuordnung', () => {
+  it('hebt Fachbegriffe im Questabschluss hervor und ersetzt sie sauber beim nächsten Dialog', () => {
+    const reward = getLesson('q01-glutspur').reward;
+    gameEvents.emit('dialog-opened', { speaker: 'QUEST ABGESCHLOSSEN', text: reward });
+    const content = document.getElementById('dialog-text')!;
+    expect(content.textContent).toBe(reward);
+    expect(content.querySelector('strong.learning-term[data-term="sequence"]')?.textContent).toBe('Sequenz');
+    gameEvents.emit('dialog-opened', { speaker: 'ELDREN', text: 'Willkommen zurück.' });
+    expect(content.querySelector('strong')).toBeNull(); expect(content.textContent).toBe('Willkommen zurück.');
+  });
   it('sendet vom gesperrten Questdialog die Aktion zum Auswählen und Starten statt nur zu schließen', () => {
     const campaign = new Campaign({ introduced: true, owned: [{ speciesId: 'glutling' }], team: [] });
     gameEvents.emit('dialog-opened', campaign.interact('lesson:q01-glutspur'));

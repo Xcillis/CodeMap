@@ -80,7 +80,7 @@ export class Campaign {
   missionError(id: LessonId): string | undefined {
     const error = this.lessonPrerequisiteError(id); if (error) return error;
     const team = this.activeTeam;
-    if (team.length !== 1 || team[0].speciesId !== 'glutling') return 'Wähle Glutling als einziges aktives Arkana in Sammlung & Team.';
+    if (team.length !== 1 || team[0].speciesId !== 'glutling') return 'Wähle Glutling als einziges aktives Arkana unter Charakter → Aktuelles Team.';
   }
   lessonOffer(id: LessonId): Pick<CampaignDialog, 'action' | 'actionLabel'> {
     if (this.active || this.lessonPrerequisiteError(id)) return {};

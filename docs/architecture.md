@@ -120,6 +120,14 @@ Automatisierte Tests decken die drei Aufgaben in Einzel- und Gesamtausführung, 
 
 Questdialog und Journal beziehen ihre Startaktion gemeinsam aus `Campaign.lessonOffer`. Passt nur die Teamzusammenstellung nicht, bietet die Oberfläche die ausdrücklich beschriftete Aktion „Glutling wählen & Quest starten“ an. `prepareMission` prüft zuerst Einführung, vorherige Aufgaben, Entdeckung und Besitz; erst danach setzt es Glutling allein aktiv und startet die Begegnung. Gesammelte Instanzen bleiben erhalten. Fehlt das Arkana, erklärt der Dialog seinen Fundort und bietet die Rückkehr zur Suche an. Die Teamkorrektur umgeht keine Storyvoraussetzung.
 
+## ADR 015 – Charakterfenster und lernbegleitendes Nachschlagebuch
+
+Das Charakterfenster verwendet den bestehenden Welt-Overlay und trennt Sammlung, Teamverwaltung und Fachbegriffe in drei Reiter. `WorldUi` steuert Öffnen, Tastatur, Fokus, Rückkehr und die bestehenden Kampagnenereignisse; `CharacterView` rendert die einzelnen Ansichten mit expliziten Callbacks. Besitz und Teamregeln bleiben ausschließlich in `Campaign`. Journal und Trainingsvorbereitung bleiben eigene Ansichten. Die Reiter verwenden Tab-/Tabpanel-Semantik mit Pfeiltasten, Pos1/Ende und genau einem Reiter in der Tabfolge. Versteckte und inaktive Reiter werden bei der Fokusbegrenzung übersprungen. Das Spiel bleibt während der Ansicht angehalten.
+
+`LearningTerms` hält verständliche Erklärungen, Beispiele, Textcode und die zugehörige Lernquest zusammen. Die sichtbaren Einträge ergeben sich aus den gespeicherten neuen Questabschlüssen: Anweisung und Sequenz nach Q01, Lebenspunkte nach Q02, Schleife nach Q03. Bereits angenommene Einführungen, vorhandene Fähigkeiten, alte numerische Siege und freie Trainingsläufe öffnen keine Einträge. Es gibt keine zweite Fortschrittsquelle und keinen neuen Speicherschlüssel; bestehende Spielstände erhalten das passende Nachschlagebuch automatisch.
+
+`setLearningText` hebt bekannte Fachwörter einschließlich Mehrzahl in menschlichen Lerntexten semantisch mit `strong` hervor. Textknoten erhalten Absätze und Wortlaut; Text wird nicht als HTML interpretiert. Hervorhebung beginnt bereits bei der Einführung, der dauerhafte Eintrag folgt nach dem Questabschluss. Programmquellen und Codebeispiele bleiben unverändert. Farbe und Schriftgewicht kennzeichnen Begriffe gemeinsam, ohne Hover oder Tooltips vorauszusetzen. Automatisierte Tests prüfen Freigabe und Wiederherstellung, sichere Textdarstellung, Questdialoge, getrennte Teamverwaltung sowie Reiter- und Fokusbedienung.
+
 ## Noch nicht enthalten
 
 Dreier-Formation, Variablen und Funktionen in der Programmiersprache, freie JavaScript-Runtime, Online-Speicherung, Login, Backend, NOVA und Kompetenzengine bleiben spätere Erweiterungen. Frühere ADRs beschreiben die Entwicklungsschritte; ADR 010 bis ADR 012 beschreiben den aktuellen Stand von Editor, Wiedergabe und Weltquests.

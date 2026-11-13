@@ -1,22 +1,38 @@
 import { gameEvents } from '../game/events';
-import { ARKANA_SPECIES, ARKANA_TYPES, SKILL_NAMES } from '../gameplay/ArkanaCatalog';
+import { ARKANA_SPECIES } from '../gameplay/ArkanaCatalog';
 import { Campaign, type CampaignState } from '../gameplay/Campaign';
 import { WORLD_QUESTS } from '../gameplay/WorldQuests';
 import type { ArkanId } from '../combat/types';
+import { CHARACTER_TABS, isCharacterTab, renderCharacterView, type CharacterTab } from './CharacterView';
+import { learnedTerms } from '../gameplay/LearningTerms';
+import { setLearningText } from './LearningText';
 
 /** Collection and journal are views; ownership and quest validation stay in Campaign. */
 export class WorldUi {
   private campaign = new Campaign();
-  private tab: 'collection' | 'journal' | 'training' = 'collection';
+  private tab: CharacterTab | 'journal' | 'training' = 'collection';
+  private characterTab: CharacterTab = 'collection';
   private blocked = false;
   private returnFocus?: HTMLElement;
   private readonly panel = this.el('world-panel');
   constructor() {
-    this.el('open-collection').addEventListener('click', () => this.open('collection'));
+    this.el('open-collection').addEventListener('click', () => this.open(this.characterTab));
     this.el('open-journal').addEventListener('click', () => this.open('journal'));
     this.el('open-training').addEventListener('click', () => this.open('training'));
     gameEvents.on('world-training-open', () => this.open('training'));
     this.el('world-panel-close').addEventListener('click', () => this.close());
+    for (const tab of CHARACTER_TABS) {
+      const button = this.el(`character-tab-${tab}`);
+      button.addEventListener('click', () => this.selectCharacterTab(tab));
+      button.addEventListener('keydown', (event) => {
+        const index = CHARACTER_TABS.indexOf(tab);
+        const next = event.key === 'Home' ? 0 : event.key === 'End' ? CHARACTER_TABS.length - 1
+          : event.key === 'ArrowRight' ? (index + 1) % CHARACTER_TABS.length
+          : event.key === 'ArrowLeft' ? (index + CHARACTER_TABS.length - 1) % CHARACTER_TABS.length : undefined;
+        if (next === undefined) return;
+        event.preventDefault(); this.selectCharacterTab(CHARACTER_TABS[next]);
+      });
+    }
     gameEvents.on('campaign-updated', (state: CampaignState) => { this.campaign = new Campaign(state); this.render(); });
     gameEvents.on('world-notice', (message: string) => { this.el('world-notice').textContent = message; this.el('world-panel-feedback').textContent = message; });
     gameEvents.on('dialog-opened', () => this.setBlocked(true));
@@ -26,23 +42,28 @@ export class WorldUi {
     document.addEventListener('keydown', (event) => {
       if (event.key === 'Escape' && !this.panel.hidden) { event.preventDefault(); this.close(); return; }
       if (!this.panel.hidden && event.key === 'Tab') {
-        const buttons = Array.from(this.panel.querySelectorAll<HTMLElement>('button:not(:disabled), input:not(:disabled), select:not(:disabled)'));
+        const buttons = Array.from(this.panel.querySelectorAll<HTMLElement>('button:not(:disabled), input:not(:disabled), select:not(:disabled), [tabindex]'))
+          .filter((element) => element.tabIndex >= 0 && !element.closest('[hidden]'));
         const first = buttons[0]; const last = buttons.at(-1);
         if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last?.focus(); }
         else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first?.focus(); }
       }
       if (this.blocked || event.repeat || event.ctrlKey || event.altKey || event.metaKey || event.target instanceof HTMLInputElement || event.target instanceof HTMLTextAreaElement || event.target instanceof HTMLSelectElement) return;
-      if (event.key.toLowerCase() === 'c') { event.preventDefault(); this.open('collection'); }
+      if (event.key.toLowerCase() === 'c') { event.preventDefault(); this.open(this.characterTab); }
       if (event.key.toLowerCase() === 'j') { event.preventDefault(); this.open('journal'); }
     });
     this.render();
   }
-  private open(tab: 'collection' | 'journal' | 'training'): void {
+  private open(tab: CharacterTab | 'journal' | 'training'): void {
     if (this.blocked) return;
     if (this.panel.hidden) this.returnFocus = document.activeElement instanceof HTMLElement ? document.activeElement : undefined;
     this.tab = tab; this.panel.hidden = false; this.render(); gameEvents.emit('world-overlay', true);
     this.el('world-panel-feedback').textContent = '';
     this.el('world-panel-close').focus();
+  }
+  private selectCharacterTab(tab: CharacterTab): void {
+    this.tab = tab; this.characterTab = tab; this.render();
+    this.el(`character-tab-${tab}`).focus();
   }
   private close(): void {
     if (this.panel.hidden) return;
@@ -56,29 +77,29 @@ export class WorldUi {
     const state = this.campaign.snapshot;
     const team = this.campaign.activeTeam;
     this.el('active-team-summary').textContent = `Team ${team.length}/${this.campaign.teamLimit}: ${team.map((item) => ARKANA_SPECIES[item.speciesId].name).join(' → ') || 'noch leer'}`;
-    this.el('world-panel-title').textContent = this.tab === 'collection' ? 'Arkana-Sammlung & Team' : this.tab === 'journal' ? 'Questjournal' : 'Freie Trainingsarena';
-    this.el('world-panel-intro').textContent = this.tab === 'collection'
-      ? `${state.owned.length} von ${Object.keys(ARKANA_SPECIES).length} Arten entdeckt. ${this.campaign.teamLimit} aktive Teamplätze. Die ersten Lernquests werden mit Glutling allein gelöst. Weitere Teamquests folgen später. Im freien Training sind bereits Solo und Duo möglich.`
+    const character = isCharacterTab(this.tab);
+    this.el('world-panel-title').textContent = character ? 'Charakter' : this.tab === 'journal' ? 'Questjournal' : 'Freie Trainingsarena';
+    const intro = this.tab === 'collection' ? `${state.owned.length} von ${Object.keys(ARKANA_SPECIES).length} Arkana-Arten gesammelt. Hier findest du ihre Eigenschaften und gelernten Fähigkeiten.`
+      : this.tab === 'team' ? `${team.length} von ${this.campaign.teamLimit} Teamplätzen belegt. Die ersten Lernquests werden mit Glutling allein gelöst. Im freien Training sind bereits Solo und Duo möglich.`
+      : this.tab === 'glossary' ? `${learnedTerms(state.completed).length} Fachbegriffe gelernt. Lies Erklärungen und probiere die Beispiele mit den bereits gelernten Befehlen aus.`
       : this.tab === 'journal' ? this.campaign.objective : 'Alle implementierten Befehle sind hier verfügbar. Das Training verändert weder Lernfreigaben noch Questabschlüsse. Alte Arena-Entwürfe bleiben in den entsprechenden Trainingsaufgaben erhalten.';
+    setLearningText(this.el('world-panel-intro'), intro);
+    this.el('character-tabs').hidden = !character;
+    for (const tab of CHARACTER_TABS) {
+      const button = this.el(`character-tab-${tab}`);
+      button.setAttribute('aria-selected', String(tab === this.tab)); button.tabIndex = tab === this.tab ? 0 : -1;
+    }
     const content = this.el('world-panel-content'); content.replaceChildren();
+    content.setAttribute('role', character ? 'tabpanel' : 'region');
+    content.setAttribute('aria-labelledby', character ? `character-tab-${this.tab}` : 'world-panel-title');
+    content.tabIndex = character ? 0 : -1;
+    if (isCharacterTab(this.tab)) {
+      renderCharacterView(content, this.tab, this.campaign, {
+        toggleTeam: (id) => { gameEvents.emit('team-toggle', id); }, selectTab: (tab) => this.selectCharacterTab(tab),
+      }); return;
+    }
     if (this.tab === 'training') { this.renderTraining(content); return; }
-    if (this.tab === 'collection') {
-      if (!state.owned.length) content.append(this.paragraph('Deine Sammlung ist noch leer. Sprich mit Eldren und suche Glutling am westlichen Akademieweg.'));
-      for (const owned of state.owned) {
-        const species = ARKANA_SPECIES[owned.speciesId];
-        const card = document.createElement('article'); card.className = `collection-card type-${species.type}`;
-        const heading = document.createElement('h3'); heading.textContent = `${species.name} · ${ARKANA_TYPES[species.type].name}`; card.append(heading);
-        card.append(this.paragraph(`${species.maxHp} LP · ${species.attack} Angriffsschaden`), this.paragraph(`Stärke: ${species.strength}`), this.paragraph(`Schwäche: ${species.weakness}`),
-          this.paragraph(`Gelernt: ${owned.learned.map((skill) => SKILL_NAMES[skill]).join(', ')}`),
-          this.paragraph(`Später vorgesehen: ${species.plannedAbilities.join(', ')}. Diese Spezialfähigkeiten sind noch nicht freigeschaltet.`));
-        const index = state.team.indexOf(owned.id);
-        card.append(this.paragraph(index >= 0 ? `Aktiv · Teamplatz ${index + 1}` : 'In der Sammlung'));
-        const button = document.createElement('button'); button.type = 'button'; button.id = `team-${owned.speciesId}`;
-        button.textContent = index >= 0 ? 'Aus dem Team nehmen' : this.campaign.teamLimit === 1 ? 'Aktiv setzen' : 'Ins Team nehmen';
-        button.addEventListener('click', () => { gameEvents.emit('team-toggle', owned.id); document.getElementById(button.id)?.focus(); });
-        card.append(button); content.append(card);
-      }
-    } else for (const [index, quest] of WORLD_QUESTS.entries()) {
+    for (const [index, quest] of WORLD_QUESTS.entries()) {
       const card = document.createElement('article'); card.className = 'journal-card';
       const heading = document.createElement('h3'); heading.textContent = quest.title; card.append(heading);
       const discovered = state.discovered.includes(quest.id); const completed = state.completed.includes(quest.id);
@@ -120,6 +141,6 @@ export class WorldUi {
     });
     content.append(form);
   }
-  private paragraph(text: string): HTMLParagraphElement { const p = document.createElement('p'); p.textContent = text; return p; }
+  private paragraph(text: string): HTMLParagraphElement { const p = document.createElement('p'); setLearningText(p, text); return p; }
   private el(id: string): HTMLElement { const el = document.getElementById(id); if (!el) throw new Error(`UI-Element #${id} fehlt.`); return el; }
 }
