@@ -11,6 +11,7 @@ const solutions: Record<LessonId, string> = {
   'q02-basisangriff': 'glutling.moveRight(); glutling.moveRight(); glutling.attack(); glutling.attack();',
   'q03-wiederkehr': 'repeat(4, () => { glutling.moveRight(); });',
   'q04-musterpfad': 'repeat(3, () => { glutling.moveRight(); glutling.moveUp(); });',
+  'q05-aufmerksam': 'if (glutling.enemyAdjacent) { glutling.attack(); } else { glutling.moveForward(); }',
 };
 function introduced(): Campaign {
   const campaign = new Campaign(); campaign.apply('meet-eldren'); campaign.apply('recruit-glutling'); return campaign;
@@ -27,6 +28,21 @@ function win(campaign: Campaign, id: LessonId): void {
 afterEach(() => vi.useRealTimers());
 
 describe('Gestufte Lernquests und freie Trainingsarena', () => {
+  it('öffnet Q05 erst nach dem Musterpfad und führt die neue Entscheidung ohne vorzeitige Questbelohnung ein', () => {
+    const campaign = introduced();
+    for (const id of LESSON_IDS.slice(0, 3)) win(campaign, id);
+    campaign.interact('lesson:q05-aufmerksam'); expect(campaign.beginMission('q05-aufmerksam')).toContain('vorherige');
+    expect(campaign.snapshot.owned[0].learned).not.toContain('enemyAdjacent');
+    win(campaign, 'q04-musterpfad');
+    expect(campaign.objective).toContain('Prüfstein'); expect(campaign.interact('arkanist-eldren').action).toBe('lesson:q05-aufmerksam');
+    const session = begin(campaign, 'q05-aufmerksam');
+    expect(campaign.snapshot.owned[0].learned).toEqual(expect.arrayContaining(['enemyAdjacent', 'moveForward']));
+    session.execute({ glutling: solutions['q05-aufmerksam'] }); expect(session.snapshot.outcome).toBe('ongoing');
+    expect(campaign.snapshot.completed).not.toContain('q05-aufmerksam');
+    session.execute({ glutling: solutions['q05-aufmerksam'] }); expect(session.snapshot.outcome).toBe('victory');
+    expect(campaign.finishMission('q05-aufmerksam')).toMatchObject({ repeated: false, title: 'Der aufmerksame Begleiter' });
+    expect(campaign.snapshot.completed).toEqual([...LESSON_IDS]); expect(campaign.teamLimit).toBe(1);
+  });
   it('erstellt den Arenaabschluss mit nächstem Ziel und kennzeichnet Wiederholungen ohne doppelte Belohnung', () => {
     const campaign = introduced();
     expect(campaign.finishMission(LESSON_IDS[0])).toBeUndefined();
@@ -116,7 +132,7 @@ describe('Gestufte Lernquests und freie Trainingsarena', () => {
     expect(campaign.interact('arkanist-eldren').speaker).toBe('DER MUSTERPFAD');
     expect(campaign.lessonOffer('q04-musterpfad').action).toBe('lesson:q04-musterpfad');
     const skills = campaign.snapshot.owned[0].learned;
-    win(campaign, 'q04-musterpfad'); expect(campaign.snapshot.completed).toEqual([...LESSON_IDS]);
+    win(campaign, 'q04-musterpfad'); expect(campaign.snapshot.completed).toEqual([...LESSON_IDS.slice(0, 4)]);
     expect(campaign.snapshot.owned[0].learned).toEqual(skills); expect(campaign.teamLimit).toBe(1);
     begin(campaign, 'q04-musterpfad'); expect(campaign.completeMission('q04-musterpfad')).toBeUndefined();
   });

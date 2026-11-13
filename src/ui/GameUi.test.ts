@@ -50,6 +50,30 @@ beforeEach(() => {
 afterEach(() => vi.useRealTimers());
 
 describe('Editorzustand und Arkan-Zuordnung', () => {
+  it('zeigt Q05 mit beiden Situationen, passender Palette und Abschluss erst nach der zweiten Animation', () => {
+    vi.useFakeTimers(); const lesson = getLesson('q05-aufmerksam');
+    const campaign = new Campaign({ version: 2, introduced: true, completed: LESSON_IDS.slice(0, 4), owned: [{ speciesId: 'glutling' }], team: [instanceId('glutling')] });
+    campaign.interact(`lesson:${lesson.id}`); campaign.beginMission(lesson.id);
+    gameEvents.emit('battle-opened', { glutling: lesson.starter }, lesson.id, { glutling: lesson.allowed }, { title: lesson.title, mode: 'lesson', instructions: lesson.introduction, objective: lesson.objective, hints: lesson.hints });
+    expect(document.getElementById('category-senses')).not.toBeNull(); expect(document.getElementById('category-flow')).toBeNull();
+    expect(document.querySelector('#encounter-instructions strong[data-term="condition"]')?.textContent).toBe('Bedingung');
+    const session = new LessonSession(lesson, lesson.allowed); gameEvents.emit('battle-updated', session.snapshot, lesson.objective);
+    expect(document.getElementById('lesson-trial')!.textContent).toContain('Situation 1/2');
+    const source = 'if (glutling.enemyAdjacent) {\n  glutling.attack();\n} else {\n  glutling.moveForward();\n}';
+    click('text-mode'); type(source); click('blocks-mode'); click('text-mode'); expect(text().value).toBe(source);
+    session.execute({ glutling: source }, true);
+    const playback = new Playback<typeof session.frames[number]>((frame) => { gameEvents.emit('battle-frame', frame); gameEvents.emit('battle-updated', frame.after, 'Entscheidung'); }, (state) => gameEvents.emit('battle-playback', state));
+    playback.play(session.frames, () => gameEvents.emit('quest-completed', campaign.finishMission(lesson.id)));
+    expect(document.getElementById('execution-trace')!.textContent).toContain('Gegner direkt daneben: ja');
+    vi.advanceTimersByTime(850);
+    expect(document.getElementById('lesson-trial')!.textContent).toContain('Situation 2/2');
+    expect(document.getElementById('execution-trace')!.textContent).toContain('Gegner direkt daneben: nein');
+    expect(document.getElementById('quest-completion')!.hidden).toBe(true); expect(campaign.snapshot.completed).not.toContain(lesson.id);
+    vi.advanceTimersByTime(850); expect(document.getElementById('quest-completion')!.hidden).toBe(false); expect(campaign.snapshot.completed).toContain(lesson.id);
+    gameEvents.emit('battle-closed');
+    gameEvents.emit('battle-opened', { glutling: getLesson('q01-glutspur').starter }, 'q01-glutspur', { glutling: getLesson('q01-glutspur').allowed });
+    expect(document.getElementById('lesson-trial')!.hidden).toBe(true);
+  });
   for (const [index, lesson] of WORLD_QUESTS.entries()) it(`${lesson.id}: zeigt den bestätigten Abschluss in der Arena und kehrt ohne Welt-Abschlussdialog zurück`, () => {
     const campaign = new Campaign({ version: 2, introduced: true, completed: LESSON_IDS.slice(0, index), owned: [{ speciesId: 'glutling' }], team: [instanceId('glutling')] });
     campaign.interact(`lesson:${lesson.id}`); campaign.beginMission(lesson.id);

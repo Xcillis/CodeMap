@@ -29,6 +29,20 @@ beforeEach(() => {
 afterEach(() => { for (const [name, callback] of domListeners) document.removeEventListener(name, callback); vi.restoreAllMocks(); });
 
 describe('Sammlung und Questjournal', () => {
+  it('bietet Q05 nach dem Musterpfad an und trägt Bedingung und Verzweigung erst nach dem Abschluss ein', () => {
+    campaign = new Campaign({ version: 2, introduced: true, completed: LESSON_IDS.slice(0, 4), owned: [{ speciesId: 'glutling' }], team: [] });
+    campaign.interact('arkanist-eldren'); gameEvents.emit('campaign-updated', campaign.snapshot); click('open-journal');
+    const button = el('journal-quest-q05-aufmerksam') as HTMLButtonElement;
+    expect(button.disabled).toBe(false); expect(button.textContent).toBe('Glutling wählen & starten');
+    expect(el('world-panel-content').textContent).toContain('Prüfstein südlich der Akademie');
+    let action = ''; gameEvents.on('campaign-action', (value: string) => { action = value; }); button.click();
+    expect(action).toBe('prepare-lesson:q05-aufmerksam'); campaign.prepareMission('q05-aufmerksam');
+    gameEvents.emit('campaign-updated', campaign.snapshot); click('open-collection'); click('character-tab-glossary');
+    expect(document.querySelector('.glossary-card[data-term="condition"]')).toBeNull();
+    campaign.finishMission('q05-aufmerksam'); gameEvents.emit('campaign-updated', campaign.snapshot);
+    expect(document.querySelector('.glossary-card[data-term="condition"] h3')?.textContent).toBe('Bedingung');
+    expect(document.querySelector('.glossary-card[data-term="branch"] pre')?.textContent).toContain('else');
+  });
   it('öffnet den Musterpfad nach Q03 im Journal und erweitert das Nachschlagebuch erst nach Q04', () => {
     campaign = new Campaign({ version: 2, introduced: true, completed: LESSON_IDS.slice(0, 3), owned: [{ speciesId: 'glutling' }], team: [instanceId('glutling')] });
     gameEvents.emit('campaign-updated', campaign.snapshot); click('open-journal');

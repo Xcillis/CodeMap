@@ -47,6 +47,7 @@ export interface BattleState {
   companion?: Combatant;
   enemy: Combatant;
   log: string[];
+  lessonTrial?: { current: number; total: number; title: string; passed: number; message: string };
 }
 
 export interface ActionPlanResult {

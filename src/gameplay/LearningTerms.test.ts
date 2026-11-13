@@ -24,6 +24,11 @@ describe('Gelernte Fachbegriffe', () => {
     const terms = learnedTerms(new Campaign(JSON.parse(JSON.stringify(loaded.snapshot))).snapshot.completed);
     expect(terms.map((term) => term.id)).toEqual(['instruction', 'sequence', 'health', 'loop', 'loop-body']);
     expect(terms.find((term) => term.id === 'loop')?.furtherExamples?.[0].code).toContain('glutling.moveUp();');
+    loaded.leaveMission(); loaded.interact('lesson:q05-aufmerksam'); loaded.beginMission('q05-aufmerksam');
+    expect(learnedTerms(loaded.snapshot.completed).map((term) => term.id)).not.toContain('condition');
+    loaded.completeMission('q05-aufmerksam');
+    const completed = new Campaign(JSON.parse(JSON.stringify(loaded.snapshot)));
+    expect(learnedTerms(completed.snapshot.completed).map((term) => term.id)).toEqual(['instruction', 'sequence', 'health', 'loop', 'loop-body', 'condition', 'branch']);
   });
   it('übernimmt keine Begriffe aus alten Arenasiegen oder freiem Training', () => {
     const campaign = new Campaign({ version: 1, introduced: true, completed: [1, 2, 3], owned: [{ speciesId: 'glutling', learned: ['attack', 'repeat'] }] });

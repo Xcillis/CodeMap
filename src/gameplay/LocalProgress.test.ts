@@ -2,10 +2,25 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { Campaign } from './Campaign';
 import { instanceId } from './ArkanaCatalog';
+import { LESSON_IDS } from './WorldQuests';
 const key = 'codemap-m2-progress';
 beforeEach(() => { vi.restoreAllMocks(); vi.resetModules(); localStorage.clear(); });
 
 describe('Lokaler Weltfortschritt', () => {
+  it('erhält den Q04-Spielstand und Q05-Entwürfe, ohne eine begonnene Prüfung als bestanden zu speichern', async () => {
+    const programs = { 'q04-musterpfad:glutling': 'repeat(3, () => { glutling.moveRight(); glutling.moveUp(); });' };
+    localStorage.setItem(key, JSON.stringify({ programVersion: 3, campaign: { version: 2, introduced: true, owned: [{ speciesId: 'glutling' }], team: [instanceId('glutling')], completed: LESSON_IDS.slice(0, 4) }, programs }));
+    const { loadProgress, saveProgress, saveProgramDraft } = await import('./LocalProgress');
+    const campaign = new Campaign(loadProgress().campaign); expect(campaign.objective).toContain('Prüfstein');
+    expect(campaign.interact('arkanist-eldren').action).toBe('lesson:q05-aufmerksam');
+    campaign.beginMission('q05-aufmerksam'); saveProgress({ campaign: campaign.snapshot });
+    const source = 'if (glutling.enemyAdjacent) { glutling.attack(); } else { glutling.moveForward(); }';
+    saveProgramDraft('q05-aufmerksam', 'glutling', source);
+    vi.resetModules(); const reloaded = await import('./LocalProgress');
+    expect(reloaded.loadProgress().campaign.completed).toEqual([...LESSON_IDS.slice(0, 4)]);
+    expect(reloaded.loadProgress().campaign.owned[0].learned).toContain('enemyAdjacent');
+    expect(reloaded.loadProgress().programs).toEqual({ ...programs, 'q05-aufmerksam:glutling': source });
+  });
   it('öffnet Q04 für einen bestehenden Q03-Spielstand und speichert dessen Entwurf separat', async () => {
     const campaign = { version: 2, introduced: true, owned: [{ speciesId: 'glutling', learned: ['moveRight', 'moveUp', 'attack', 'repeat'] }, { speciesId: 'moosling' }],
       team: [instanceId('glutling')], completed: ['q01-glutspur', 'q02-basisangriff', 'q03-wiederkehr'] };

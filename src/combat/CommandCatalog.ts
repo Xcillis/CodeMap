@@ -51,7 +51,7 @@ export const COMMANDS: readonly CommandDefinition[] = [
     block: () => ({ kind: 'action', count: 1, action }),
   })),
   { id: 'attack', category: 'combat', label: 'Angreifen', description: 'Ein Basisangriff auf einen direkt benachbarten Gegner. Der Schaden hängt von der Art ab.', requires: ['attack'], syntax: (actor) => `${actor}.attack()`, block: () => ({ kind: 'action', count: 1, action: 'ATTACK' }) },
-  { id: 'condition', category: 'senses', label: 'Gegner in der Nähe?', description: 'Prüft die Nachbarschaft und wählt zwischen Angriff und Bewegung.', requires: ['enemyAdjacent', 'attack', 'moveForward'], syntax: (actor) => `${actor}.enemyAdjacent`, block: () => ({ kind: 'condition', count: 1, whenTrue: 'ATTACK', whenFalse: 'MOVE_TOWARD' }) },
+  { id: 'condition', category: 'senses', label: 'Gegner direkt daneben?', description: 'Fragt, ob der Gegner direkt neben dir steht. Bei ja wird der dann-Teil ausgeführt, bei nein der sonst-Teil.', requires: ['enemyAdjacent', 'attack', 'moveForward'], syntax: (actor) => `${actor}.enemyAdjacent`, block: () => ({ kind: 'condition', count: 1, whenTrue: 'ATTACK', whenFalse: 'MOVE_TOWARD' }) },
   { id: 'repeat', category: 'flow', label: 'Wiederhole … mal', description: 'Führt die Befehle im Inneren 1 bis 6 Mal aus. Lege zum Beispiel einen Bewegungsbefehl hinein und wähle die Anzahl.', requires: ['repeat'], syntax: () => 'repeat(2, () => { … });', block: () => ({ kind: 'action', count: 2, action: 'MOVE_TOWARD' }) },
 ];
 
@@ -86,6 +86,7 @@ export function nodesCapabilityError(nodes: readonly ProgramNode[], actor: Arkan
 
 export function commandSource(command: CommandDefinition, actor: ArkanId): string {
   if (command.id === 'repeat') return nodesToSource([{ kind: 'repeat', count: 2, body: [] }], actor);
+  if (command.id === 'condition') return `if (${actor}.enemyAdjacent) {\n\n} else {\n\n}`;
   const block = command.block();
   return nodesToSource(blocksToNodes([block]).flatMap((node) => node.kind === 'repeat' && node.count === 1 ? node.body : [node]), actor);
 }

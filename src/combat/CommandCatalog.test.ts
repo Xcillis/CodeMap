@@ -1,9 +1,16 @@
 import { describe, expect, it } from 'vitest';
-import { availableCommands, programCapabilityError } from './CommandCatalog';
+import { availableCommands, commandSource, programCapabilityError } from './CommandCatalog';
 import { compileActionPlan } from './DecisionProgram';
 import { BattleSession, missionPrograms } from './BattleSession';
+import { getLesson } from '../gameplay/WorldQuests';
 
 describe('Fähigkeitsfreigaben', () => {
+  it('zeigt Q05-Wahrnehmung und liefert eine ausfüllbare Textvorlage statt der fertigen Entscheidung', () => {
+    const commands = availableCommands('glutling', 0, getLesson('q05-aufmerksam').allowed);
+    expect(commands.map((command) => command.id)).toContain('condition'); expect(commands.map((command) => command.id)).not.toContain('repeat');
+    const template = commandSource(commands.find((command) => command.id === 'condition')!, 'glutling');
+    expect(template).toContain('else'); expect(compileActionPlan(template, 'glutling').nodes).toEqual([{ kind: 'if', then: [], otherwise: [] }]);
+  });
   it('berücksichtigt Lernstand getrennt je Arkan', () => {
     expect(availableCommands('moosling', 1).map((command) => command.id)).not.toContain('condition');
     expect(availableCommands('moosling', 2).map((command) => command.id)).toContain('condition');

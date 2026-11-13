@@ -6,7 +6,7 @@ Dieser Plan ordnet die Programmiergrundlagen in eine verständliche Lernfolge in
 
 **Festgelegt durch die Nutzerkorrektur:** Anweisungen und Sequenzen kommen zuerst, der Basisangriff folgt in einer eigenen Quest, Schleifen werden anschließend gelernt. Arkana werden weiterhin in der Welt gefunden und in Sammlung und Team verwaltet. Programmierkonzepte sind typübergreifend lernbar.
 
-**Umsetzungsstand:** Q01 bis Q04 sind mit Glutlings garantierter Fundbegegnung, gerichteter Bewegung, Rätselzielen, Angriffsaufgabe sowie Schleifen- und Musterkriterium implementiert. Q05, Q06 und spätere Kapitel bleiben Ausbauplanung. Die bisherigen drei Arena-Aufgaben sind als freie Trainingsaufgaben verfügbar.
+**Umsetzungsstand:** Q01 bis Q05 sind mit Glutlings garantierter Fundbegegnung, gerichteter Bewegung, Rätselzielen, Angriffsaufgabe, Schleifen- und Musterkriterium sowie zwei geprüften Entscheidungssituationen implementiert. Q06 und spätere Kapitel bleiben Ausbauplanung. Die bisherigen drei Arena-Aufgaben sind als freie Trainingsaufgaben verfügbar.
 
 ## Regeln für jede Lernquest
 
@@ -23,7 +23,7 @@ Dieser Plan ordnet die Programmiergrundlagen in eine verständliche Lernfolge in
 
 ## Erstes Kapitel
 
-Die folgende Folge ist der grundlegende Ausbauplan. Q01 bis Q04 sind spielbar. Q05 und Q06 bauen anschließend darauf auf.
+Die folgende Folge ist der grundlegende Ausbauplan. Q01 bis Q05 sind spielbar. Q06 baut anschließend darauf auf.
 
 | Quest | Aufgabe in der Welt | Neues Lernziel | Verfügbare Befehle und Strukturen | Erfolg |
 | --- | --- | --- | --- | --- |
@@ -31,7 +31,7 @@ Die folgende Folge ist der grundlegende Ausbauplan. Q01 bis Q04 sind spielbar. Q
 | Q02 Das Übungskonstrukt | Glutling nähert sich einem passiven Übungskonstrukt und schaltet es aus. | Bewegung und Angriff als Sequenz kombinieren | Gelernte Bewegung und neu `attack()` | Das Konstrukt ist ausgeschaltet. |
 | Q03 Der lange Runenweg | Ein gerader Weg erfordert mehrere gleiche Bewegungsschritte. | Feste Wiederholung mit `repeat(n, …)` | Bewegung und neu feste Wiederholung | Zielfeld erreicht; eine relevante Bewegung wird durch eine Schleife mindestens zweimal ausgeführt. |
 | Q04 Der Musterpfad | Glutling folgt einem wiederkehrenden Treppenmuster. | Einen Rumpf aus mehreren Anweisungen wiederholen | Bereits gelernte Befehle und feste Wiederholung | Das Ziel wird mit der wiederholten Bewegungssequenz erreicht. |
-| Q05 Der aufmerksame Begleiter | Ein Konstrukt steht in wechselnder Entfernung. | Zustand abfragen und mit `if/else` zwischen zwei Aktionen wählen | Neu Gegnernähe und Bedingung; bekannte Bewegung, Angriff und Wiederholung | Das Programm wählt in vorbereiteten Situationen jeweils eine passende Aktion. |
+| Q05 Der aufmerksame Begleiter | Ein Konstrukt steht in zwei Startsituationen unterschiedlich weit weg. | Zustand abfragen und mit `if/else` zwischen zwei Aktionen wählen | Neu Gegnernähe, Bedingung und ein Schritt zum Gegner; bekannter Angriff und gerichtete Bewegung. Schleifen bleiben in dieser Einführung ausgeblendet. | Die erste Aktion wird in beiden Situationen von derselben Verzweigung passend gewählt. |
 | Q06 Der bewegliche Wächter | Ein aktives Konstrukt verändert die Entfernung während der Ausführung. | Schleife und Bedingung verbinden; Zustandsänderungen beobachten | Bisher gelernte Strukturen | Das Programm löst die Begegnung für die vorgesehenen Startzustände. |
 
 ### Q01 Glutlings erste Schritte
@@ -77,6 +77,16 @@ Das Lernkriterium ist vor dem Start sichtbar: Mindestens zwei Durchläufe dersel
 
 Die Ausführungsmarkierung zeigt jede innere Anweisung und den zugehörigen Durchlauf. Block- und Textmodus verwenden denselben Nachweis. Nach dem Abschluss erweitert sich der Begriff **Schleife** um ein Beispiel mit zwei inneren Anweisungen; **Schleifenrumpf** erhält einen eigenen Eintrag. Mooslings garantierter Fund bleibt nach Q03 möglich. Ein zweiter Teamplatz und Bedingungen werden durch Q04 nicht vorweggenommen.
 
+### Q05 Der aufmerksame Begleiter
+
+Am Prüfstein südlich der Akademie oder bei Eldren wird nach Q04 die nächste Einführung zugänglich. Die Aufgabe fragt zuerst konkret: „Steht das Konstrukt direkt neben Glutling?“ Bei ja soll Glutling angreifen, bei nein einen Schritt näher herangehen. Anschließend werden **Bedingung** und **Verzweigung** benannt. Der Text erklärt `glutling.enemyAdjacent`, `if/else` sowie `glutling.moveForward()` als genau einen Schritt zum Gegner. Dieser Befehl greift nicht an und betritt kein besetztes Feld.
+
+Zwei feste Fälle verwenden Glutling bei `(1, 3)` und ein passives Konstrukt zunächst bei `(2, 3)`, danach bei `(4, 3)`. Pro Fall wird nur die erste ausgeführte Aktion bewertet. Sie muss aus einer tatsächlich ausgewerteten Bedingung stammen und entweder Schaden verursachen oder bei größerem Abstand die Entfernung um ein Feld verringern. Es geht um die passende Entscheidung, nicht um einen besiegten Gegner. Beide Antworten derselben Verzweigung müssen beobachtet werden. Unbedingte Befehle vor der Verzweigung, vertauschte oder leere Zweige und bloß syntaktisch vorhandene Bedingungen erfüllen das Lernziel nicht.
+
+Der Starter enthält den falls-Teil mit einem Angriff; der sonst-Teil bleibt zu ergänzen. Blockly stellt beide Anschlüsse bereit. Die Textbibliothek liefert eine ausfüllbare if/else-Vorlage. „Programm ausführen“ spielt beide Fälle mit unverändertem Programm ab. Die Einzelschrittsteuerung führt je eine Entscheidung aus und kündigt den folgenden Fall an. Bei Änderungen an der Programmlogik beginnt die Prüfung neu; reine Format- oder Darstellungswechsel erhalten sie. Die Fallanzeige und die Ausführungsmarkierung zeigen Antwort und Fortschritt. Erst nach dem vollständigen sichtbaren Erfolg folgt die Abschlussmeldung in der Arena.
+
+Die Einführung schaltet Gegnernähe und den Bewegungsschritt zum Gegner für allgemeine Arkana-Fähigkeiten frei. Q05 selbst verwendet Glutling allein und konzentriert sich auf die einzelne Entscheidung: Schleifen werden hier ausgeblendet und bei Texteingabe abgelehnt. Ihre Verbindung mit Bedingungen bleibt Q06. Nach Abschluss erscheinen Bedingung und Verzweigung mit Beispielen im Charakterfenster. Bereits abgeschlossene Quests und Entwürfe bleiben erhalten; ein Reset ist nicht erforderlich.
+
 ## Sammlung und spätere Teamaufgaben
 
 Die Sammlung ist nach Glutlings Fund zugänglich. Sie trennt Artenprofil, gesammelte Instanz und erlernte Fähigkeiten. Glutlings Feuer-Typ ist die erzählerische Wahl für den Einstieg; Anweisungen, Sequenzen und Schleifen stehen grundsätzlich allen Arkana offen.
@@ -120,13 +130,14 @@ Ein älterer Spielstand mit Moosling erhält einen nachvollziehbaren Einstieg zu
 
 ## Abnahme des ersten Umsetzungsschritts
 
-Der erste Spielumbau umfasst Q01 bis Q03 mit Glutlings Fund, Bewegungsrätsel, Angriffsaufgabe und anschließender Schleifeneinführung. Q04 ergänzt nun das Wiederholen einer ganzen Bewegungssequenz. Q05 und spätere Inhalte folgen darauf. Die freie Trainingsarena verwendet sämtliche implementierten Befehle unabhängig vom Lernfortschritt und erzeugt keine Questbelohnungen.
+Der erste Spielumbau umfasst Q01 bis Q03 mit Glutlings Fund, Bewegungsrätsel, Angriffsaufgabe und anschließender Schleifeneinführung. Q04 ergänzt das Wiederholen einer ganzen Bewegungssequenz, Q05 eine einzelne geprüfte Entscheidung in zwei Startsituationen. Q06 und spätere Inhalte folgen darauf. Die freie Trainingsarena verwendet sämtliche implementierten Befehle unabhängig vom Lernfortschritt und erzeugt keine Questbelohnungen.
 
 - Ein neuer Spielstand findet Glutling und zeigt in Q01 ausschließlich die eingeführten Bewegungsbefehle.
 - Eine einzelne Anweisung und eine selbst gebaute Sequenz erreichen die jeweiligen Ziele ohne Gegner.
 - Angriff erscheint nach seiner Einführung in Q02. Schleifen und Bedingungen bleiben dort gesperrt.
 - Erst Q03 führt `repeat` ein. Ein mehrfach ausgeführter Schleifenrumpf ist für den Lernabschluss erforderlich.
 - Q04 verlangt mehrere gemeinsam wiederholte Bewegungsanweisungen; Zielerreichung ohne diesen Nachweis bleibt eine offene Lernübung. Ein vorhandener Q03-Spielstand kann Q04 ohne Reset beginnen.
+- Q05 wertet dieselbe Verzweigung in beiden Startsituationen aus und prüft ihre tatsächlichen Aktionen. Ein erster passender Fall allein ist kein Questabschluss. Vorhandene Q04-Spielstände öffnen die nächste Einführung ohne Reset.
 - Block- und Textmodus erlauben dieselben Lösungen und lehnen dieselben noch nicht erlaubten Strukturen ab.
 - Erfolg, Fehlversuch und Abbruch führen korrekt zur Welt zurück. Ein Neuversuch behält den bearbeiteten Entwurf.
 - Alte Sammlungen und Programme bleiben nach der Fortschrittsmigration erhalten.

@@ -127,6 +127,7 @@ export class BattleScene extends Phaser.Scene {
   }
 
   private render(state: Readonly<EncounterState>): void {
+    if (state.lessonTrial) this.subtitle.setText(`Situation ${state.lessonTrial.current}/${state.lessonTrial.total} · ${state.lessonTrial.passed} passend entschieden · Ein Entscheidungsschritt`);
     this.grid.clear();
     for (let y = 0; y < 7; y += 1) {
       for (let x = 0; x < 7; x += 1) {

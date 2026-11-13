@@ -137,6 +137,7 @@ export class GameUi {
     this.mission = mission;
     this.skills = skills;
     this.presentation = presentation; this.hintIndex = 0;
+    this.el('lesson-trial').hidden = true;
     setLearningText(this.el('encounter-objective'), presentation?.objective ?? 'Probiere dein Programm auf dem Raster aus.');
     setLearningText(this.el('encounter-instructions'), presentation?.instructions ?? '');
     this.el('encounter-instructions').hidden = !presentation?.instructions;
@@ -275,6 +276,9 @@ export class GameUi {
 
   private update(state: EncounterState, feedback: string): void {
     if (state.outcome === 'ongoing') this.completion.clear();
+    const trial = state.lessonTrial;
+    this.el('lesson-trial').hidden = !trial;
+    if (trial) setLearningText(this.el('lesson-trial'), `Situation ${trial.current}/${trial.total}: ${trial.title}. ${trial.passed}/${trial.total} geschafft. ${trial.message}`);
     setLearningText(this.feedback, feedback); this.el('battle-round').textContent = String(state.tick);
     for (const [prefix, actor] of [['player', state.player], ['companion', state.companion], ['enemy', state.enemy]] as const) {
       if (!actor) continue;
@@ -331,7 +335,7 @@ export class GameUi {
     if (!frame) return;
     const name = frame.actor === 'moosling' ? 'Moosling' : frame.actor === 'glutling' ? 'Glutling' : 'Konstrukt';
     const loops = frame.trace?.loops.map((loop) => `Durchlauf ${loop.iteration} von ${loop.total}`).join(' · ');
-    const conditions = frame.trace?.conditions.map((condition) => `Gegner nahe: ${condition.value ? 'ja' : 'nein'}`).join(' · ');
+    const conditions = frame.trace?.conditions.map((condition) => `Gegner direkt daneben: ${condition.value ? 'ja' : 'nein'}`).join(' · ');
     trace.textContent = [name, ACTIONS[frame.action].label, loops, conditions].filter(Boolean).join(' · ');
   }
 

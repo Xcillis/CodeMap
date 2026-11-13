@@ -30,6 +30,12 @@ export const LEARNING_TERMS: readonly LearningTerm[] = [
   { id: 'loop-body', label: 'Schleifenrumpf', aliases: ['Schleifenrumpf'], lesson: 'q04-musterpfad', category: 'Programmieren',
     explanation: 'Die Befehle im Inneren eines Wiederholungsblocks werden bei jedem Durchlauf nacheinander ausgeführt. Dieses Innere heißt Schleifenrumpf. Es kann mehrere Anweisungen enthalten.',
     example: '„Nach rechts“ und „nach oben“ stehen beide im Schleifenrumpf. Glutling führt bei jedem Durchlauf beide Bewegungen in dieser Reihenfolge aus.', code: 'repeat(2, () => {\n  glutling.moveRight();\n  glutling.moveUp();\n});' },
+  { id: 'condition', label: 'Bedingung', aliases: ['Bedingung', 'Bedingungen'], lesson: 'q05-aufmerksam', category: 'Programmieren',
+    explanation: 'Du fragst: „Steht das Konstrukt direkt neben Glutling?“ Diese Frage hat die Antwort ja oder nein. Eine solche überprüfbare Aussage heißt Bedingung.',
+    example: 'glutling.enemyAdjacent ist bei einem direkt benachbarten Konstrukt wahr (ja). Steht es weiter weg, ist die Bedingung falsch (nein).', code: 'if (glutling.enemyAdjacent) {\n  glutling.attack();\n}' },
+  { id: 'branch', label: 'Verzweigung', aliases: ['Verzweigung', 'Verzweigungen'], lesson: 'q05-aufmerksam', category: 'Programmieren',
+    explanation: 'Glutling wählt je nach Antwort auf eine Frage einen von zwei Wegen. Das heißt Verzweigung: Bei ja führt es den dann-Teil aus, bei nein den sonst-Teil. Im Text heißen sie if und else.',
+    example: 'Ist das Konstrukt direkt daneben, greift Glutling an. Sonst geht es einen Schritt näher heran. Nur einer der beiden Wege wird ausgeführt.', code: 'if (glutling.enemyAdjacent) {\n  glutling.attack();\n} else {\n  glutling.moveForward();\n}' },
 ];
 
 export function learnedTerms(completed: readonly LessonId[]): readonly LearningTerm[] {

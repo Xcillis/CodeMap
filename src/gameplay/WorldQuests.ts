@@ -1,10 +1,11 @@
 import type { GridPosition } from '../combat/types';
 import type { SkillId } from './ArkanaCatalog';
 
-export const LESSON_IDS = ['q01-glutspur', 'q02-basisangriff', 'q03-wiederkehr', 'q04-musterpfad'] as const;
+export const LESSON_IDS = ['q01-glutspur', 'q02-basisangriff', 'q03-wiederkehr', 'q04-musterpfad', 'q05-aufmerksam'] as const;
 export type LessonId = typeof LESSON_IDS[number];
 export const isLessonId = (value: unknown): value is LessonId => LESSON_IDS.some((id) => value === id);
 export type RepeatGoal = 'none' | 'movement' | 'movement-sequence';
+export interface DecisionTrial { title: string; start: GridPosition; enemy: GridPosition }
 
 const patternPath = [{ x: 1, y: 4 }, { x: 2, y: 4 }, { x: 2, y: 3 }, { x: 3, y: 3 }, { x: 3, y: 2 }, { x: 4, y: 2 }, { x: 4, y: 1 }];
 const patternWalls = Array.from({ length: 49 }, (_, index) => ({ x: index % 7, y: Math.floor(index / 7) }))
@@ -27,7 +28,7 @@ interface QuestBase {
 }
 export type WorldQuest = QuestBase & (
   | { kind: 'puzzle'; goal: GridPosition; walls: readonly GridPosition[]; repeatGoal: RepeatGoal }
-  | { kind: 'combat'; enemy: GridPosition; enemyHp: number }
+  | { kind: 'combat'; enemy: GridPosition; enemyHp: number; decisionTrials?: readonly DecisionTrial[] }
 );
 
 export const WORLD_QUESTS: readonly WorldQuest[] = [
@@ -57,8 +58,20 @@ export const WORLD_QUESTS: readonly WorldQuest[] = [
     introduction: 'Auf dem Treppenweg geht Glutling erst ein Feld nach rechts und dann ein Feld nach oben. Danach beginnt dasselbe Muster erneut. Die Steine lassen nur diesen Weg frei.\n\nLege beide Bewegungsanweisungen nacheinander in denselben Wiederholungsblock. Die Befehle in seinem Inneren werden bei jedem Durchlauf gemeinsam ausgeführt. Dieses Innere nennt man Schleifenrumpf. Du wiederholst also eine ganze Sequenz.\n\nErgänze den vorbereiteten Block und finde heraus, wie oft Glutling das Muster bis zur goldenen Rune braucht. Für den Questabschluss müssen die beiden Bewegungen gemeinsam in mindestens zwei Durchläufen derselben Schleife gelingen. Einzelbefehle oder getrennte Schleifen für jede Richtung reichen hier nicht. Beobachte mit „Nächsten Schritt ausführen“, wann der nächste Durchlauf beginnt.',
     objective: 'Erreiche die Rune. Wiederhole rechts und oben gemeinsam in derselben Schleife mindestens zweimal erfolgreich.',
     introduces: [], allowed: ['moveRight', 'moveUp', 'repeat'], starter: 'repeat(1, () => {\n  glutling.moveRight();\n});',
-    reward: 'Der Musterpfad leuchtet! Glutling hat rechts und oben als gemeinsame Befehlsfolge wiederholt. Die Anweisungen im Schleifenrumpf wurden bei jedem Durchlauf in derselben Reihenfolge ausgeführt. Im Charakterfenster findest du das passende Beispiel. Die nächste Lernquest zu Entscheidungen folgt später; bis dahin kannst du bekannte Quests wiederholen oder frei trainieren.',
+    reward: 'Der Musterpfad leuchtet! Glutling hat rechts und oben als gemeinsame Befehlsfolge wiederholt. Die Anweisungen im Schleifenrumpf wurden bei jedem Durchlauf in derselben Reihenfolge ausgeführt. Im Charakterfenster findest du das passende Beispiel. Am Prüfstein südlich der Akademie lernst du als Nächstes, wie Glutling zwischen zwei Aktionen entscheidet.',
     hints: ['Schau dir die freien Felder an: Nach einem Schritt nach rechts führt der Weg nach oben. Dieses Paar von Bewegungen kommt mehrmals vor.', 'Stecke „gehe nach oben“ direkt unter „gehe nach rechts“ in das Innere desselben Wiederholungsblocks. Die Zahl gibt an, wie oft beide Befehle zusammen ausgeführt werden.', 'Der Treppenweg besteht aus drei Stufen. Jede Stufe braucht rechts und oben. Stelle die Wiederholungszahl passend ein und beobachte die sechs einzelnen Bewegungen.'] },
+  { id: 'q05-aufmerksam', title: 'Der aufmerksame Begleiter', target: 'Prüfstein südlich der Akademie', x: 1210, y: 760,
+    kind: 'combat', start: { x: 1, y: 3 }, enemy: { x: 2, y: 3 }, enemyHp: 4,
+    decisionTrials: [
+      { title: 'Das Konstrukt steht direkt neben Glutling', start: { x: 1, y: 3 }, enemy: { x: 2, y: 3 } },
+      { title: 'Das Konstrukt steht weiter weg', start: { x: 1, y: 3 }, enemy: { x: 4, y: 3 } },
+    ],
+    introduction: 'Steht das Konstrukt direkt neben Glutling? Wenn ja, soll Glutling angreifen. Wenn nein, soll es einen Schritt näher herangehen. Das Konstrukt bleibt stehen und greift nicht zurück.\n\nDie Frage „Steht der Gegner neben mir?“ ist eine Bedingung: Die Antwort ist ja oder nein. Im Text prüft glutling.enemyAdjacent diese Frage. Der Block „falls … dann … sonst“ wählt passend zur Antwort einen von zwei Wegen. Das heißt Verzweigung. Im Text heißen die beiden Teile if und else.\n\nDer neue Befehl glutling.moveForward() bewegt Glutling ein Feld zum Konstrukt. Im Blockmodus heißt er „Zum Gegner gehen“. Er greift nicht an und stellt sich nicht auf das besetzte Feld.\n\nErgänze das vorbereitete Programm. Es wird unverändert in zwei Situationen geprüft: zuerst neben dem Konstrukt, dann weiter entfernt. Pro Situation zählt nur die erste Aktion: Sie muss vom selben falls/sonst-Block passend gewählt werden. Das Konstrukt zu besiegen ist hier nicht das Ziel. „Programm ausführen“ spielt beide Situationen ab; mit „Nächsten Schritt ausführen“ prüfst du sie einzeln. Schleifen werden erst in der nächsten Lernquest mit Entscheidungen verbunden.',
+    objective: 'Wähle mit demselben falls/sonst-Block in beiden Situationen passend: direkt daneben angreifen, sonst einen Schritt näher herangehen.',
+    introduces: ['enemyAdjacent', 'moveForward'], allowed: ['moveRight', 'moveUp', 'moveForward', 'attack', 'enemyAdjacent'],
+    starter: 'if (glutling.enemyAdjacent) {\n  glutling.attack();\n}',
+    reward: 'Glutling hat in beiden Situationen passend entschieden! Dieselbe Bedingung wurde einmal mit ja und einmal mit nein beantwortet. Die Verzweigung hat jeweils den passenden Befehl ausgewählt. Im Charakterfenster findest du Bedingung und Verzweigung mit Beispielen. Die nächste Lernquest verbindet diese Entscheidung mit einer Schleife und einem beweglichen Wächter; sie folgt später.',
+    hints: ['Beobachte die Entfernung: Ein Angriff trifft nur direkt daneben. Bei größerem Abstand muss Glutling zuerst näher herangehen.', 'Im vorbereiteten falls/sonst-Block steht der Angriff bereits im dann-Teil. Ergänze im sonst-Teil eine Bewegung zum Gegner.', 'Im Text ergänzt du nach der schließenden Klammer else { glutling.moveForward(); }. Führe dasselbe Programm in beiden Situationen aus und vergleiche die Antworten auf die Bedingung.'] },
 ];
 export const getLesson = (id: LessonId): WorldQuest => WORLD_QUESTS.find((quest) => quest.id === id)!;
 

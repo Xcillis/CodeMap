@@ -146,6 +146,7 @@ button:focus-visible, select:focus-visible, textarea:focus-visible, summary:focu
 .encounter-briefing { flex: none; max-height: 26%; overflow: auto; margin-bottom: .6rem; padding: .5rem .65rem; border: 1px solid #527c79; border-radius: .3rem; background: #173238; font-size: .8rem; line-height: 1.45; }
 .encounter-briefing p { margin: .3rem 0; }
 #encounter-objective { color: #f2d77f; font-weight: 700; }
+#lesson-trial { padding: .55rem; border: 1px solid #a18ac2; border-left: 4px solid #a18ac2; border-radius: .3rem; color: #f6edff; background: #34354b; }
 #encounter-guide summary { cursor: pointer; padding: .3rem 0; }
 #lesson-hint-button { min-height: 2.5rem; margin-top: .4rem; color: #fff0bf; border: 1px solid #bba460; border-radius: .3rem; background: #345354; cursor: pointer; }
 .training-setup { display: grid; gap: .75rem; }

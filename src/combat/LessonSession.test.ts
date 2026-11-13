@@ -10,6 +10,7 @@ const solutions = [
   'glutling.moveRight(); glutling.moveRight(); glutling.attack(); glutling.attack();',
   'repeat(4, () => { glutling.moveRight(); });',
   'repeat(3, () => { glutling.moveRight(); glutling.moveUp(); });',
+  'if (glutling.enemyAdjacent) { glutling.attack(); } else { glutling.moveForward(); }',
 ];
 describe('Lernaufgaben mit eigenen Freigaben und Zielen', () => {
   for (const [index, id] of LESSON_IDS.entries()) it(`${id}: liefert schrittweise und vollständig dieselben Zustände und Traces`, () => {

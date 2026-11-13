@@ -1,10 +1,10 @@
 # CodeMap – lokaler RPG-Prototyp
 
-Lokaler Phaser-/TypeScript-Prototyp aus *Die Chroniken von Aetheria* mit Erkundung, auffindbaren Arkana, Sammlung, Teamwahl und vier programmierbaren Weltquests.
+Lokaler Phaser-/TypeScript-Prototyp aus *Die Chroniken von Aetheria* mit Erkundung, auffindbaren Arkana, Sammlung, Teamwahl und fünf programmierbaren Weltquests.
 
 Jedes aktive Arkana besitzt sein eigenes Programm mit ausdrücklich benannten Befehlen, beispielsweise `moosling.attack()` und `glutling.moveForward()`.
 
-Die ersten vier Quests aus dem [Lern- und Questplan](docs/CodeMap_Lernprogression.md) sind spielbar: Anweisungen und Sequenzen, danach Basisangriff, anschließend Schleifen und das gemeinsame Wiederholen mehrerer Anweisungen. Die freie Trainingsarena stellt unabhängig davon alle implementierten Befehle bereit.
+Die ersten fünf Quests aus dem [Lern- und Questplan](docs/CodeMap_Lernprogression.md) sind spielbar: Anweisungen und Sequenzen, danach Basisangriff, anschließend Schleifen, das gemeinsame Wiederholen mehrerer Anweisungen und Entscheidungen mit `if/else`. Die freie Trainingsarena stellt unabhängig davon alle implementierten Befehle bereit.
 
 ## Erster Spieldurchlauf
 
@@ -16,13 +16,14 @@ Ist Glutling bereits gesammelt, aber das aktive Team passt noch nicht, bietet de
 4. Nach der letzten Animation zeigt die Arena **„Quest abgeschlossen!“** mit einer Erklärung und dem nächsten Weltziel. **Zur Spielwelt** bringt dich zurück; **Programm ansehen** lässt dich deine Lösung weiter prüfen. **„Das Übungskonstrukt“** führt bei Annahme der Einführung den Basisangriff ein. Kombiniere Bewegung und Angriff gegen ein passives Konstrukt. Schleifen sind hier noch gesperrt.
 5. **„Der lange Runenweg“** führt erst jetzt `repeat` ein. Erreiche die Rune mit einer Schleife, die eine Bewegung mindestens zweimal ausführt. Vier Einzelbefehle oder eine leere Schleife genügen für den Lernabschluss nicht.
 6. Nach Q03 führt Eldren zu **„Der Musterpfad“** am **Musterstein am Nordweg** (nördlich der ersten Rune). Ein schmaler Treppenweg verlangt, rechts und oben gemeinsam mit derselben Schleife zu wiederholen. Der Abschluss prüft mindestens zwei erfolgreiche gemeinsame Durchläufe. Einzelbefehle, getrennte Schleifen und Durchläufe mit blockierten Schritten zählen dafür nicht. Ein unvollständiger Wiederholungsblock ist vorbereitet; Hinweise helfen schrittweise.
-7. **Moosling am östlichen Weg** bleibt bereits nach den ersten drei Grundlagenquests auffindbar. Q04 spielt weiter mit Glutling allein. Bedingungen und die Einführung mehrerer aktiver Teammitglieder folgen später. Im freien Training kannst du bereits mit beiden gesammelten Arten experimentieren.
+7. **„Der aufmerksame Begleiter“** am **Prüfstein südlich der Akademie** folgt nach Q04. Glutling soll mit demselben falls/sonst-Block in zwei Situationen entscheiden: neben dem Konstrukt angreifen, sonst einen Schritt näher herangehen. Die erste Aktion je Situation zählt; das Konstrukt muss hier nicht besiegt werden. `glutling.enemyAdjacent` und `glutling.moveForward()` werden erklärt und eingeführt. Schleifen bleiben für diese einzelne Entscheidung ausgeblendet; die Kombination folgt später in Q06.
+8. **Moosling am östlichen Weg** bleibt bereits nach den ersten drei Grundlagenquests auffindbar. Q04 und Q05 spielen weiter mit Glutling allein. Die Einführung mehrerer aktiver Teammitglieder folgt später. Im freien Training kannst du bereits mit beiden gesammelten Arten experimentieren.
 
 **C** oder der Button **Charakter** öffnet das Charakterfenster mit drei Reitern:
 
 - **Sammlung** zeigt die gefundenen Arkana, ihre Eigenschaften und gelernten Befehle.
 - **Aktuelles Team** zeigt aktive Teamplätze und weitere gesammelte Arkana. Hier setzt du Begleiter aktiv oder nimmst sie aus dem Team.
-- **Gelernte Fachbegriffe** erklärt bereits gelernte Begriffe mit einem konkreten Beispiel und passendem Programmtext. Nach Quest 1 erscheinen **Anweisung** und **Sequenz**, nach Quest 2 **Lebenspunkte**, nach Quest 3 **Schleife**. Nach Q04 kommen **Schleifenrumpf** und ein weiteres Schleifenbeispiel mit zwei inneren Anweisungen hinzu. Bestehende Questabschlüsse werden automatisch berücksichtigt; freies Training schaltet keine Einträge frei.
+- **Gelernte Fachbegriffe** erklärt bereits gelernte Begriffe mit einem konkreten Beispiel und passendem Programmtext. Nach Quest 1 erscheinen **Anweisung** und **Sequenz**, nach Quest 2 **Lebenspunkte**, nach Quest 3 **Schleife**. Nach Q04 kommen **Schleifenrumpf** und ein weiteres Schleifenbeispiel mit zwei inneren Anweisungen hinzu, nach Q05 **Bedingung** und **Verzweigung**. Bestehende Questabschlüsse werden automatisch berücksichtigt; freies Training schaltet keine Einträge frei.
 
 Die Reiter lassen sich anklicken, antippen oder mit Links/Rechts wechseln; Pos1/Ende springt zum ersten/letzten Reiter. **J** öffnet das Questjournal, **Esc** schließt die Ansicht. Während einer geöffneten Ansicht bewegt sich die Spielfigur nicht. Entdeckte Quests lassen sich mit passendem Team direkt im Journal wiederholen. Neue Quests werden über ihre Weltorte oder Eldren entdeckt. Die Rückkehr behält die Position in der Welt.
 
@@ -39,6 +40,8 @@ Die Einführung erklärt Begriffe wie „Sequenz“ anhand von Glutlings beobach
 Auch wenn ein alter Spielstand bereits fortgeschrittene Fähigkeiten besitzt, begrenzen die Lernquests die Bibliothek auf ihren jeweiligen Inhalt. Dadurch bleibt die erste Quest eine Bewegungssequenz. Bereits besessene Arkana bleiben in der Sammlung; bestehende Zweierteams werden erhalten. Neue Weltteams starten mit einem Platz, die spätere Teamfreischaltung folgt nach weiteren Grundlagenquests. Duo-Training ist unabhängig davon mit zwei gesammelten Arten möglich.
 
 Bereits abgeschlossene Q01–Q03 bleiben erhalten. Nach dem Neuladen zeigt das Weltziel auf den Musterstein; sprich alternativ mit Eldren, um Q04 zu entdecken und direkt zu starten. Q04 besitzt einen eigenen Speicherplatz für Block- und Textentwürfe. Ein Reset ist nicht erforderlich.
+
+Ist Q04 bereits abgeschlossen, zeigt das nächste Weltziel auf den Prüfstein für Q05. Sprich mit Eldren oder untersuche den Prüfstein, um die Aufgabe zu öffnen. Q05 speichert den Programmentwurf separat. „Programm ausführen“ prüft beide Startsituationen mit demselben Programm; „Nächsten Schritt ausführen“ prüft die jeweils nächste Situation. Die Anzeige nennt Situation und bestandene Fälle. Ein geändertes Programm oder „Neu starten“ beginnt die Prüfung von vorn; ein reiner Darstellungswechsel erhält den Fortschritt. Ein begonnener oder abgebrochener Versuch wird nicht als bestandene Quest gespeichert.
 
 Die Sammlung zeigt Typ, Basiswerte, Stärken, Schwächen und erlernte Befehle. Vorläufige Werte: Moosling (Natur) hat 5 LP und 1 Angriffsschaden, Glutling (Feuer) 4 LP und 2 Angriffsschaden. Die Teamreihenfolge bestimmt die Reihenfolge der Aktionen; Entfernen und erneutes Hinzufügen setzt ein Arkana ans Teamende. Bei einem Teamplatz ersetzt „Aktiv setzen“ den bisherigen Begleiter.
 
