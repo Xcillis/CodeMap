@@ -6,7 +6,7 @@ Dieser Plan ordnet die Programmiergrundlagen in eine verständliche Lernfolge in
 
 **Festgelegt durch die Nutzerkorrektur:** Anweisungen und Sequenzen kommen zuerst, der Basisangriff folgt in einer eigenen Quest, Schleifen werden anschließend gelernt. Arkana werden weiterhin in der Welt gefunden und in Sammlung und Team verwaltet. Programmierkonzepte sind typübergreifend lernbar.
 
-**Umsetzungsstand:** Q01 bis Q05 sind mit Glutlings garantierter Fundbegegnung, gerichteter Bewegung, Rätselzielen, Angriffsaufgabe, Schleifen- und Musterkriterium sowie zwei geprüften Entscheidungssituationen implementiert. Q06 und spätere Kapitel bleiben Ausbauplanung. Die bisherigen drei Arena-Aufgaben sind als freie Trainingsaufgaben verfügbar.
+**Umsetzungsstand:** Q01 bis Q06 sind mit Glutlings garantierter Fundbegegnung, gerichteter Bewegung, Rätselzielen, Angriffsaufgabe, Schleifen- und Musterkriterium, zwei geprüften Entscheidungssituationen sowie der Verbindung von Schleife und Bedingung gegen einen aktiven Wächter implementiert. Spätere Kapitel bleiben Ausbauplanung. Die bisherigen drei Arena-Aufgaben sind als freie Trainingsaufgaben verfügbar.
 
 ## Regeln für jede Lernquest
 
@@ -23,7 +23,7 @@ Dieser Plan ordnet die Programmiergrundlagen in eine verständliche Lernfolge in
 
 ## Erstes Kapitel
 
-Die folgende Folge ist der grundlegende Ausbauplan. Q01 bis Q05 sind spielbar. Q06 baut anschließend darauf auf.
+Die folgende Folge ist der grundlegende Ausbauplan. Q01 bis Q06 sind spielbar.
 
 | Quest | Aufgabe in der Welt | Neues Lernziel | Verfügbare Befehle und Strukturen | Erfolg |
 | --- | --- | --- | --- | --- |
@@ -87,11 +87,23 @@ Der Starter enthält den falls-Teil mit einem Angriff; der sonst-Teil bleibt zu 
 
 Die Einführung schaltet Gegnernähe und den Bewegungsschritt zum Gegner für allgemeine Arkana-Fähigkeiten frei. Q05 selbst verwendet Glutling allein und konzentriert sich auf die einzelne Entscheidung: Schleifen werden hier ausgeblendet und bei Texteingabe abgelehnt. Ihre Verbindung mit Bedingungen bleibt Q06. Nach Abschluss erscheinen Bedingung und Verzweigung mit Beispielen im Charakterfenster. Bereits abgeschlossene Quests und Entwürfe bleiben erhalten; ein Reset ist nicht erforderlich.
 
+### Q06 Der bewegliche Wächter
+
+Nach Q05 führt das nächste Weltziel zum Wächterstein am östlichen Nordweg; Eldren bietet denselben Einstieg an. Hier kommt das Konstrukt nach Glutlings Aktion ein Feld näher oder greift direkt daneben für 1 LP an. Die Einführung beschreibt diese beobachtbare Veränderung zuerst. Danach erklärt sie, warum die bekannte Bedingung bei jedem Schleifendurchlauf neu geprüft werden muss. Neue Syntax und neue Fähigkeiten werden nicht eingeführt. Die Palette enthält die bereits gelernten Strukturen einschließlich `repeat` und `if/else` gemeinsam.
+
+Glutling startet bei `(1, 3)`, der Wächter zuerst bei `(4, 3)` und anschließend bei `(5, 3)`. Jede Situation beginnt mit vollen LP: 4 für Glutling und 6 für den Wächter. Ein Angriff Glutlings verursacht 2 Schaden. Dasselbe unveränderte Programm muss beide Wächter ausschalten. Bei Sieg endet die jeweilige Begegnung sofort, auch wenn die Schleife noch Durchläufe übrig hätte. Der Starter enthält einen Wiederholungsblock mit Anzahl 1 und einer unvollständigen Entscheidung; der sonst-Teil und eine ausreichende Anzahl sind selbst zu ergänzen.
+
+Das transparente Lernkriterium verlangt in **jeder** Begegnung eine Bedingung innerhalb derselben Schleife: Bei unterschiedlichen Durchläufen muss sie sowohl nein als auch ja ergeben und passende Aktionen auslösen. Es zählen eine erfolgreiche Verringerung der Entfernung bei nein und ein wirksamer Angriff bei ja. Ein Sieg ohne diesen Nachweis bleibt eine offene Lernübung. Eine Bedingung vor der Schleife, leere Strukturen, getrennte einmalige Entscheidungen oder ein Nachweis nur aus der vorherigen Startsituation genügen nicht. Gleichwertige Lösungen und zusätzliche verschachtelte Strukturen bleiben möglich.
+
+Der Einzelschritt führt Glutlings nächste Aktion und die zugehörige Wächterantwort aus; die sichtbare Wiedergabe zeigt beide getrennt. Bei pausierter Gesamtausführung lässt sich jede einzelne Aktion prüfen. Ein nächster Aufruf nach dem ersten Sieg beginnt die zweite Situation mit demselben Programm. Format- und Darstellungswechsel erhalten den Fortschritt; eine semantische Änderung und ein Neustart löschen beide Fallnachweise. Der bestätigte Questabschluss erscheint erst nach der letzten Animation des zweiten Erfolgs in der Arena. Das Nachschlagebuch erweitert danach Schleife und Verzweigung um ein Beispiel mit erneuter Prüfung im Schleifenrumpf.
+
+Bestehende Q05-Spielstände öffnen Q06 ohne Reset. Moosling bleibt wie bisher nach Q05 auffindbar, wird nicht automatisch aufgenommen und ist für Q06 nicht nötig. Alle sechs Grundlagenquests verwenden Glutling allein. Teamkoordination und ein zweiter regulärer Teamplatz erhalten später eine eigene Einführung.
+
 ## Sammlung und spätere Teamaufgaben
 
 Die Sammlung ist nach Glutlings Fund zugänglich. Sie trennt Artenprofil, gesammelte Instanz und erlernte Fähigkeiten. Glutlings Feuer-Typ ist die erzählerische Wahl für den Einstieg; Anweisungen, Sequenzen und Schleifen stehen grundsätzlich allen Arkana offen.
 
-Ein neuer Spielstand beginnt ohne Arkana. Nach Eldrens Einführung wird zuerst Glutling gefunden und ausdrücklich aufgenommen. Die fünf spielbaren Einführungsquests bleiben bei diesem einen Begleiter. Erst nach Q05 erscheint Moosling im südöstlichen Hain und kann dort durch eine eigene Begegnung gesammelt werden. Ein Questabschluss gewährt keinen automatischen Besitz. Vorher gibt es weder die Weltfigur noch eine unsichtbare Interaktion an ihrem Fundort. Gesammelte Arkana verschwinden dauerhaft aus der Welt, auch wenn sie aus dem Team genommen werden.
+Ein neuer Spielstand beginnt ohne Arkana. Nach Eldrens Einführung wird zuerst Glutling gefunden und ausdrücklich aufgenommen. Die sechs spielbaren Grundlagenquests verwenden diesen einen Begleiter. Bereits nach Q05 erscheint Moosling im südöstlichen Hain und kann dort durch eine eigene Begegnung gesammelt werden; Q06 verlangt weiterhin Glutling allein. Ein Questabschluss gewährt keinen automatischen Besitz. Vor der Fundfreigabe gibt es weder die Weltfigur noch eine unsichtbare Interaktion an ihrem Fundort. Gesammelte Arkana verschwinden dauerhaft aus der Welt, auch wenn sie aus dem Team genommen werden.
 
 Weitere Arkana können beim Erkunden entdeckt werden. Ein für eine Pflichtaufgabe benötigtes Arkana wird garantiert rechtzeitig verfügbar. Ein zweiter Teamplatz folgt nach den Grundlagen von Q01 bis Q06 und einer eigenen Einführung in die Koordination. Bestehende Sammlungen aus Testständen bleiben erhalten; für den neuen Einstieg gibt es einen ausdrücklich bestätigten Neustart mit wiederherstellbarer Sicherung.
 
@@ -132,7 +144,7 @@ Ein älterer Spielstand mit Moosling erhält einen nachvollziehbaren Einstieg zu
 
 ## Abnahme des ersten Umsetzungsschritts
 
-Der erste Spielumbau umfasst Q01 bis Q03 mit Glutlings Fund, Bewegungsrätsel, Angriffsaufgabe und anschließender Schleifeneinführung. Q04 ergänzt das Wiederholen einer ganzen Bewegungssequenz, Q05 eine einzelne geprüfte Entscheidung in zwei Startsituationen. Q06 und spätere Inhalte folgen darauf. Die freie Trainingsarena verwendet sämtliche implementierten Befehle unabhängig vom Lernfortschritt und erzeugt keine Questbelohnungen.
+Der erste Spielumbau umfasst Q01 bis Q03 mit Glutlings Fund, Bewegungsrätsel, Angriffsaufgabe und anschließender Schleifeneinführung. Q04 ergänzt das Wiederholen einer ganzen Bewegungssequenz, Q05 eine einzelne geprüfte Entscheidung in zwei Startsituationen. Q06 verbindet die Entscheidung mit einer Schleife in zwei vollständigen aktiven Begegnungen. Spätere Inhalte folgen darauf. Die freie Trainingsarena verwendet sämtliche implementierten Befehle unabhängig vom Lernfortschritt und erzeugt keine Questbelohnungen.
 
 - Ein neuer Spielstand findet Glutling und zeigt in Q01 ausschließlich die eingeführten Bewegungsbefehle.
 - Eine einzelne Anweisung und eine selbst gebaute Sequenz erreichen die jeweiligen Ziele ohne Gegner.
@@ -140,6 +152,7 @@ Der erste Spielumbau umfasst Q01 bis Q03 mit Glutlings Fund, Bewegungsrätsel, A
 - Erst Q03 führt `repeat` ein. Ein mehrfach ausgeführter Schleifenrumpf ist für den Lernabschluss erforderlich.
 - Q04 verlangt mehrere gemeinsam wiederholte Bewegungsanweisungen; Zielerreichung ohne diesen Nachweis bleibt eine offene Lernübung. Ein vorhandener Q03-Spielstand kann Q04 ohne Reset beginnen.
 - Q05 wertet dieselbe Verzweigung in beiden Startsituationen aus und prüft ihre tatsächlichen Aktionen. Ein erster passender Fall allein ist kein Questabschluss. Vorhandene Q04-Spielstände öffnen die nächste Einführung ohne Reset.
+- Q06 prüft den Schleifen- und Bedingungsnachweis je aktiver Begegnung neu. Einzelschritte, Gesamtausführung und Blockly liefern dieselben Ergebnisse. Ein Q05-Spielstand kann ohne Reset fortsetzen; Abbruch oder nur eine bestandene Situation vergeben keinen Abschluss.
 - Block- und Textmodus erlauben dieselben Lösungen und lehnen dieselben noch nicht erlaubten Strukturen ab.
 - Erfolg, Fehlversuch und Abbruch führen korrekt zur Welt zurück. Ein Neuversuch behält den bearbeiteten Entwurf.
 - Alte Sammlungen und Programme bleiben nach der Fortschrittsmigration erhalten.

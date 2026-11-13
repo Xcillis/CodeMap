@@ -7,14 +7,27 @@ const key = 'codemap-m2-progress';
 beforeEach(() => { vi.restoreAllMocks(); vi.resetModules(); localStorage.clear(); });
 
 describe('Lokaler Weltfortschritt', () => {
+  it('führt einen Q05-Spielstand ohne Reset zu Q06 und speichert den neuen Entwurf unabhängig', async () => {
+    const programs = { 'q05-aufmerksam:glutling': 'if (glutling.enemyAdjacent) { glutling.attack(); } else { glutling.moveForward(); }', '2:glutling': 'glutling.' };
+    const blockWorkspaces = { 'q05-aufmerksam:glutling': '{"draft":true}' };
+    localStorage.setItem(key, JSON.stringify({ programVersion: 3, campaign: { version: 2, introduced: true, completed: LESSON_IDS.slice(0, 5), owned: [{ speciesId: 'glutling' }, { speciesId: 'moosling' }], team: [instanceId('glutling')] }, programs, blockWorkspaces }));
+    const storage = await import('./LocalProgress'); const campaign = new Campaign(storage.loadProgress().campaign);
+    expect(campaign.objective).toContain('Wächterstein'); expect(campaign.has('moosling')).toBe(true);
+    expect(campaign.interact('arkanist-eldren').action).toBe('lesson:q06-waechter'); campaign.beginMission('q06-waechter');
+    storage.saveProgress({ campaign: campaign.snapshot }); storage.saveProgramDraft('q06-waechter', 'glutling', 'repeat(5, () => { glutling.');
+    vi.resetModules(); const loaded = (await import('./LocalProgress')).loadProgress();
+    expect(loaded.campaign.completed).toEqual([...LESSON_IDS.slice(0, 5)]);
+    expect(loaded.programs).toEqual({ ...programs, 'q06-waechter:glutling': 'repeat(5, () => { glutling.' });
+    expect(loaded.blockWorkspaces).toEqual(blockWorkspaces);
+  });
   it('sichert beim bewussten Neustart Sammlung, Team, Quests und Entwürfe und kann zwischen beiden Ständen wechseln', async () => {
     const saved = { version: 2, introduced: true, completed: LESSON_IDS, owned: [{ speciesId: 'glutling' }, { speciesId: 'moosling' }], team: [instanceId('glutling')] };
     localStorage.setItem(key, JSON.stringify({ programVersion: 3, campaign: saved, programs: { 'q05-aufmerksam:glutling': 'glutling.' }, blockWorkspaces: { 'q04-musterpfad:glutling': '{"draft":true}' }, editorMode: 'text' }));
     const storage = await import('./LocalProgress'); const before = storage.loadProgress();
     expect(storage.startNewAdventure()).toEqual({ ok: true });
     const fresh = storage.loadProgress(); expect(fresh).toMatchObject({ campaign: { introduced: false, owned: [], team: [], completed: [], introductions: [] }, programs: {}, blockWorkspaces: {}, editorMode: 'blocks' });
-    expect(storage.adventureBackup()).toEqual({ arkana: 2, quests: 5 });
-    expect(storage.startNewAdventure()).toEqual({ ok: true }); expect(storage.adventureBackup()).toEqual({ arkana: 2, quests: 5 });
+    expect(storage.adventureBackup()).toEqual({ arkana: 2, quests: LESSON_IDS.length });
+    expect(storage.startNewAdventure()).toEqual({ ok: true }); expect(storage.adventureBackup()).toEqual({ arkana: 2, quests: LESSON_IDS.length });
     vi.resetModules(); const reloaded = await import('./LocalProgress');
     expect(reloaded.restoreAdventure()).toEqual({ ok: true }); expect(reloaded.loadProgress()).toEqual(before);
     expect(reloaded.restoreAdventure()).toEqual({ ok: true }); expect(reloaded.loadProgress()).toEqual(fresh);

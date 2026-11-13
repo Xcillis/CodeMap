@@ -1,7 +1,7 @@
 import type { GridPosition } from '../combat/types';
 import type { SkillId } from './ArkanaCatalog';
 
-export const LESSON_IDS = ['q01-glutspur', 'q02-basisangriff', 'q03-wiederkehr', 'q04-musterpfad', 'q05-aufmerksam'] as const;
+export const LESSON_IDS = ['q01-glutspur', 'q02-basisangriff', 'q03-wiederkehr', 'q04-musterpfad', 'q05-aufmerksam', 'q06-waechter'] as const;
 export type LessonId = typeof LESSON_IDS[number];
 export const isLessonId = (value: unknown): value is LessonId => LESSON_IDS.some((id) => value === id);
 export type RepeatGoal = 'none' | 'movement' | 'movement-sequence';
@@ -28,7 +28,7 @@ interface QuestBase {
 }
 export type WorldQuest = QuestBase & (
   | { kind: 'puzzle'; goal: GridPosition; walls: readonly GridPosition[]; repeatGoal: RepeatGoal }
-  | { kind: 'combat'; enemy: GridPosition; enemyHp: number; decisionTrials?: readonly DecisionTrial[] }
+  | { kind: 'combat'; enemy: GridPosition; enemyHp: number; decisionTrials?: readonly DecisionTrial[]; adaptiveTrials?: readonly DecisionTrial[] }
 );
 
 export const WORLD_QUESTS: readonly WorldQuest[] = [
@@ -70,8 +70,20 @@ export const WORLD_QUESTS: readonly WorldQuest[] = [
     objective: 'Wähle mit demselben falls/sonst-Block in beiden Situationen passend: direkt daneben angreifen, sonst einen Schritt näher herangehen.',
     introduces: ['enemyAdjacent', 'moveForward'], allowed: ['moveRight', 'moveUp', 'moveForward', 'attack', 'enemyAdjacent'],
     starter: 'if (glutling.enemyAdjacent) {\n  glutling.attack();\n}',
-    reward: 'Glutling hat in beiden Situationen passend entschieden! Dieselbe Bedingung wurde einmal mit ja und einmal mit nein beantwortet. Die Verzweigung hat jeweils den passenden Befehl ausgewählt. Im Charakterfenster findest du Bedingung und Verzweigung mit Beispielen. Jetzt kannst du den südöstlichen Hain erkunden und dort Moosling finden und aufnehmen. Die nächste Lernquest mit einem beweglichen Wächter folgt später.',
+    reward: 'Glutling hat in beiden Situationen passend entschieden! Dieselbe Bedingung wurde einmal mit ja und einmal mit nein beantwortet. Die Verzweigung hat jeweils den passenden Befehl ausgewählt. Im Charakterfenster findest du Bedingung und Verzweigung mit Beispielen. Jetzt kannst du den südöstlichen Hain erkunden und dort Moosling finden und aufnehmen. Am Wächterstein am östlichen Nordweg wartet die nächste Lernquest: Dort verbindest du Schleife und Bedingung gegen ein aktives Konstrukt.',
     hints: ['Beobachte die Entfernung: Ein Angriff trifft nur direkt daneben. Bei größerem Abstand muss Glutling zuerst näher herangehen.', 'Im vorbereiteten falls/sonst-Block steht der Angriff bereits im dann-Teil. Ergänze im sonst-Teil eine Bewegung zum nächsten Gegner.', 'Im Text ergänzt du nach der schließenden Klammer else { glutling.moveForward(); }. Führe dasselbe Programm in beiden Situationen aus und vergleiche die Antworten auf die Bedingung.'] },
+  { id: 'q06-waechter', title: 'Der bewegliche Wächter', target: 'Wächterstein am östlichen Nordweg', x: 1430, y: 430,
+    kind: 'combat', start: { x: 1, y: 3 }, enemy: { x: 4, y: 3 }, enemyHp: 6,
+    adaptiveTrials: [
+      { title: 'Der Wächter beginnt drei Felder entfernt', start: { x: 1, y: 3 }, enemy: { x: 4, y: 3 } },
+      { title: 'Der Wächter beginnt vier Felder entfernt', start: { x: 1, y: 3 }, enemy: { x: 5, y: 3 } },
+    ],
+    introduction: 'Dieser Wächter wartet nicht still: Nach jedem Befehl von Glutling kommt er ein Feld näher. Steht er direkt daneben, greift er stattdessen an und zieht Glutling 1 Lebenspunkt ab. Der Wächter hat 6 LP, Glutlings Angriff verursacht 2 Schaden. Nach jeder Situation beginnen beide wieder mit vollen LP.\n\nDie Entfernung verändert sich während des Programms. Prüfe deshalb bei jedem Durchlauf neu: direkt daneben angreifen, sonst zum nächsten Gegner gehen. Lege dafür den bekannten falls/sonst-Block in den Schleifenrumpf von „wiederhole … mal“. So wird seine Bedingung bei jeder Wiederholung neu beantwortet.\n\nErgänze den unvollständigen Wiederholungsblock und wähle eine passende Anzahl. Dasselbe Programm muss den Wächter in zwei Startsituationen ausschalten. In jeder Situation muss dieselbe Bedingung innerhalb derselben Schleife bei verschiedenen Durchläufen einmal nein und einmal ja ergeben und passende Aktionen auslösen. Ein Sieg durch reine Einzelbefehle reicht für diese Übung nicht.\n\nMit „Nächsten Schritt ausführen“ siehst du Glutlings nächste Aktion und die Antwort des Wächters. „Programm ausführen“ spielt beide Situationen vollständig ab. Beobachte die markierte Bedingung und den Durchlauf; mit Pause kannst du einzelne Aktionen prüfen.',
+    objective: 'Schalte den aktiven Wächter in beiden Situationen mit demselben Programm aus. Entscheide innerhalb einer Schleife bei jedem Durchlauf neu: daneben angreifen, sonst näher gehen. In jeder Situation müssen beide Antworten mit passenden Aktionen in verschiedenen Durchläufen vorkommen.',
+    introduces: [], allowed: ['moveRight', 'moveUp', 'moveForward', 'attack', 'enemyAdjacent', 'repeat'],
+    starter: 'repeat(1, () => {\n  if (glutling.enemyAdjacent) {\n    glutling.attack();\n  }\n});',
+    reward: 'Beide Wächter sind ausgeschaltet! Die Bedingung stand im Schleifenrumpf und wurde in jedem Durchlauf neu geprüft. Zuerst führte die Antwort nein zum Nähergehen, später führte ja zum Angriff. Dein Programm hat auf die veränderte Entfernung reagiert. Im Charakterfenster findest du ein neues Beispiel zur Verbindung von Schleife und Verzweigung. Falls du Moosling noch nicht gesammelt hast, wartet es im südöstlichen Hain. Die gemeinsame Koordination mehrerer Arkana folgt später; bis dahin kannst du bekannte Quests wiederholen oder frei trainieren.',
+    hints: ['Beobachte nach Glutlings Bewegung auch den Wächter: Beide können die Entfernung verändern. Ein zuvor passender Bewegungsbefehl ist später vielleicht ein Angriff.', 'Lege den falls/sonst-Block vollständig in den Wiederholungsblock. Bei ja gehört der Angriff hinein, bei nein ein Schritt zum nächsten Gegner. Außerhalb der Schleife würde die Frage nicht bei jedem Durchlauf erneut gestellt.', 'Der weiter entfernte Wächter braucht zwei Annäherungen von Glutling, danach drei erfolgreiche Angriffe. Wähle eine Wiederholungszahl, die dafür ausreicht. In der näheren Situation endet die Begegnung schon früher, sobald der Wächter ausgeschaltet ist.'] },
 ];
 export const getLesson = (id: LessonId): WorldQuest => WORLD_QUESTS.find((quest) => quest.id === id)!;
 

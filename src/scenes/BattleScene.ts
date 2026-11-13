@@ -79,7 +79,7 @@ export class BattleScene extends Phaser.Scene {
       this.session = new LessonSession(lesson, encounter.skills.glutling ?? []);
       programs = { glutling: lesson.starter }; key = lesson.id;
       presentation = { title: lesson.title, instructions: lesson.introduction, objective: lesson.objective, hints: lesson.hints, mode: 'lesson' };
-      this.subtitle.setText(lesson.kind === 'puzzle' ? 'Goldene Rune: Ziel · Graue Steine: Hindernisse' : 'Das Konstrukt bleibt passiv. Plane Bewegung und Angriff.');
+      this.subtitle.setText(lesson.kind === 'puzzle' ? 'Goldene Rune: Ziel · Graue Steine: Hindernisse' : lesson.adaptiveTrials ? 'Aktiver Wächter: handelt nach jeder Aktion von Glutling.' : 'Das Konstrukt bleibt passiv. Plane Bewegung und Angriff.');
     } else {
       this.session = new BattleSession(encounter.mission, encounter.team, encounter.skills);
       programs = missionPrograms(encounter.mission, encounter.team); key = encounter.mission;
@@ -127,7 +127,8 @@ export class BattleScene extends Phaser.Scene {
   }
 
   private render(state: Readonly<EncounterState>): void {
-    if (state.lessonTrial) this.subtitle.setText(`Situation ${state.lessonTrial.current}/${state.lessonTrial.total} · ${state.lessonTrial.passed} passend entschieden · Ein Entscheidungsschritt`);
+    const active = this.session instanceof LessonSession && this.session.lesson.kind === 'combat' && Boolean(this.session.lesson.adaptiveTrials?.length);
+    if (state.lessonTrial) this.subtitle.setText(`Situation ${state.lessonTrial.current}/${state.lessonTrial.total} · ${state.lessonTrial.passed} geschafft · ${active ? 'Aktiver Wächter' : 'Ein Entscheidungsschritt'}`);
     this.grid.clear();
     for (let y = 0; y < 7; y += 1) {
       for (let x = 0; x < 7; x += 1) {

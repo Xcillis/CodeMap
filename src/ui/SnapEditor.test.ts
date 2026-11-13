@@ -8,6 +8,23 @@ import { getLesson } from '../gameplay/WorldQuests';
 import { LessonSession } from '../combat/LessonSession';
 
 describe('Echte Blockly-Verbindungen', () => {
+  it('löst Q06 mit einer Verzweigung im Schleifenrumpf und erhält Anschlüsse beim Textwechsel', () => {
+    const lesson = getLesson('q06-waechter'); const workspace = new Blockly.Workspace();
+    try {
+      const start = workspace.newBlock('cm_start'); const repeat = workspace.newBlock('cm_repeat'); repeat.setFieldValue(5, 'COUNT');
+      const choice = workspace.newBlock('cm_if'); const attack = workspace.newBlock('cm_attack'); const move = workspace.newBlock('cm_move');
+      start.nextConnection!.connect(repeat.previousConnection!); repeat.getInput('BODY')!.connection!.connect(choice.previousConnection!);
+      choice.getInput('THEN')!.connection!.connect(attack.previousConnection!); choice.getInput('ELSE')!.connection!.connect(move.previousConnection!);
+      const source = nodesToSource(workspaceNodes(workspace), 'glutling'); const session = new LessonSession(lesson, lesson.allowed);
+      session.execute({ glutling: source }, true); expect(session.snapshot).toMatchObject({ outcome: 'victory', lessonTrial: { passed: 2 } });
+      loadNodes(workspace, compileActionPlan(source, 'glutling').nodes!, 'glutling');
+      expect(nodesToSource(workspaceNodes(workspace), 'glutling')).toBe(source);
+      expect(blockAtPath(workspace, '0.body.0.then.0')?.type).toBe('cm_attack');
+      expect(blockAtPath(workspace, '0.body.0.otherwise.0')?.type).toBe('cm_move');
+      const toolbox = JSON.stringify(snapToolbox('glutling', 0, lesson.allowed));
+      expect(toolbox).toContain('cm_repeat'); expect(toolbox).toContain('cm_if'); expect(toolbox).not.toContain('cm_move_left');
+    } finally { workspace.dispose(); }
+  });
   it('löst Q05 mit Angriff und Bewegung in den getrennten if/else-Anschlüssen', () => {
     const lesson = getLesson('q05-aufmerksam'); const workspace = new Blockly.Workspace();
     try {

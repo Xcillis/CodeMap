@@ -97,7 +97,7 @@ export class BattleEngine {
     this.addLog(damage === 0 ? `${target.name} blockt den Angriff.` : `${actor.name} trifft ${target.name} für ${damage} Schaden.`);
     if (target.hp === 0) {
       this.state.outcome = target.id === 'konstrukt' ? 'victory' : 'defeat';
-      this.addLog(this.state.outcome === 'victory' ? 'Sieg! Die Trainingsquest ist bestanden.' : 'Niederlage. Du kannst sofort neu starten.');
+      this.addLog(this.state.outcome === 'victory' ? 'Sieg! Das Konstrukt ist ausgeschaltet.' : 'Niederlage. Du kannst sofort neu starten.');
     }
   }
 

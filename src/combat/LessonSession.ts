@@ -7,10 +7,12 @@ import { nodesCapabilityError } from './CommandCatalog';
 import { ProgramRunner } from './ProgramRunner';
 import { RepeatProgress } from './RepeatProgress';
 import { DecisionProgress, enemyAdjacent } from './DecisionProgress';
+import { AdaptiveCombatSession } from './AdaptiveCombatSession';
 import type { ActionFrame, ArkanId, EncounterState, ProgramSources } from './types';
 
 /** Executes one introductory program, with the same parser and runner as free training. */
 export class LessonSession {
+  private readonly adaptive?: AdaptiveCombatSession;
   private engine: BattleEngine | PuzzleEngine;
   private runner?: ProgramRunner;
   private signature = '';
@@ -24,10 +26,12 @@ export class LessonSession {
   readonly actors: ArkanId[] = ['glutling'];
   constructor(readonly lesson: WorldQuest, private readonly skills: readonly SkillId[]) {
     this.engine = lesson.kind === 'puzzle' ? new PuzzleEngine(lesson) : new BattleEngine({ glutling: lesson.start, konstrukt: lesson.enemy });
+    if (lesson.kind === 'combat' && lesson.adaptiveTrials?.length) this.adaptive = new AdaptiveCombatSession(lesson, skills);
     this.reset();
   }
-  get frames(): readonly ActionFrame<EncounterState>[] { return this.actionFrames; }
+  get frames(): readonly ActionFrame<EncounterState>[] { return this.adaptive?.frames ?? this.actionFrames; }
   get snapshot(): EncounterState {
+    if (this.adaptive) return this.adaptive.snapshot;
     const state: EncounterState = this.engine.snapshot;
     if (state.outcome === 'victory' && this.lesson.kind === 'puzzle' && !this.repeatProgress.satisfies(this.lesson.repeatGoal)) state.outcome = 'incomplete';
     const trials = this.lesson.kind === 'combat' ? this.lesson.decisionTrials : undefined;
@@ -39,12 +43,14 @@ export class LessonSession {
     return state;
   }
   reset(): void {
+    if (this.adaptive) { this.adaptive.reset(); return; }
     this.trialIndex = 0; this.passedTrials = 0; this.nextTrial = false; this.decisionFailure = undefined; this.decisions.clear();
     if (this.engine instanceof PuzzleEngine) this.engine.reset();
     else this.resetCombat();
     this.runner = undefined; this.signature = ''; this.actionFrames = []; this.repeatProgress.clear();
   }
   execute(sources: ProgramSources, full = false): string {
+    if (this.adaptive) return this.adaptive.execute(sources, full);
     this.actionFrames = [];
     const parsed = compileActionPlan(sources.glutling ?? '', 'glutling');
     if (parsed.error || !parsed.nodes) return parsed.error ?? 'Ungültiges Programm.';

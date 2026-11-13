@@ -12,6 +12,7 @@ const solutions: Record<LessonId, string> = {
   'q03-wiederkehr': 'repeat(4, () => { glutling.moveRight(); });',
   'q04-musterpfad': 'repeat(3, () => { glutling.moveRight(); glutling.moveUp(); });',
   'q05-aufmerksam': 'if (glutling.enemyAdjacent) { glutling.attack(); } else { glutling.moveForward(); }',
+  'q06-waechter': 'repeat(5, () => { if (glutling.enemyAdjacent) { glutling.attack(); } else { glutling.moveForward(); } });',
 };
 function introduced(): Campaign {
   const campaign = new Campaign(); campaign.apply('meet-eldren'); campaign.apply('recruit-glutling'); return campaign;
@@ -34,14 +35,15 @@ describe('Gestufte Lernquests und freie Trainingsarena', () => {
     expect(campaign.availableEncounters.map((encounter) => encounter.id)).toEqual(['glutling']);
     expect(campaign.interact('glutling').action).toBeUndefined(); expect(campaign.apply('recruit-glutling')).toContain('Eldren');
     campaign.apply('meet-eldren'); campaign.apply('recruit-glutling');
-    for (const id of LESSON_IDS) {
+    for (const id of LESSON_IDS.slice(0, 5)) {
       expect(campaign.interact('moosling').action).toBeUndefined();
       expect(campaign.apply('recruit-moosling')).toContain('fünf Einführungsquests');
       expect(campaign.availableEncounters.map((encounter) => encounter.id)).not.toContain('moosling');
       win(campaign, id); expect(campaign.snapshot.owned.map((item) => item.speciesId)).toEqual(['glutling']);
     }
     expect(campaign.availableEncounters.map((encounter) => encounter.id)).toEqual(['moosling']);
-    expect(campaign.objective).toContain('südöstlichen Hain'); expect(campaign.interact('arkanist-eldren').text).toContain('Moosling');
+    expect(campaign.objective).toContain('Wächterstein'); expect(campaign.interact('arkanist-eldren').action).toBe('lesson:q06-waechter');
+    win(campaign, 'q06-waechter'); expect(campaign.objective).toContain('südöstlichen Hain');
     expect(campaign.interact('moosling').action).toBe('recruit-moosling');
     campaign.apply('recruit-moosling'); campaign.apply('recruit-moosling');
     expect(campaign.snapshot.owned.map((item) => item.speciesId)).toEqual(['glutling', 'moosling']);
@@ -62,7 +64,22 @@ describe('Gestufte Lernquests und freie Trainingsarena', () => {
     expect(campaign.snapshot.completed).not.toContain('q05-aufmerksam');
     session.execute({ glutling: solutions['q05-aufmerksam'] }); expect(session.snapshot.outcome).toBe('victory');
     expect(campaign.finishMission('q05-aufmerksam')).toMatchObject({ repeated: false, title: 'Der aufmerksame Begleiter' });
-    expect(campaign.snapshot.completed).toEqual([...LESSON_IDS]); expect(campaign.teamLimit).toBe(1);
+    expect(campaign.snapshot.completed).toEqual([...LESSON_IDS.slice(0, 5)]); expect(campaign.teamLimit).toBe(1);
+  });
+  it('öffnet Q06 nach Q05 auch nach dem Laden und vergibt weder das Team noch Arkana automatisch', () => {
+    const campaign = introduced();
+    for (const id of LESSON_IDS.slice(0, 4)) win(campaign, id);
+    campaign.interact('lesson:q06-waechter'); expect(campaign.prepareMission('q06-waechter')).toContain('vorherige');
+    win(campaign, 'q05-aufmerksam');
+    const loaded = new Campaign(JSON.parse(JSON.stringify(campaign.snapshot)));
+    expect(loaded.snapshot.completed).toEqual([...LESSON_IDS.slice(0, 5)]);
+    expect(loaded.interact('arkanist-eldren').action).toBe('lesson:q06-waechter');
+    const session = begin(loaded, 'q06-waechter'); session.execute({ glutling: solutions['q06-waechter'] });
+    expect(session.snapshot.outcome).toBe('ongoing'); expect(loaded.snapshot.completed).not.toContain('q06-waechter');
+    loaded.leaveMission(); expect(loaded.snapshot.completed).not.toContain('q06-waechter');
+    win(loaded, 'q06-waechter'); expect(loaded.snapshot.completed).toEqual([...LESSON_IDS]);
+    expect(loaded.teamLimit).toBe(1); expect(loaded.snapshot.owned.map((item) => item.speciesId)).toEqual(['glutling']);
+    expect(loaded.availableEncounters.map((item) => item.id)).toEqual(['moosling']);
   });
   it('erstellt den Arenaabschluss mit nächstem Ziel und kennzeichnet Wiederholungen ohne doppelte Belohnung', () => {
     const campaign = introduced();

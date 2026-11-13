@@ -31,6 +31,20 @@ beforeEach(() => {
 afterEach(() => { for (const [name, callback] of domListeners) document.removeEventListener(name, callback); vi.restoreAllMocks(); });
 
 describe('Sammlung und Questjournal', () => {
+  it('bietet Q06 nach Q05 an und zeigt das kombinierte Beispiel erst nach dessen Abschluss', () => {
+    campaign = new Campaign({ version: 2, introduced: true, completed: LESSON_IDS.slice(0, 5), owned: [{ speciesId: 'glutling' }], team: [instanceId('glutling')] });
+    campaign.interact('arkanist-eldren'); gameEvents.emit('campaign-updated', campaign.snapshot); click('open-journal');
+    expect((el('journal-quest-q06-waechter') as HTMLButtonElement).disabled).toBe(false);
+    expect(el('world-panel-content').textContent).toContain('Wächterstein');
+    click('world-panel-close'); click('open-collection'); click('character-tab-glossary');
+    expect(document.querySelectorAll('.glossary-card[data-term="branch"] pre')).toHaveLength(1);
+    campaign.beginMission('q06-waechter'); gameEvents.emit('campaign-updated', campaign.snapshot);
+    expect(document.querySelectorAll('.glossary-card[data-term="branch"] pre')).toHaveLength(1);
+    campaign.finishMission('q06-waechter'); gameEvents.emit('campaign-updated', campaign.snapshot);
+    expect(document.querySelectorAll('.glossary-card[data-term="branch"] pre')).toHaveLength(2);
+    expect(document.querySelectorAll('.glossary-card[data-term="loop"] pre')).toHaveLength(3);
+    expect(el('world-panel-content').textContent).toContain('Bei jedem Durchlauf neu entscheiden');
+  });
   it('beginnt erst nach Bestätigung ein neues Abenteuer und bietet die Sicherung zum Laden an', () => {
     campaign = new Campaign({ version: 2, introduced: true, owned: [{ speciesId: 'glutling' }, { speciesId: 'moosling' }], completed: LESSON_IDS });
     const saved = JSON.stringify({ programVersion: 3, campaign: campaign.snapshot }); localStorage.setItem('codemap-m2-progress', saved);

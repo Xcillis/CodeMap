@@ -128,6 +128,33 @@ describe('Platz für das Programm bei allen Aufgaben', () => {
 });
 
 describe('Editorzustand und Arkan-Zuordnung', () => {
+  it('spielt Q06 mit getrennten Wächteraktionen ab und bestätigt erst den sichtbaren zweiten Sieg', () => {
+    vi.useFakeTimers(); const lesson = getLesson('q06-waechter');
+    const campaign = new Campaign({ version: 2, introduced: true, completed: LESSON_IDS.slice(0, 5), owned: [{ speciesId: 'glutling' }], team: [instanceId('glutling')] });
+    campaign.interact(`lesson:${lesson.id}`); campaign.beginMission(lesson.id);
+    gameEvents.emit('battle-opened', { glutling: lesson.starter }, lesson.id, { glutling: lesson.allowed }, { title: lesson.title, mode: 'lesson', instructions: lesson.introduction, objective: lesson.objective, hints: lesson.hints });
+    const source = 'repeat(5, () => { if (glutling.enemyAdjacent) { glutling.attack(); } else { glutling.moveForward(); } });';
+    click('text-mode'); type(source); click('blocks-mode');
+    const session = new LessonSession(lesson, lesson.allowed); session.execute({ glutling: source }, true);
+    const playback = new Playback<typeof session.frames[number]>((frame) => { gameEvents.emit('battle-frame', frame); gameEvents.emit('battle-updated', frame.after, 'Wächterprüfung'); }, (state) => gameEvents.emit('battle-playback', state));
+    playback.play(session.frames, () => gameEvents.emit('quest-completed', campaign.finishMission(lesson.id)));
+    expect(document.getElementById('encounter-goals')!.hasAttribute('open')).toBe(false);
+    expect((snaps.at(-1) as { highlightedPath?: string }).highlightedPath).toBe('0.body.0.otherwise.0');
+    expect(document.getElementById('execution-trace')!.textContent).toContain('Durchlauf 1 von 5');
+    vi.advanceTimersByTime(850);
+    expect(document.getElementById('execution-trace')!.textContent).toContain('Konstrukt');
+    expect((snaps.at(-1) as { highlightedPath?: string }).highlightedPath).toBeUndefined();
+    vi.advanceTimersByTime(5 * 850);
+    expect(document.getElementById('lesson-trial-summary')!.textContent).toContain('1/2 geschafft');
+    expect(document.getElementById('quest-completion')!.hidden).toBe(true);
+    vi.advanceTimersByTime(850);
+    expect(document.getElementById('lesson-trial-summary')!.textContent).toContain('Situation 2/2');
+    vi.advanceTimersByTime(8 * 850);
+    expect(document.getElementById('quest-completion')!.hidden).toBe(true); expect(campaign.snapshot.completed).not.toContain(lesson.id);
+    vi.advanceTimersByTime(850);
+    expect(document.getElementById('quest-completion')!.hidden).toBe(false); expect(campaign.snapshot.completed).toContain(lesson.id);
+    expect(document.querySelector('#quest-completion-text strong[data-term="condition"]')?.textContent).toBe('Bedingung');
+  });
   it('zeigt Q05 mit beiden Situationen, passender Palette und Abschluss erst nach der zweiten Animation', () => {
     vi.useFakeTimers(); const lesson = getLesson('q05-aufmerksam');
     const campaign = new Campaign({ version: 2, introduced: true, completed: LESSON_IDS.slice(0, 4), owned: [{ speciesId: 'glutling' }], team: [instanceId('glutling')] });
