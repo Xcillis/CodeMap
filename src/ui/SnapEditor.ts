@@ -3,11 +3,13 @@ import * as German from 'blockly/msg/de';
 import { availableCommands, COMMAND_CATEGORIES } from '../combat/CommandCatalog';
 import { nodesToSource } from '../combat/DecisionProgram';
 import type { ArkanId, ProgramNode } from '../combat/types';
+import { registerDuplicateMenu } from './DuplicateBlock';
 
 Blockly.setLocale(Object.entries(German).reduce<Record<string, string>>((messages, [key, value]) => {
   if (typeof value === 'string') messages[key] = value;
   return messages;
 }, {}));
+registerDuplicateMenu();
 Blockly.defineBlocksWithJsonArray([
   { type: 'cm_start', message0: 'Wenn Programm ausgeführt wird', nextStatement: 'Action', colour: '#d6a728', tooltip: 'Nur die hier verbundenen Blöcke werden ausgeführt.' },
   { type: 'cm_move', message0: 'vorwärts gehen', previousStatement: 'Action', nextStatement: 'Action', colour: '#357bd0', tooltip: 'Der ausgewählte Arkan geht ein Feld zum Gegner. Belegte Felder blockieren den Schritt.' },

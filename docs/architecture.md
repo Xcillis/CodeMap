@@ -64,6 +64,8 @@ Nur der am Startblock eingerastete Ablauf ist ausführbar. Lose Blöcke und ihre
 
 Blockbeschriftungen enthalten keine Arkan-Namen. Arkan-Karten und eine persistente Anzeige über dem Arbeitsbereich definieren den Objektkontext. Die Textserialisierung verwendet weiterhin die ausgewählte Arkan-ID. Alte Blockly-Entwürfe werden beim Laden nur um das frühere Anzeigefeld `ACTOR` bereinigt; Verbindungen, Wiederholungszahlen und Positionen bleiben erhalten.
 
+Die Kontextaktion „Duplizieren“ serialisiert den ausgewählten Blockly-Block einschließlich aller inneren Eingänge und ihrer Verkettungen. Nur die äußere `next`-Verbindung wird entfernt. Blockly erzeugt beim Einfügen neue IDs; die Kopie wird versetzt und unverbunden in denselben Arkan-Arbeitsbereich eingefügt. Die Kapazitätsprüfung zählt den gesamten kopierten Unterbaum. Eine gemeinsame Ereignisgruppe ermöglicht Undo/Redo in einem Schritt. Die ursprüngliche Blockly-Duplizieraktion wird für CodeMap-Blöcke ausgeblendet, und der einzelne Startblock ist von der Aktion ausgenommen.
+
 ## Noch nicht enthalten
 
 Dreier-Formation, Variablen und Funktionen in der Programmiersprache, freie JavaScript-Runtime, Online-Speicherung, Login, Backend, NOVA und Kompetenzengine bleiben spätere Erweiterungen. Frühere ADRs beschreiben die Entwicklungsschritte; ADR 010 ergänzt den aktuellen Stand von Editor und Programmiersprache.
