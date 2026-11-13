@@ -2,7 +2,8 @@ import { gameEvents, type DialogPayload } from '../game/events';
 import { touchInput, type TouchDirection } from '../input/TouchInput';
 import { loadProgress, saveProgress, saveProgramDraft } from '../gameplay/LocalProgress';
 import { compileActionPlan } from '../combat/DecisionProgram';
-import type { ArkanId, BattleState, ProgramSources } from '../combat/types';
+import type { ActionFrame, ArkanId, BattleState, ProgramSources } from '../combat/types';
+import type { PlaybackState } from '../combat/Playback';
 import { availableCommands, COMMAND_CATEGORIES, commandSource, type CommandCategory } from '../combat/CommandCatalog';
 import { SnapEditor } from './SnapEditor';
 import { ProgramDrag } from './ProgramDrag';
@@ -24,6 +25,8 @@ export class GameUi {
   private readonly text = this.el<HTMLTextAreaElement>('program-source');
   private readonly feedback = this.el<HTMLElement>('battle-feedback');
   private readonly drag: ProgramDrag;
+  private playbackState: PlaybackState = 'idle';
+  private activeFrame?: ActionFrame;
 
   constructor() {
     this.drag = new ProgramDrag(this.panel, this.el('program-drop-area'), () => [], (item) => {
@@ -54,6 +57,15 @@ export class GameUi {
       this.exploration(true);
     });
     gameEvents.on('battle-updated', (state: BattleState, feedback: string) => this.update(state, feedback));
+    gameEvents.on('battle-playback', (state: PlaybackState) => {
+      this.playbackState = state; this.applyPlaybackState();
+    });
+    gameEvents.on('battle-frame', (frame: ActionFrame) => {
+      this.activeFrame = frame;
+      if (frame.actor !== 'konstrukt') this.selectActor(frame.actor);
+      this.showTrace();
+    });
+    gameEvents.on('battle-trace-clear', () => { this.activeFrame = undefined; this.showTrace(); });
     gameEvents.on('battle-next-available', (available: boolean) => { this.el('battle-next-mission').hidden = !available; });
     gameEvents.on('arkan-selected', (actor: ArkanId) => this.selectActor(actor));
     this.click('select-moosling', () => this.selectActor('moosling'));
@@ -62,11 +74,16 @@ export class GameUi {
     this.click('text-mode', () => this.setMode('text'));
     this.click('battle-step', () => this.execute('battle-step'));
     this.click('battle-run-program', () => this.execute('battle-run-program'));
+    this.click('battle-pause', () => gameEvents.emit('battle-pause'));
+    this.el<HTMLSelectElement>('battle-speed').addEventListener('change', (event) => gameEvents.emit('battle-speed', Number((event.target as HTMLSelectElement).value)));
+    this.text.addEventListener('scroll', () => this.highlightLine());
     this.click('battle-restart', () => gameEvents.emit('battle-restart'));
     this.click('battle-next-mission', () => gameEvents.emit('battle-next-mission'));
     this.click('battle-exit', () => gameEvents.emit('battle-exit'));
     this.click('interact-button', () => touchInput.requestInteraction());
     this.text.addEventListener('input', () => {
+      if (this.playbackState !== 'idle') return;
+      this.programChanged();
       this.workspaceDrafts[this.key()] = '';
       this.loose[this.key()] = false;
       this.capture();
@@ -80,7 +97,7 @@ export class GameUi {
       button.addEventListener('pointerdown', (event) => { event.preventDefault(); touchInput.setDirection(direction, true); });
       for (const name of ['pointerup', 'pointercancel', 'pointerleave']) button.addEventListener(name, () => touchInput.setDirection(direction, false));
     });
-    for (const [id, text] of Object.entries({ 'battle-step': 'Führt den nächsten Spielschritt aller Arkane aus.', 'battle-run-program': 'Startet die Mission neu und führt alle verbundenen Programme aus.', 'battle-restart': 'Setzt den Kampf zurück. Deine Programme bleiben erhalten.', 'blocks-mode': 'Blöcke einrasten oder in Schleifen und Bedingungen ziehen.', 'text-mode': 'Dasselbe Programm als Text bearbeiten.' })) {
+    for (const [id, text] of Object.entries({ 'battle-step': 'Führt einen Spielschritt aller Arkane aus. Während einer Pause: nächste einzelne Aktion.', 'battle-run-program': 'Startet die Mission neu und spielt alle verbundenen Programme sichtbar ab.', 'battle-pause': 'Pausiert die Wiedergabe oder setzt sie fort. Neu starten beendet den Versuch.', 'battle-restart': 'Setzt den Kampf zurück. Deine Programme bleiben erhalten.', 'blocks-mode': 'Blöcke einrasten oder in Schleifen und Bedingungen ziehen.', 'text-mode': 'Dasselbe Programm als Text bearbeiten.' })) {
       const element = this.el(id);
       element.title = text;
       for (const event of ['mouseenter', 'focus']) element.addEventListener(event, () => { this.el('editor-tooltip').textContent = text; this.el('editor-tooltip').hidden = false; });
@@ -133,6 +150,7 @@ export class GameUi {
       if (state) state.textContent = actor === this.selectedActor ? 'Ausgewählt' : 'Auswählen';
     }
     this.renderLibrary();
+    this.applyPlaybackState(); this.showTrace();
   }
 
   private setMode(mode: EditorMode, loading = false): void {
@@ -152,13 +170,16 @@ export class GameUi {
       this.el(`${option}-mode`).setAttribute('aria-pressed', String(mode === option));
     }
     if (mode === 'blocks') {
-      this.snap ??= new SnapEditor(this.el('snap-editor'), () => { if (this.editorMode === 'blocks') this.capture(); });
+      this.snap ??= new SnapEditor(this.el('snap-editor'), () => {
+        if (this.editorMode === 'blocks' && this.playbackState === 'idle') { this.programChanged(); this.capture(); }
+      });
       const saved = this.workspaceDrafts[this.key()] ?? loadProgress().blockWorkspaces[this.key()];
       try { this.snap.load(parsed.nodes!, this.selectedActor, this.mission, saved || undefined); }
       catch { this.snap.load(parsed.nodes!, this.selectedActor, this.mission); }
       this.capture();
     }
     saveProgress({ editorMode: mode });
+    this.applyPlaybackState(); this.showTrace();
     this.resize();
   }
 
@@ -178,6 +199,8 @@ export class GameUi {
   }
 
   private execute(event: string): void {
+    if (event === 'battle-step' && this.playbackState === 'paused') { gameEvents.emit(event, {}); return; }
+    if (this.playbackState !== 'idle') return;
     this.capture();
     if (Object.keys(this.sources).some((actor) => this.loose[`${this.mission}:${actor}`])) { this.feedback.textContent = 'Verbinde zunächst alle losen Blöcke mit dem Startblock oder lösche sie.'; return; }
     gameEvents.emit(event, { ...this.sources });
@@ -205,13 +228,16 @@ export class GameUi {
       button.append(title, code, description); button.title = command.description; return button;
     }));
     this.el('editor-tooltip').hidden = true;
+    this.applyPlaybackState();
   }
 
   private insertTextCommand(id: string): void {
+    if (this.playbackState !== 'idle') return;
     const command = availableCommands(this.selectedActor, this.mission).find((entry) => entry.id === id);
     if (!command || this.editorMode !== 'text') return;
     const snippet = commandSource(command, this.selectedActor);
     this.text.setRangeText(`${this.text.value.trim() ? '\n' : ''}${snippet}`, this.text.selectionStart, this.text.selectionEnd, 'end');
+    this.programChanged();
     this.workspaceDrafts[this.key()] = ''; this.loose[this.key()] = false; this.capture();
   }
 
@@ -224,10 +250,63 @@ export class GameUi {
     }
     this.el('companion-health-status').hidden = !state.companion;
     this.el<HTMLButtonElement>('battle-step').disabled = state.outcome !== 'ongoing';
+    this.applyPlaybackState();
     this.el('battle-log').replaceChildren(...state.log.map((line) => { const item = document.createElement('li'); item.textContent = line; return item; }));
   }
 
   private exploration(visible: boolean): void { for (const id of ['hud', 'touch-controls', 'interaction-hint']) this.el(id).classList.toggle('screen-hidden', !visible); }
+  private programChanged(): void {
+    this.activeFrame = undefined; this.showTrace();
+    this.el<HTMLButtonElement>('battle-step').disabled = false;
+  }
+  private applyPlaybackState(): void {
+    const locked = this.playbackState !== 'idle';
+    this.text.readOnly = locked;
+    this.snap?.setReadOnly(locked);
+    this.el<HTMLButtonElement>('battle-pause').disabled = !locked;
+    this.el('battle-pause').textContent = this.playbackState === 'paused' ? 'Fortsetzen' : 'Pause';
+    this.el<HTMLButtonElement>('battle-run-program').disabled = locked;
+    if (locked) this.el<HTMLButtonElement>('battle-step').disabled = this.playbackState !== 'paused';
+    this.el<HTMLButtonElement>('battle-next-mission').disabled = locked;
+    this.el('editor-columns').classList.toggle('execution-locked', locked);
+    this.panel.querySelectorAll<HTMLButtonElement>('[data-command]').forEach((button) => { button.disabled = locked; });
+  }
+
+  private showTrace(): void {
+    const frame = this.activeFrame;
+    const trace = this.el('execution-trace');
+    trace.hidden = !frame;
+    const own = frame && frame.actor === this.selectedActor;
+    this.snap?.highlight(own ? frame.trace?.path : undefined);
+    // Mode changes may reformat the source. The structural path remains stable.
+    const line = own && frame.trace ? compileActionPlan(this.text.value, this.selectedActor).sourceMap?.[frame.trace.path] : undefined;
+    if (line) this.text.dataset.activeLine = String(line); else delete this.text.dataset.activeLine;
+    this.el('active-code-line').hidden = !line || this.editorMode !== 'text';
+    this.el('active-code-line').textContent = line ? `Aktive Zeile: ${line}` : '';
+    if (line && this.editorMode === 'text' && this.text.clientHeight) {
+      const height = Number.parseFloat(getComputedStyle(this.text).lineHeight) || 22;
+      const top = (line - 1) * height;
+      if (top < this.text.scrollTop || top + height > this.text.scrollTop + this.text.clientHeight) this.text.scrollTop = Math.max(0, top - height);
+    }
+    this.highlightLine();
+    if (!frame) return;
+    const name = frame.actor === 'moosling' ? 'Moosling' : frame.actor === 'glutling' ? 'Glutling' : 'Konstrukt';
+    const loops = frame.trace?.loops.map((loop) => `Durchlauf ${loop.iteration} von ${loop.total}`).join(' · ');
+    const conditions = frame.trace?.conditions.map((condition) => `Gegner nahe: ${condition.value ? 'ja' : 'nein'}`).join(' · ');
+    trace.textContent = [name, frame.action === 'ATTACK' ? 'angreifen' : 'vorwärts gehen', loops, conditions].filter(Boolean).join(' · ');
+  }
+
+  private highlightLine(): void {
+    const line = Number(this.text.dataset.activeLine);
+    if (!line) { this.text.style.backgroundImage = ''; return; }
+    const style = getComputedStyle(this.text);
+    const height = Number.parseFloat(style.lineHeight) || 22;
+    const top = (Number.parseFloat(style.paddingTop) || 0) + (line - 1) * height - this.text.scrollTop;
+    this.text.style.backgroundImage = 'linear-gradient(#e9cf7040, #e9cf7040)';
+    this.text.style.backgroundSize = `100% ${height}px`;
+    this.text.style.backgroundPosition = `0 ${top}px`;
+    this.text.style.backgroundRepeat = 'no-repeat';
+  }
   private resize(): void {
     if (this.panel.hidden) return;
     if (this.editorMode === 'blocks') this.snap?.resize();

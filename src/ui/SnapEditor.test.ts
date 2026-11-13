@@ -1,11 +1,27 @@
 // @vitest-environment jsdom
 import * as Blockly from 'blockly/core';
 import { describe, expect, it } from 'vitest';
-import { loadNodes, workspaceNodes, snapToolbox, restoreWorkspaceState } from './SnapEditor';
+import { blockAtPath, loadNodes, workspaceNodes, snapToolbox, restoreWorkspaceState } from './SnapEditor';
 import { compileActionPlan, nodesToSource } from '../combat/DecisionProgram';
 import { BattleSession } from '../combat/BattleSession';
 
 describe('Echte Blockly-Verbindungen', () => {
+  it('findet den aktiven Block über verschachtelte Zweige und ignoriert deaktivierte Geschwister', () => {
+    const workspace = new Blockly.Workspace();
+    try {
+      loadNodes(workspace, [
+        { kind: 'action', action: 'ATTACK' },
+        { kind: 'repeat', count: 2, body: [{ kind: 'if', then: [{ kind: 'action', action: 'ATTACK' }], otherwise: [{ kind: 'action', action: 'MOVE_TOWARD' }] }] },
+      ], 'moosling');
+      const first = blockAtPath(workspace, '0')!;
+      expect(first.type).toBe('cm_attack');
+      expect(blockAtPath(workspace, '1.body.0.then.0')?.type).toBe('cm_attack');
+      expect(blockAtPath(workspace, '1.body.0.otherwise.0')?.type).toBe('cm_move');
+      first.setDisabledReason(true, 'test');
+      expect(blockAtPath(workspace, '0.body.0.otherwise.0')?.type).toBe('cm_move');
+      expect(blockAtPath(workspace, '99')).toBeNull();
+    } finally { workspace.dispose(); }
+  });
   it('beschriftet Blöcke ohne Objektnamen und qualifiziert nur den Textcode', () => {
     const workspace = new Blockly.Workspace();
     try {

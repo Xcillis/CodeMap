@@ -19,6 +19,10 @@ Die Trainingsmissionen beginnen mit Moosling. Nach Schleifen und Bedingungen fol
 - Block- und Textmodus bearbeiten das Programm des ausgewählten Arkanen. Entwürfe werden pro Mission und Arkan im Browser gespeichert, auch unvollständiger Text.
 - „Nächsten Schritt ausführen“ führt einen Tick aus: zuerst Moosling, dann Glutling, anschließend gegebenenfalls das Konstrukt. Ein beendetes Programm wartet.
 - „Programm ausführen“ startet alle Programme vom frischen Missionszustand. Nach einer Programmänderung startet auch der nächste Einzelschritt einen neuen Versuch; reine Darstellungswechsel setzen ihn nicht zurück.
+- Die Ausführung wird sichtbar abgespielt: „Pause“ hält nach der aktuellen Aktion an, „Fortsetzen“ setzt den Ablauf fort. Während einer Pause führt „Nächsten Schritt ausführen“ die nächste einzelne Aktion aus. Das Tempo lässt sich mit 0,5×, 1× und 2× wählen.
+- Der handelnde Arkan wird im Editor ausgewählt. Der aktive Block beziehungsweise die aktive Textzeile wird markiert; ein Hinweis zeigt Aktion, Schleifendurchlauf und gegebenenfalls den gewählten Bedingungszweig. Block-/Textwechsel und Arkan-Auswahl bleiben während des Abspielens möglich.
+- Während der Wiedergabe sind Programmänderungen gesperrt. „Neu starten“ beendet den Lauf sofort, löscht die Ausführungsmarkierung und gibt den Editor frei. Nach dem regulären Ende können Programme ebenfalls wieder bearbeitet werden.
+- Die Platzhalterfiguren bewegen sich zwischen Feldern. Treffer werden mit kurzem Vorstoß, Aufblinken und Schadenszahl dargestellt; blockierte Bewegungen und Angriffe außerhalb der Reichweite erhalten eine sichtbare Erklärung.
 - Belegte Felder blockieren die Bewegung; die Aktion wird verbraucht und die Ursache im Protokoll angezeigt. `moveForward()` bedeutet derzeit ein Feld zum Gegner (horizontal bei Gleichstand), ohne automatische Umgehung.
 - „Neu starten“ setzt den Kampf zurück und behält die Programme. Nach einem Sieg wird die nächste Mission freigegeben.
 

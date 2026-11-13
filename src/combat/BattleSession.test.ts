@@ -8,7 +8,9 @@ describe('Arkan-Programme', () => {
     const source = 'repeat(2, () => { if (glutling.enemyAdjacent) { glutling.attack(); } else { glutling.moveForward(); } });';
     const parsed = compileActionPlan(source, 'glutling');
     expect(parsed.actor).toBe('glutling');
-    expect(compileActionPlan(blocksToSource(parsed.blocks!, 'glutling'), 'glutling')).toEqual(parsed);
+    const roundtrip = compileActionPlan(blocksToSource(parsed.blocks!, 'glutling'), 'glutling');
+    expect(roundtrip.nodes).toEqual(parsed.nodes);
+    expect(roundtrip.actor).toBe(parsed.actor);
   });
 
   it('lehnt unbenannte, gemischte und fremde Befehle ab', () => {

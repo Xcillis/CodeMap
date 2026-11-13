@@ -13,6 +13,8 @@ export function compileActionPlan(source: string, expectedActor?: ArkanId): Acti
   try {
     if (source.length > 8000) throw new Error('Das Programm ist zu lang (maximal 8000 Zeichen).');
     const tokens: string[] = [];
+    const positions: number[] = [];
+    const sourceMap: Record<string, number> = {};
     const pattern = /\s*(=>|[a-zA-Z_]\w*|\d+|[().,;{}])/gy;
     let end = 0;
     while (end < source.length && source.slice(end).trim()) {
@@ -20,6 +22,7 @@ export function compileActionPlan(source: string, expectedActor?: ArkanId): Acti
       const token = pattern.exec(source);
       if (!token) throw new Error('Unbekanntes Zeichen im Programm. Erlaubt sind Arkan-Befehle, repeat und if/else.');
       tokens.push(token[1]);
+      positions.push(pattern.lastIndex - token[1].length);
       end = pattern.lastIndex;
     }
     let cursor = 0;
@@ -34,23 +37,25 @@ export function compileActionPlan(source: string, expectedActor?: ArkanId): Acti
       if (name !== actor) throw new Error(`Dieses Programm gehört zu ${actor}. Befehle anderer Arkane sind hier nicht erlaubt.`);
       take('.');
     };
-    const group = (depth: number): ProgramNode[] => { take('{'); const nodes = sequence(depth); take('}'); return nodes; };
-    const sequence = (depth: number): ProgramNode[] => {
+    const group = (depth: number, prefix: string): ProgramNode[] => { take('{'); const nodes = sequence(depth, prefix); take('}'); return nodes; };
+    const sequence = (depth: number, prefix = ''): ProgramNode[] => {
       if (depth > 8) throw new Error('Maximal acht Verschachtelungsebenen.');
       const nodes: ProgramNode[] = [];
       while (cursor < tokens.length && tokens[cursor] !== '}') {
+        const path = `${prefix}${nodes.length}`;
+        sourceMap[path] = source.slice(0, positions[cursor]).split('\n').length;
         if (tokens[cursor] === 'repeat') {
           cursor++; take('(');
           const count = Number(tokens[cursor++]);
           if (!Number.isInteger(count) || count < 1 || count > 6) throw new Error('Eine Schleife darf 1 bis 6 Wiederholungen enthalten.');
           take(','); take('('); take(')'); take('=>');
-          const body = group(depth + 1);
+          const body = group(depth + 1, `${path}.body.`);
           take(')');
           nodes.push({ kind: 'repeat', count, body });
         } else if (tokens[cursor] === 'if') {
           cursor++; take('('); owner(); take('enemyAdjacent'); take(')');
-          const then = group(depth + 1);
-          const otherwise = tokens[cursor] === 'else' ? (cursor++, group(depth + 1)) : [];
+          const then = group(depth + 1, `${path}.then.`);
+          const otherwise = tokens[cursor] === 'else' ? (cursor++, group(depth + 1, `${path}.otherwise.`)) : [];
           nodes.push({ kind: 'if', then, otherwise });
         } else {
           owner();
@@ -70,7 +75,7 @@ export function compileActionPlan(source: string, expectedActor?: ArkanId): Acti
     const blocks = legacyBlocks(nodes);
     const steps: ProgramStep[] = [];
     for (const block of blocks) for (let index = 0; index < block.count; index++) steps.push(block.kind === 'action' ? { kind: 'action', action: block.action } : { kind: 'condition', whenTrue: block.whenTrue, whenFalse: block.whenFalse });
-    return { actor, nodes, blocks, steps };
+    return { actor, nodes, blocks, steps, sourceMap };
   } catch (error) { return { error: error instanceof Error ? error.message : 'Ungültiges Programm.' }; }
 }
 

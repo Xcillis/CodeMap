@@ -5,7 +5,7 @@ import { nodesToSource } from '../combat/DecisionProgram';
 import type { ArkanId, ProgramNode } from '../combat/types';
 import { GameUi } from './GameUi';
 import { gameEvents } from '../game/events';
-import { missionPrograms } from '../combat/BattleSession';
+import { BattleSession, missionPrograms } from '../combat/BattleSession';
 
 const listeners = vi.hoisted(() => new Map<string, ((...args: unknown[]) => void)[]>());
 const snaps = vi.hoisted(() => [] as unknown[]);
@@ -17,6 +17,8 @@ vi.mock('./SnapEditor', () => ({ SnapEditor: class {
   nodes: ProgramNode[] = [];
   actor: ArkanId = 'moosling';
   loose = false;
+  readOnly = false;
+  highlightedPath?: string;
   constructor(_host: HTMLElement, private changed: () => void) { snaps.push(this); }
   load(nodes: ProgramNode[], actor: ArkanId, _mission: number, saved?: string) {
     const state = saved ? JSON.parse(saved) as { nodes: ProgramNode[]; loose: boolean } : { nodes, loose: false };
@@ -26,6 +28,8 @@ vi.mock('./SnapEditor', () => ({ SnapEditor: class {
   save() { return JSON.stringify({ nodes: this.nodes, loose: this.loose }); }
   hasLooseBlocks() { return this.loose; }
   resize() {}
+  setReadOnly(readOnly: boolean) { this.readOnly = readOnly; }
+  highlight(path?: string) { this.highlightedPath = path; }
   mutate(nodes: ProgramNode[], loose = false) { this.nodes = nodes; this.loose = loose; this.changed(); }
 } }));
 
@@ -33,12 +37,71 @@ const click = (id: string) => document.getElementById(id)!.click();
 const text = () => document.getElementById('program-source') as HTMLTextAreaElement;
 const type = (value: string) => { text().value = value; text().dispatchEvent(new Event('input')); };
 const editor = () => snaps[snaps.length - 1] as { mutate: (nodes: ProgramNode[], loose?: boolean) => void };
+const button = (id: string) => document.getElementById(id) as HTMLButtonElement;
 beforeEach(() => {
   listeners.clear(); snaps.length = 0; localStorage.clear();
   document.body.innerHTML = readFileSync('index.html', 'utf8'); new GameUi();
 });
 
 describe('Editorzustand und Arkan-Zuordnung', () => {
+  it('sperrt Änderungen während der Wiedergabe, erlaubt Pause und gibt den Editor nach Abbruch frei', () => {
+    gameEvents.emit('battle-opened', missionPrograms(1), 1); click('text-mode');
+    const source = text().value;
+    let pause = 0; let steps = 0; let speed = 0;
+    gameEvents.on('battle-pause', () => { pause++; });
+    gameEvents.on('battle-step', () => { steps++; });
+    gameEvents.on('battle-speed', (value: number) => { speed = value; });
+    gameEvents.emit('battle-playback', 'running');
+    expect(text().readOnly).toBe(true);
+    expect(button('battle-step').disabled).toBe(true);
+    expect(button('battle-run-program').disabled).toBe(true);
+    click('category-combat');
+    const attack = document.querySelector('[data-command="attack"]') as HTMLButtonElement;
+    expect(attack.disabled).toBe(true); attack.click(); expect(text().value).toBe(source);
+    click('battle-pause'); expect(pause).toBe(1);
+    gameEvents.emit('battle-playback', 'paused');
+    expect(button('battle-pause').textContent).toBe('Fortsetzen');
+    click('battle-step'); expect(steps).toBe(1);
+    const tempo = document.getElementById('battle-speed') as HTMLSelectElement;
+    tempo.value = '2'; tempo.dispatchEvent(new Event('change')); expect(speed).toBe(2);
+    click('blocks-mode');
+    expect((snaps.at(-1) as { readOnly: boolean }).readOnly).toBe(true);
+    gameEvents.emit('battle-playback', 'idle');
+    const session = new BattleSession(1);
+    gameEvents.emit('battle-updated', session.snapshot, 'Arena zurückgesetzt.');
+    gameEvents.emit('battle-trace-clear');
+    expect(button('battle-step').disabled).toBe(false);
+    expect(button('battle-pause').disabled).toBe(true);
+    expect((snaps.at(-1) as { readOnly: boolean }).readOnly).toBe(false);
+  });
+
+  it('markiert die aktive Aktion in beiden Modi auch nach einer Neuformatierung', () => {
+    const source = '\nrepeat(2, () => {\n\n  moosling.moveForward();\n});';
+    gameEvents.emit('battle-opened', { moosling: source }, 1); click('text-mode'); type(source);
+    const session = new BattleSession(1); session.execute({ moosling: source });
+    gameEvents.emit('battle-playback', 'running');
+    gameEvents.emit('battle-frame', session.frames[0]);
+    expect(text().dataset.activeLine).toBe('4');
+    expect(document.getElementById('execution-trace')!.textContent).toContain('Durchlauf 1 von 2');
+    click('blocks-mode');
+    expect((snaps.at(-1) as { highlightedPath?: string }).highlightedPath).toBe('0.body.0');
+    click('text-mode'); expect(text().dataset.activeLine).toBe('2');
+    expect(document.getElementById('active-code-line')!.textContent).toBe('Aktive Zeile: 2');
+    gameEvents.emit('battle-playback', 'idle'); type('moosling.attack();');
+    expect(text().dataset.activeLine).toBeUndefined();
+    expect(document.getElementById('execution-trace')!.hidden).toBe(true);
+  });
+
+  it('wechselt beim Abspielen zum handelnden Arkan und zeigt für den Gegner keine falsche Codezeile', () => {
+    gameEvents.emit('battle-opened', missionPrograms(3), 3);
+    const session = new BattleSession(3); session.execute(missionPrograms(3));
+    gameEvents.emit('battle-playback', 'running'); gameEvents.emit('battle-frame', session.frames[1]);
+    expect(document.getElementById('program-owner')!.textContent).toContain('Glutling');
+    click('text-mode'); expect(text().dataset.activeLine).toBe('2');
+    gameEvents.emit('battle-frame', { ...session.frames[1], actor: 'konstrukt', trace: undefined });
+    expect(text().dataset.activeLine).toBeUndefined();
+    expect(document.getElementById('execution-trace')!.textContent).toContain('Konstrukt');
+  });
   it('zeigt das ausgewählte Objekt eindeutig an und wechselt dessen Programm', () => {
     gameEvents.emit('battle-opened', missionPrograms(3), 3);
     expect(document.getElementById('program-owner')!.textContent).toBe('Du programmierst gerade: Moosling');

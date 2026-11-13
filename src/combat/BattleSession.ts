@@ -1,6 +1,6 @@
 import { BattleEngine } from './BattleEngine';
 import { nodesToSource, programCost, compileActionPlan, CONDITION_PROGRAM, DEFAULT_PROGRAM, FORMATION_PROGRAM } from './DecisionProgram';
-import type { ArkanId, ProgramSources, ProgramStep } from './types';
+import type { ActionFrame, ArkanId, ProgramSources, ProgramStep } from './types';
 import { nodesCapabilityError } from './CommandCatalog';
 import { ProgramRunner } from './ProgramRunner';
 
@@ -19,6 +19,9 @@ export class BattleSession {
   private signature = '';
   private cursor = 0;
   private length = 0;
+  private actionFrames: ActionFrame[] = [];
+  get frames(): readonly ActionFrame[] { return this.actionFrames; }
+  get done(): boolean { return this.snapshot.outcome !== 'ongoing' || this.length === 0 || this.actors.every((actor) => this.plans[actor]?.done); }
 
   constructor(readonly mission: MissionId) { this.reset(); }
 
@@ -29,18 +32,22 @@ export class BattleSession {
     this.engine.reset(this.mission === 3, this.mission === 3 ? 5 : 3);
     this.cursor = 0;
     this.signature = '';
+    this.actionFrames = [];
   }
 
   execute(sources: ProgramSources, full = false): string {
+    this.actionFrames = [];
     const plans: typeof this.plans = {};
     const canonical: string[] = [];
     let length = 0;
+    const lines: Partial<Record<ArkanId, Record<string, number>>> = {};
     for (const actor of this.actors) {
       const parsed = compileActionPlan(sources[actor] ?? '', actor);
       if (parsed.error || !parsed.nodes) return `${actor}: ${parsed.error}`;
       const capabilityError = nodesCapabilityError(parsed.nodes, actor, this.mission);
       if (capabilityError) return capabilityError;
       plans[actor] = new ProgramRunner(parsed.nodes);
+      lines[actor] = parsed.sourceMap;
       length = Math.max(length, programCost(parsed.nodes));
       canonical.push(nodesToSource(parsed.nodes, actor));
     }
@@ -56,7 +63,10 @@ export class BattleSession {
     do {
       const steps: Partial<Record<ArkanId, (adjacent: boolean) => ProgramStep | undefined>> = {};
       for (const actor of this.actors) steps[actor] = (adjacent) => this.plans[actor]?.next(adjacent);
-      this.engine.runTick(steps, this.mission === 2);
+      this.engine.runTick(steps, this.mission === 2, (frame) => {
+        const trace = frame.actor !== 'konstrukt' ? this.plans[frame.actor]?.lastTrace : undefined;
+        this.actionFrames.push({ ...frame, trace: trace ? structuredClone({ ...trace, line: lines[frame.actor as ArkanId]?.[trace.path] }) : undefined });
+      });
       this.cursor = this.snapshot.tick;
     } while (full && this.cursor < this.length && this.snapshot.outcome === 'ongoing' && this.actors.some((actor) => !this.plans[actor]?.done));
     return this.result();

@@ -1,4 +1,4 @@
-import type { ArkanId, BattleState, CombatAction, Combatant, GridPosition, ProgramStep } from './types';
+import type { ActionFrame, ArkanId, BattleState, CombatAction, Combatant, GridPosition, ProgramStep } from './types';
 
 const GRID_SIZE = 7;
 
@@ -21,7 +21,7 @@ export class BattleEngine {
     return this.runTick({ moosling: { kind: 'action', action: playerAction } }, enemyActive);
   }
 
-  runTick(programs: Partial<Record<ArkanId, ProgramStep | ((adjacent: boolean) => ProgramStep | undefined)>>, enemyActive = false): Readonly<BattleState> {
+  runTick(programs: Partial<Record<ArkanId, ProgramStep | ((adjacent: boolean) => ProgramStep | undefined)>>, enemyActive = false, onAction?: (frame: ActionFrame) => void): Readonly<BattleState> {
     if (this.state.outcome !== 'ongoing') return this.snapshot;
     let acted = false;
     for (const actor of [this.state.player, this.state.companion]) {
@@ -36,12 +36,16 @@ export class BattleEngine {
       acted = true;
       const adjacent = this.areAdjacent(actor, this.state.enemy);
       const action = step.kind === 'action' ? step.action : adjacent ? step.whenTrue : step.whenFalse;
+      const before = this.snapshot;
       this.addLog(`${actor.id}.${action === 'ATTACK' ? 'attack()' : 'moveForward()'}${step.kind === 'condition' ? ` – enemyAdjacent = ${adjacent}` : ''}`);
       this.act(actor, this.state.enemy, action);
+      onAction?.({ actor: actor.id, action, before, after: this.snapshot });
     }
     if (acted && enemyActive && this.state.outcome === 'ongoing') {
       const enemyAction = this.areAdjacent(this.state.enemy, this.state.player) ? 'ATTACK' : 'MOVE_TOWARD';
+      const before = this.snapshot;
       this.act(this.state.enemy, this.state.player, enemyAction);
+      onAction?.({ actor: 'konstrukt', action: enemyAction, before, after: this.snapshot });
     }
     return this.snapshot;
   }

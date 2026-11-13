@@ -36,6 +36,21 @@ export function workspaceNodes(workspace: Blockly.Workspace): ProgramNode[] {
   return read(starts[0]?.getNextBlock() ?? null);
 }
 
+export function blockAtPath(workspace: Blockly.Workspace, path: string): Blockly.Block | null {
+  const parts = path.split('.');
+  let block = workspace.getTopBlocks(false).find((node) => node.type === 'cm_start')?.getNextBlock() ?? null;
+  for (let index = 0; index < parts.length; index += 2) {
+    const position = Number(parts[index]);
+    let sibling = 0;
+    while (block && (!block.isEnabled() || sibling < position)) {
+      if (block.isEnabled()) sibling++;
+      block = block.getNextBlock();
+    }
+    if (index + 1 < parts.length) block = block?.getInputTargetBlock(parts[index + 1] === 'body' ? 'BODY' : parts[index + 1] === 'then' ? 'THEN' : 'ELSE') ?? null;
+  }
+  return block;
+}
+
 interface BlockState {
   type: string;
   fields?: Record<string, string | number>;
@@ -119,4 +134,6 @@ export class SnapEditor {
     return top.some((block) => block.type !== 'cm_start') || top.filter((block) => block.type === 'cm_start').length > 1;
   }
   resize(): void { Blockly.svgResize(this.workspace); }
+  setReadOnly(readOnly: boolean): void { this.workspace.setIsReadOnly(readOnly); }
+  highlight(path?: string): void { this.workspace.highlightBlock(path ? blockAtPath(this.workspace, path)?.id ?? null : null); }
 }

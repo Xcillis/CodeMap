@@ -49,9 +49,25 @@ export interface BattleState {
 }
 
 export interface ActionPlanResult {
+  sourceMap?: Record<string, number>;
   nodes?: ProgramNode[];
   actor?: ArkanId;
   steps?: ProgramStep[];
   blocks?: ProgramBlock[];
   error?: string;
+}
+
+export interface LoopTrace { path: string; iteration: number; total: number }
+export interface ExecutionTrace {
+  path: string;
+  line?: number;
+  loops: LoopTrace[];
+  conditions: { path: string; value: boolean }[];
+}
+export interface ActionFrame {
+  actor: Combatant['id'];
+  action: CombatAction;
+  before: BattleState;
+  after: BattleState;
+  trace?: ExecutionTrace;
 }

@@ -66,6 +66,16 @@ Blockbeschriftungen enthalten keine Arkan-Namen. Arkan-Karten und eine persisten
 
 Die Kontextaktion „Duplizieren“ serialisiert den ausgewählten Blockly-Block einschließlich aller inneren Eingänge und ihrer Verkettungen. Nur die äußere `next`-Verbindung wird entfernt. Blockly erzeugt beim Einfügen neue IDs; die Kopie wird versetzt und unverbunden in denselben Arkan-Arbeitsbereich eingefügt. Die Kapazitätsprüfung zählt den gesamten kopierten Unterbaum. Eine gemeinsame Ereignisgruppe ermöglicht Undo/Redo in einem Schritt. Die ursprüngliche Blockly-Duplizieraktion wird für CodeMap-Blöcke ausgeblendet, und der einzelne Startblock ist von der Aktion ausgenommen.
 
+## ADR 011 – Nachvollziehbare Wiedergabe mit Aktions-Trace
+
+Die deterministische Simulation bleibt unabhängig von Echtzeit und Phaser. `BattleEngine` meldet jede ausgeführte Aktion mit getrennten Vorher-/Nachher-Snapshots. `BattleSession` ergänzt Arkan, strukturellen Programmpfad, Textzeile, Schleifendurchläufe und ausgewählte Bedingungszweige. Der Parser erzeugt die Zeilenzuordnung getrennt vom AST; `ProgramRunner` entscheidet Bedingungen weiterhin erst zum Handlungszeitpunkt. Gesamtausführung und Einzelschritte verwenden dieselbe Logik und erzeugen denselben Ablauf.
+
+`Playback` spielt die aufgezeichneten Aktionen zeitgesteuert mit 0,5×, 1× oder 2× ab. Pause beendet die aktuelle Animation im Nachher-Zustand und wartet vor der nächsten Aktion. Im pausierten Zustand zeigt der Einzelschritt die nächste Aktion; aus dem Ruhezustand führt er weiterhin einen vollständigen Tick aller beteiligten Einheiten aus. Neustart, Missionswechsel und Szenenende verwerfen Timer und ausstehende Abschlussaktionen. Der gesamte Lauf wird lokal vorausberechnet; die UI zeigt seinen Endzustand und gibt die Folgemission erst nach der Wiedergabe frei. Dies ersetzt die in ADR 004 beschriebene sofortige Gesamtergebnisansicht.
+
+Die Szene hält Figurenobjekte für Bewegung und Trefferanimationen vor. Die DOM-UI sperrt Änderungen während laufender oder pausierter Wiedergabe, erlaubt aber Arkan-Auswahl und Darstellungswechsel. Ein struktureller Pfad findet den aktiven Blockly-Block und die aktuelle Textzeile auch nach einer Neuformatierung. Deaktivierte Blöcke werden bei dieser Zuordnung ebenso wie bei der Serialisierung übersprungen. Fortschrittshinweise zeigen Schleifeniteration und Bedingung zusätzlich zur farblichen Markierung.
+
+Timersteuerung, Abbruch, Trace, Snapshots, Editor-Sperre und Markierung beim Darstellungswechsel werden automatisiert geprüft. Die Grafik bleibt austauschbare Phaser-Platzhalterdarstellung; zusätzliche Laufzeitabhängigkeiten sind nicht erforderlich.
+
 ## Noch nicht enthalten
 
-Dreier-Formation, Variablen und Funktionen in der Programmiersprache, freie JavaScript-Runtime, Online-Speicherung, Login, Backend, NOVA und Kompetenzengine bleiben spätere Erweiterungen. Frühere ADRs beschreiben die Entwicklungsschritte; ADR 010 ergänzt den aktuellen Stand von Editor und Programmiersprache.
+Dreier-Formation, Variablen und Funktionen in der Programmiersprache, freie JavaScript-Runtime, Online-Speicherung, Login, Backend, NOVA und Kompetenzengine bleiben spätere Erweiterungen. Frühere ADRs beschreiben die Entwicklungsschritte; ADR 010 und ADR 011 beschreiben den aktuellen Stand von Editor und Wiedergabe.

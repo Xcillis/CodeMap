@@ -53,7 +53,8 @@
             <p class="block-intro">Blöcke am Startblock einrasten oder in „wiederhole“ und „falls“ hineinziehen. Entfernen mit Entf oder Papierkorb.</p>
             <div id="snap-editor" aria-label="Zusammensteckbare Arkan-Blöcke"></div>
           </div>
-          <textarea id="program-source" spellcheck="false" aria-describedby="program-help" hidden></textarea>
+          <textarea id="program-source" spellcheck="false" wrap="off" aria-describedby="program-help active-code-line" hidden></textarea>
+          <p id="active-code-line" class="execution-line" hidden></p>
           <p id="program-help">Befehle gehören immer zu einem Arkan, z. B. <code>moosling.moveForward()</code> oder <code>moosling.attack()</code>. Der Plan darf höchstens zwölf Schritte haben.</p>
           </div>
           </section>
@@ -67,9 +68,14 @@
             <label for="enemy-health">Konstrukt <span id="enemy-health-text">3/3</span><progress id="enemy-health" max="3" value="3">3 von 3</progress></label>
           </div>
           <p id="battle-feedback" aria-live="polite"></p>
+          <p id="execution-trace" class="execution-trace" aria-live="polite" hidden></p>
           <div class="battle-actions">
             <button id="battle-step" type="button">Nächsten Schritt ausführen</button>
             <button id="battle-run-program" type="button">Programm ausführen</button>
+            <button id="battle-pause" type="button" disabled>Pause</button>
+            <label class="playback-speed" for="battle-speed">Tempo
+              <select id="battle-speed"><option value="0.5">0,5×</option><option value="1" selected>1×</option><option value="2">2×</option></select>
+            </label>
             <button id="battle-restart" type="button">Neu starten</button>
             <button id="battle-next-mission" type="button" hidden>Nächste Mission</button>
             <button id="battle-exit" type="button">Zur Erkundung</button>

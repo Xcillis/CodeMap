@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import * as Blockly from 'blockly/core';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { loadNodes, workspaceNodes } from './SnapEditor';
 import { canDuplicateBlock, duplicateBlock } from './DuplicateBlock';
 
@@ -68,14 +68,15 @@ describe('Block duplizieren', () => {
   });
 
   it('kann eine Kopie einschließlich Rumpf mit einem Undo entfernen und wiederherstellen', async () => {
+    vi.useFakeTimers();
     const workspace = new Blockly.Workspace();
     try {
       loadNodes(workspace, [{ kind: 'repeat', count: 3, body: [{ kind: 'action', action: 'ATTACK' }] }], 'moosling');
-      await new Promise((resolve) => setTimeout(resolve, 10));
+      await vi.runAllTimersAsync();
       workspace.clearUndo();
       const copy = duplicateBlock(workspace.getTopBlocks(false)[0].getNextBlock()!)!;
       const id = copy.id;
-      await new Promise((resolve) => setTimeout(resolve, 10));
+      await vi.runAllTimersAsync();
       expect(workspace.getAllBlocks(false)).toHaveLength(5);
       workspace.undo(false);
       expect(workspace.getBlockById(id)).toBeNull();
@@ -83,6 +84,6 @@ describe('Block duplizieren', () => {
       workspace.undo(true);
       expect(workspace.getBlockById(id)?.getInputTargetBlock('BODY')?.type).toBe('cm_attack');
       expect(workspace.getAllBlocks(false)).toHaveLength(5);
-    } finally { workspace.dispose(); }
+    } finally { workspace.dispose(); vi.useRealTimers(); }
   });
 });

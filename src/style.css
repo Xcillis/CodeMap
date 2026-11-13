@@ -81,6 +81,12 @@ button:focus-visible, select:focus-visible, textarea:focus-visible, summary:focu
 #program-help, #battle-feedback { margin: .5rem 0; font-size: .82rem; line-height: 1.35; color: #c4ded7; }
 .editor-tooltip { position: absolute; z-index: 4; right: .85rem; bottom: .85rem; left: .85rem; pointer-events: none; margin: 0; padding: .55rem .65rem; color: #fff3c4; border-left: 3px solid #e1bb54; border-radius: .2rem; background: #253f3d; box-shadow: 0 4px 14px rgb(0 0 0 / .38); font-size: .82rem; line-height: 1.4; }
 #battle-feedback { min-height: 1.2rem; color: #f1d779; font-weight: 700; }
+.execution-trace { margin: .35rem 0; padding: .5rem; color: #fff0b4; border-left: 3px solid #edd273; background: #294a45; font-size: .8rem; line-height: 1.4; }
+.execution-line { margin: .3rem; font-size: .8rem; color: #f1d779; }
+.playback-speed { display: flex !important; align-items: center; gap: .3rem; font-size: .8rem; }
+.playback-speed select { min-height: 2.5rem; border-radius: .3rem; color: #f7f1dc; border: 1px solid #648b83; background: #1d4546; font: inherit; }
+.battle-actions button:disabled, .execution-locked [data-command] { opacity: .5; cursor: not-allowed; }
+.blocklyHighlightedConnectionPath { stroke: #ffe477; stroke-width: 5px; }
 .battle-status { display: grid; grid-template-columns: auto repeat(3, minmax(0, 1fr)); align-items: center; gap: .5rem; margin: .2rem 0; padding: .55rem; border: 1px solid #416b68; border-radius: .3rem; background: #132b2d; }
 .battle-status p, .battle-status label { margin: 0; font-size: .85rem; }
 .battle-status label { display: grid; grid-template-columns: 1fr auto; gap: .2rem .6rem; }
