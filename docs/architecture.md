@@ -200,6 +200,10 @@ Für Q08 delegiert die Session an `TeamLessonSession`. Die vorhandene `BattleSes
 
 Figurenwahl, separate Entwürfe, Lernpalette, aufklappbare Ziele/Tipps und der bestätigte Abschluss in der Arena verwenden die bestehenden Ansichten. Der zweite Lebensbalken erscheint nur beim tatsächlichen Zweierteam. Die Szene nennt dessen feste Reihenfolge. Fachbegriffe erklären zuerst die konkrete Wahl und Handlung; nach den jeweiligen Abschlüssen erscheinen Objekt, Ausführungsreihenfolge und Koordination mit Beispielen. Naturfähigkeiten und Elementmultiplikatoren werden hier nicht vorweggenommen. Tests decken Aufnahmevoraussetzungen, verzögerte und gespeicherte Teamfreigabe, Mooslings Werte, zwei eigene Programme, Feldbelegung, wirksame Beiträge, Einzelschritt-/Gesamtausführung, Block-/Textwechsel, alte Spielstände und den sichtbaren Abschlusszeitpunkt ab.
 
+## ADR 023 – Buttonhinweise oberhalb der Ausführungsleiste
+
+Der gemeinsame Editorhinweis gehört im DOM zur relativ positionierten Ausführungsleiste. Er wird absolut mit `bottom: calc(100% + .4rem)` oberhalb ihrer gesamten Höhe angeordnet, auch bei umgebrochenen Buttonreihen. Dadurch überlagert er keine Ausführungsbuttons und verändert beim Einblenden weder deren Position noch die Editorhöhe. `pointer-events: none` hält Maus- und Touchziele frei. Die vorhandenen Hover- und Fokusereignisse bleiben erhalten; `aria-describedby` ersetzt den zusätzlichen nativen `title`-Tooltip, um eine zweite überlagernde Einblendung zu vermeiden. Die Position benötigt keine laufenden JavaScript-Messungen oder Timer.
+
 ## Noch nicht enthalten
 
 Dreier-Formation, artspezifische ausführbare Fähigkeiten, Variablen und Funktionen in der Programmiersprache, freie JavaScript-Runtime, Online-Speicherung, Login, Backend, NOVA und Kompetenzengine bleiben spätere Erweiterungen. Frühere ADRs beschreiben die Entwicklungsschritte; ADR 014 bis ADR 022 ergänzen den aktuellen Stand der Lernquests und des Charakterfensters. Die frühere Ausbauplanung zu Q06 ist durch ADR 021, die erste reguläre Teamkoordination durch ADR 022 umgesetzt.

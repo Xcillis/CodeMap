@@ -121,7 +121,7 @@ export class GameUi {
     });
     for (const [id, text] of Object.entries({ 'battle-step': 'Führt einen Spielschritt aller Arkane aus. Während einer Pause: nächste einzelne Aktion.', 'battle-run-program': 'Startet die Mission neu und spielt alle verbundenen Programme sichtbar ab.', 'battle-pause': 'Pausiert die Wiedergabe oder setzt sie fort. Neu starten beendet den Versuch.', 'battle-restart': 'Setzt die Aufgabe zurück. Deine Programme bleiben erhalten.', 'blocks-mode': 'Verbinde Blöcke unter dem Startblock. Ihre Reihenfolge bestimmt, was dein Arkana nacheinander tut.', 'text-mode': 'Dasselbe Programm als Text bearbeiten.' })) {
       const element = this.el(id);
-      element.title = text;
+      element.setAttribute('aria-describedby', 'editor-tooltip');
       for (const event of ['mouseenter', 'focus']) element.addEventListener(event, () => { this.el('editor-tooltip').textContent = text; this.el('editor-tooltip').hidden = false; });
       for (const event of ['mouseleave', 'blur']) element.addEventListener(event, () => { this.el('editor-tooltip').hidden = true; });
     }
