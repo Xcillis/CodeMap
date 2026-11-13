@@ -7,6 +7,8 @@ import type { PlaybackState } from '../combat/Playback';
 import { availableCommands, COMMAND_CATEGORIES, commandSource, type CommandCategory } from '../combat/CommandCatalog';
 import { SnapEditor } from './SnapEditor';
 import { ProgramDrag } from './ProgramDrag';
+import { isArkanId, type SkillId } from '../gameplay/ArkanaCatalog';
+import { WORLD_QUESTS } from '../gameplay/WorldQuests';
 
 type EditorMode = 'blocks' | 'text';
 
@@ -27,6 +29,7 @@ export class GameUi {
   private readonly drag: ProgramDrag;
   private playbackState: PlaybackState = 'idle';
   private activeFrame?: ActionFrame;
+  private skills?: Partial<Record<ArkanId, readonly SkillId[]>>;
 
   constructor() {
     this.drag = new ProgramDrag(this.panel, this.el('program-drop-area'), () => [], (item) => {
@@ -41,17 +44,19 @@ export class GameUi {
       this.pendingDialogAction = dialog.action;
       this.el('dialog-speaker').textContent = dialog.speaker;
       this.el('dialog-text').textContent = dialog.text;
-      this.el('dialog-close').textContent = dialog.action ? 'Zur Trainingsarena' : 'Verstanden';
+      this.el('dialog-close').textContent = dialog.actionLabel ?? 'Verstanden';
+      this.el('dialog-dismiss').hidden = !dialog.action;
       this.el('dialog').hidden = false;
       this.el('dialog-close').focus();
     });
     this.click('dialog-close', () => {
       this.el('dialog').hidden = true;
       gameEvents.emit('dialog-closed');
-      if (this.pendingDialogAction) gameEvents.emit(this.pendingDialogAction);
+      if (this.pendingDialogAction) gameEvents.emit('campaign-action', this.pendingDialogAction);
       this.pendingDialogAction = undefined;
     });
-    gameEvents.on('battle-opened', (programs: ProgramSources, mission: number) => this.open(programs, mission));
+    this.click('dialog-dismiss', () => { this.el('dialog').hidden = true; this.pendingDialogAction = undefined; gameEvents.emit('dialog-closed'); });
+    gameEvents.on('battle-opened', (programs: ProgramSources, mission: number, skills?: Partial<Record<ArkanId, readonly SkillId[]>>) => this.open(programs, mission, skills));
     gameEvents.on('battle-closed', () => {
       this.capture(); this.drag.cancel(); this.panel.hidden = true;
       this.exploration(true);
@@ -109,9 +114,10 @@ export class GameUi {
 
   private key(): string { return `${this.mission}:${this.selectedActor}`; }
 
-  private open(programs: ProgramSources, mission: number): void {
+  private open(programs: ProgramSources, mission: number, skills?: Partial<Record<ArkanId, readonly SkillId[]>>): void {
     this.drag.cancel(); this.panel.hidden = false; this.exploration(false);
     this.mission = mission;
+    this.skills = skills;
     this.sources = {};
     const progress = loadProgress();
     for (const actor of ['moosling', 'glutling'] as const) if (programs[actor] !== undefined) {
@@ -123,9 +129,10 @@ export class GameUi {
         this.loose[key] = top.some((block) => block.type !== 'cm_start') || top.filter((block) => block.type === 'cm_start').length > 1;
       } catch { this.loose[key] = true; }
     }
-    this.selectedActor = 'moosling';
+    this.selectedActor = Object.keys(programs).find(isArkanId) ?? 'moosling';
+    this.el('select-moosling').hidden = programs.moosling === undefined;
     this.el('select-glutling').hidden = programs.glutling === undefined;
-    this.el('battle-title').textContent = mission === 1 ? 'RUNENSKRIPT – DIE ERSTE SCHLEIFE' : mission === 2 ? 'RUNENSKRIPT – NÄHE PRÜFEN' : 'RUNENSKRIPT – DUO-FORMATION';
+    this.el('battle-title').textContent = `WELTQUEST – ${WORLD_QUESTS.find((quest) => quest.id === mission)?.title.toUpperCase() ?? 'RUNENSKRIPT'}`;
     this.el('battle-next-mission').hidden = true;
     this.loadActor(); this.resize();
   }
@@ -174,8 +181,8 @@ export class GameUi {
         if (this.editorMode === 'blocks' && this.playbackState === 'idle') { this.programChanged(); this.capture(); }
       });
       const saved = this.workspaceDrafts[this.key()] ?? loadProgress().blockWorkspaces[this.key()];
-      try { this.snap.load(parsed.nodes!, this.selectedActor, this.mission, saved || undefined); }
-      catch { this.snap.load(parsed.nodes!, this.selectedActor, this.mission); }
+      try { this.snap.load(parsed.nodes!, this.selectedActor, this.mission, saved || undefined, this.skillsFor(this.selectedActor)); }
+      catch { this.snap.load(parsed.nodes!, this.selectedActor, this.mission, undefined, this.skillsFor(this.selectedActor)); }
       this.capture();
     }
     saveProgress({ editorMode: mode });
@@ -207,7 +214,7 @@ export class GameUi {
   }
 
   private renderLibrary(): void {
-    const commands = availableCommands(this.selectedActor, this.mission);
+    const commands = availableCommands(this.selectedActor, this.mission, this.skillsFor(this.selectedActor));
     const categories = COMMAND_CATEGORIES.filter((category) => commands.some((command) => command.category === category.id));
     if (!categories.some((category) => category.id === this.selectedCategory)) this.selectedCategory = categories[0]?.id ?? 'movement';
     this.el('command-categories').replaceChildren(...categories.map((category) => {
@@ -233,7 +240,7 @@ export class GameUi {
 
   private insertTextCommand(id: string): void {
     if (this.playbackState !== 'idle') return;
-    const command = availableCommands(this.selectedActor, this.mission).find((entry) => entry.id === id);
+    const command = availableCommands(this.selectedActor, this.mission, this.skillsFor(this.selectedActor)).find((entry) => entry.id === id);
     if (!command || this.editorMode !== 'text') return;
     const snippet = commandSource(command, this.selectedActor);
     this.text.setRangeText(`${this.text.value.trim() ? '\n' : ''}${snippet}`, this.text.selectionStart, this.text.selectionEnd, 'end');
@@ -247,6 +254,7 @@ export class GameUi {
       if (!actor) continue;
       const bar = this.el<HTMLProgressElement>(`${prefix}-health`); bar.max = actor.maxHp; bar.value = actor.hp;
       this.el(`${prefix}-health-text`).textContent = `${actor.hp}/${actor.maxHp}`;
+      if (prefix !== 'enemy') this.el(`${prefix}-health-name`).textContent = actor.name;
     }
     this.el('companion-health-status').hidden = !state.companion;
     this.el<HTMLButtonElement>('battle-step').disabled = state.outcome !== 'ongoing';
@@ -254,7 +262,8 @@ export class GameUi {
     this.el('battle-log').replaceChildren(...state.log.map((line) => { const item = document.createElement('li'); item.textContent = line; return item; }));
   }
 
-  private exploration(visible: boolean): void { for (const id of ['hud', 'touch-controls', 'interaction-hint']) this.el(id).classList.toggle('screen-hidden', !visible); }
+  private exploration(visible: boolean): void { for (const id of ['hud', 'touch-controls', 'interaction-hint', 'world-tools']) this.el(id).classList.toggle('screen-hidden', !visible); }
+  private skillsFor(actor: ArkanId): readonly SkillId[] | undefined { return this.skills ? this.skills[actor] ?? [] : undefined; }
   private programChanged(): void {
     this.activeFrame = undefined; this.showTrace();
     this.el<HTMLButtonElement>('battle-step').disabled = false;

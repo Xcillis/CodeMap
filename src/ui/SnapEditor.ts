@@ -4,6 +4,7 @@ import { availableCommands, COMMAND_CATEGORIES } from '../combat/CommandCatalog'
 import { nodesToSource } from '../combat/DecisionProgram';
 import type { ArkanId, ProgramNode } from '../combat/types';
 import { registerDuplicateMenu } from './DuplicateBlock';
+import type { SkillId } from '../gameplay/ArkanaCatalog';
 
 Blockly.setLocale(Object.entries(German).reduce<Record<string, string>>((messages, [key, value]) => {
   if (typeof value === 'string') messages[key] = value;
@@ -79,8 +80,8 @@ export function loadNodes(workspace: Blockly.Workspace, nodes: readonly ProgramN
   Blockly.serialization.workspaces.load({ blocks: { languageVersion: 0, blocks: [{ type: 'cm_start', x: 30, y: 30, ...(first ? { next: { block: first } } : {}) }] } }, workspace);
 }
 
-export function snapToolbox(actor: ArkanId, mission: number): Blockly.utils.toolbox.ToolboxDefinition {
-  const commands = availableCommands(actor, mission);
+export function snapToolbox(actor: ArkanId, mission: number, skills?: readonly SkillId[]): Blockly.utils.toolbox.ToolboxDefinition {
+  const commands = availableCommands(actor, mission, skills);
   const type = { move: 'cm_move', attack: 'cm_attack', condition: 'cm_if', repeat: 'cm_repeat' };
   return { kind: 'categoryToolbox', contents: COMMAND_CATEGORIES.filter((category) => commands.some((command) => command.category === category.id)).map((category) => ({
     kind: 'category', name: category.label, colour: category.color,
@@ -116,11 +117,11 @@ export class SnapEditor {
       if (!this.loading && !event.isUiEvent) onChange();
     });
   }
-  load(nodes: readonly ProgramNode[], actor: ArkanId, mission: number, saved?: string): void {
+  load(nodes: readonly ProgramNode[], actor: ArkanId, mission: number, saved?: string, skills?: readonly SkillId[]): void {
     this.loading = true;
     try {
       this.actor = actor;
-      this.workspace.updateToolbox(snapToolbox(actor, mission));
+      this.workspace.updateToolbox(snapToolbox(actor, mission, skills));
       if (saved) Blockly.serialization.workspaces.load(restoreWorkspaceState(saved), this.workspace);
       else loadNodes(this.workspace, nodes, actor);
       this.workspace.clearUndo();

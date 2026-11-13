@@ -76,6 +76,22 @@ Die Szene hält Figurenobjekte für Bewegung und Trefferanimationen vor. Die DOM
 
 Timersteuerung, Abbruch, Trace, Snapshots, Editor-Sperre und Markierung beim Darstellungswechsel werden automatisiert geprüft. Die Grafik bleibt austauschbare Phaser-Platzhalterdarstellung; zusätzliche Laufzeitabhängigkeiten sind nicht erforderlich.
 
+## ADR 012 – Arkana-Sammlung und Quests in der Spielwelt
+
+`ArkanaCatalog` definiert die fünf Magietypen und die zwei ersten Arten. `OwnedArkana` trennt eine individuelle Instanz-ID, Art und erlernte Befehle vom Artenprofil. Der Prototyp besitzt je eine garantierte Instanz pro Art; Programme bleiben für vorhandene Speicherstände nach Mission und bisherigem Arkan-Namen adressiert. Mehrere Instanzen derselben Art erfordern später eine Erweiterung dieser Programmadressierung.
+
+`Campaign` ist das reine Zustandsmodell für Sammlung, aktive Instanz-IDs, entdeckte und abgeschlossene Weltquests. Es prüft Besitz, Teamgröße, Storyvoraussetzungen und laufende Begegnungen vor jeder Vorbereitung. Ein Teamplatz steht am Anfang bereit, zwei nach der zweiten Quest. Ein Team darf zur Bearbeitung leer sein; ein Begegnungsstart verlangt ein passendes Team. Ein aktiver Kampf sperrt Teamänderungen. `WorldQuests` hält die drei bestehenden Begegnungen mit Weltposition, Einführung und Belohnung als Daten vor. `WorldScene` zeichnet Fund- und Questorte und verbindet Interaktionen, Speicherung und Szenenwechsel mit diesem Modell.
+
+`WorldUi` zeigt Sammlung und Journal als separate DOM-Ansichten. Maus, Touchbuttons und C/J öffnen sie; Tab bleibt im geöffneten Dialog, Esc schließt ihn. Ein Overlay-Ereignis sperrt die Heldenbewegung. Dialoge und Kämpfe sperren die Sammlung. Beim Öffnen und Schließen sowie beim Szenenwechsel werden gehaltene Touch- und Tastaturzustände zurückgesetzt.
+
+Eine vorbereitete Begegnung enthält Missions-ID, geordnete Arten-IDs des aktiven Teams und einen Snapshot ihrer erlernten Befehle. `BattleSession`, Textbibliothek und Blockly-Palette verwenden dieselben Freigaben. Die alte missionsbasierte Tabelle bleibt ausschließlich Standard für isolierte Prototyptests ohne Weltkontext. Die Engine instanziiert die gewählte Besetzung mit ihren Basiswerten und handelt in Teamreihenfolge. Die erste Position wird als Gegnerziel verwendet. Moosling und Glutling können einzeln oder als Duo in beiden Reihenfolgen auftreten. Die LP- und Editoranzeigen folgen der tatsächlichen Besetzung.
+
+Die erfolgreiche Wiedergabe meldet den Weltquest-Sieg nach dem letzten Frame; ein abgebrochener Timerlauf kann keine Belohnung auslösen. `Campaign` akzeptiert den Sieg nur für eine vorbereitete aktive Quest und vergibt jede Belohnung einmal. Die erste Quest schaltet die allgemeine Nähe-Abfrage frei, die zweite erweitert die Teamgröße. Die Rückkehr zeigt den Nachklang und aktualisiert das nächste Weltziel. Ein direkter Sprung zur nächsten Arena wurde durch diesen Weltfluss ersetzt.
+
+`LocalProgress` erweitert den bestehenden Speicherstand um einen versionierten Kampagnenzustand. Editorentwürfe und Blockly-JSON bleiben unverändert erhalten. Die alte Gesprächsmarkierung wird in die Eldren-Einführung übernommen; bislang nicht gespeicherte Arenasiege werden nicht als abgeschlossene Weltquests geraten. Besitz, Instanz-IDs, Teamzuordnung und sequenzielle Questmarkierungen werden beim Laden normalisiert. Bei gesperrtem Storage hält ein Speicherfallback die laufende Sitzung spielbar.
+
+Automatisierte Tests prüfen die komplette Questkette mit echten Kampfsimulationen, beide Teamrollen, Belohnungszeitpunkt und Abbruch, Feldbelegung, gespeicherte Entwürfe, Wiederholungen und beschädigte Daten sowie die Sammlung, Journalbedienung und den dynamischen Editor. Artenwerte sind vorläufig; Typenschadensmultiplikatoren sind weiterhin offen. Spezialfähigkeiten, weitere Arten und programmierbares Fangen folgen als eigene Erweiterungen.
+
 ## Noch nicht enthalten
 
-Dreier-Formation, Variablen und Funktionen in der Programmiersprache, freie JavaScript-Runtime, Online-Speicherung, Login, Backend, NOVA und Kompetenzengine bleiben spätere Erweiterungen. Frühere ADRs beschreiben die Entwicklungsschritte; ADR 010 und ADR 011 beschreiben den aktuellen Stand von Editor und Wiedergabe.
+Dreier-Formation, Variablen und Funktionen in der Programmiersprache, freie JavaScript-Runtime, Online-Speicherung, Login, Backend, NOVA und Kompetenzengine bleiben spätere Erweiterungen. Frühere ADRs beschreiben die Entwicklungsschritte; ADR 010 bis ADR 012 beschreiben den aktuellen Stand von Editor, Wiedergabe und Weltquests.

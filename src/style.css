@@ -2,6 +2,27 @@
 * { box-sizing: border-box; }
 [hidden] { display: none !important; }
 .screen-hidden { display: none !important; }
+#world-tools { position: fixed; z-index: 1; top: max(1rem, env(safe-area-inset-top)); right: max(1rem, env(safe-area-inset-right)); max-width: 21rem; display: flex; flex-wrap: wrap; gap: .4rem; padding: .65rem; border: 1px solid #8aaf99; border-radius: .5rem; background: #142c30ed; }
+#active-team-summary { width: 100%; margin: 0 0 .3rem; color: #f2dfa0; font-size: .85rem; }
+#world-tools button, #world-panel button, #dialog-dismiss { min-height: 2.75rem; padding: .5rem .75rem; border: 1px solid #b7a66b; border-radius: .3rem; color: #fff2c8; background: #284749; font: inherit; cursor: pointer; touch-action: manipulation; }
+#world-tools button { font-size: .8rem; }
+#world-tools button:disabled, #world-panel button:disabled { opacity: .5; cursor: not-allowed; }
+#world-notice { width: 100%; margin: 0; font-size: .78rem; line-height: 1.4; }
+#world-notice:empty { display: none; }
+#world-panel { position: fixed; z-index: 8; inset: 0; padding: max(1rem, env(safe-area-inset-top)) 1rem; background: #07191ed9; display: grid; place-items: center; }
+.world-panel-card { display: flex; flex-direction: column; width: min(60rem, 100%); max-height: 100%; padding: clamp(.8rem, 2vw, 1.5rem); border: 2px solid #bca866; border-radius: .6rem; background: #142d32; box-shadow: 0 12px 40px #0008; overflow: auto; }
+.world-panel-card header { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: .6rem; }
+.world-panel-card h2 { margin: 0; color: #f3dfa2; font: 1.5rem Georgia, serif; }
+#world-panel-intro { line-height: 1.5; color: #c7ded4; }
+#world-panel-feedback { margin: 0 0 .6rem; color: #f2d579; }
+#world-panel-feedback:empty { display: none; }
+#world-panel-content { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 20rem), 1fr)); gap: 1rem; }
+.collection-card, .journal-card { padding: 1rem; border: 1px solid #5f8175; border-top: 4px solid #dfc164; border-radius: .5rem; background: #1c383c; }
+.collection-card h3, .journal-card h3 { margin: 0 0 .6rem; color: #fff0c0; }
+.collection-card p, .journal-card p { font-size: .9rem; line-height: 1.5; }
+.collection-card.type-nature { border-top-color: #8ac778; }
+.collection-card.type-fire { border-top-color: #f49e63; }
+@media (max-width: 700px) { #world-tools { top: auto; bottom: max(.75rem, env(safe-area-inset-bottom)); left: .75rem; right: auto; max-width: calc(100vw - 13rem); } #world-tools button { width: 100%; } #world-notice { max-height: 4rem; overflow: auto; } }
 body { margin: 0; overflow: hidden; }
 button { font: inherit; touch-action: none; }
 #app, #game { width: 100vw; height: 100dvh; overflow: hidden; }

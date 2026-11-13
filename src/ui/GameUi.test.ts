@@ -44,6 +44,31 @@ beforeEach(() => {
 });
 
 describe('Editorzustand und Arkan-Zuordnung', () => {
+  it('programmiert ein gewähltes Glutling-Soloteam mit dessen tatsächlich erlernten Befehlen', () => {
+    const programs = missionPrograms(2, ['glutling']);
+    gameEvents.emit('battle-opened', programs, 2, { glutling: ['moveForward', 'attack', 'repeat', 'enemyAdjacent'] });
+    expect(document.getElementById('select-moosling')!.hidden).toBe(true);
+    expect(document.getElementById('program-owner')!.textContent).toContain('Glutling');
+    click('text-mode'); expect(text().value).toContain('glutling.enemyAdjacent');
+    expect(document.getElementById('category-senses')).not.toBeNull();
+    const session = new BattleSession(2, ['glutling']);
+    gameEvents.emit('battle-updated', session.snapshot, 'Bereit');
+    expect(document.getElementById('player-health-name')!.textContent).toBe('Glutling');
+    expect(document.getElementById('player-health-text')!.textContent).toBe('4/4');
+    expect(document.getElementById('companion-health-status')!.hidden).toBe(true);
+    gameEvents.emit('battle-opened', programs, 2, {});
+    click('text-mode'); expect(document.querySelectorAll('[data-command]')).toHaveLength(0);
+  });
+
+  it('führt Fund- und Questaktionen nur nach Annahme eines Dialogs aus', () => {
+    let action = ''; gameEvents.on('campaign-action', (value: string) => { action = value; });
+    const dialog = { speaker: 'MOOSLING', text: 'Ein Fund.', action: 'recruit-moosling', actionLabel: 'In Sammlung aufnehmen' };
+    gameEvents.emit('dialog-opened', dialog);
+    expect(document.getElementById('dialog-close')!.textContent).toBe('In Sammlung aufnehmen');
+    click('dialog-dismiss'); expect(action).toBe('');
+    gameEvents.emit('dialog-opened', dialog); click('dialog-close'); expect(action).toBe('recruit-moosling');
+    expect(document.getElementById('dialog')!.hidden).toBe(true);
+  });
   it('sperrt Änderungen während der Wiedergabe, erlaubt Pause und gibt den Editor nach Abbruch frei', () => {
     gameEvents.emit('battle-opened', missionPrograms(1), 1); click('text-mode');
     const source = text().value;

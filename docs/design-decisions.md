@@ -17,3 +17,17 @@ Jeder aktive Arkan besitzt ein eigenes, deterministisch ausgeführtes Programm. 
 Im Texteditor wird jeder Befehl ausdrücklich seinem Arkan zugeordnet, beispielsweise `glutling.moveForward()` oder `moosling.attack()`. Unqualifizierte Textbefehle und Befehle anderer Arkane im ausgewählten Programmslot werden abgelehnt. Die Blocksprache zeigt kurze Aktionsnamen ohne Objektpräfix; hier legen die ausgewählte Arkan-Karte und die Kontextanzeige über dem Arbeitsbereich die Zuordnung fest. Beim Wechsel zum Text wird der passende Objektname automatisch eingesetzt.
 
 Die bestehenden Trainingsmissionen mit Moosling bleiben Einstiegsmissionen mit genau einem aktiven Arkan. Die Duo-Formation wird als eigene Folgemission entwickelt und erst nach Schleifen und Bedingungen freigeschaltet.
+
+## DD 002 Sammlung und Weltquests
+
+**Status:** Nutzerentscheidung vom 13. November 2026; konkrete Questorte, Artenprofile und Basiswerte sind Prototypausgestaltung.
+
+Die Programmiermissionen werden durch Quests in der offenen Spielwelt eingeführt. Arkana werden in der Welt gefunden und in einer Sammlung verwaltet. Aus den gesammelten Instanzen wird außerhalb einer Begegnung ein aktives Team zusammengestellt. Die Sammlung zeigt die Stärken, Schwächen und tatsächlich erlernten Befehle jeder Art beziehungsweise Instanz.
+
+Die Übersicht `CodeMap_Arkana_Uebersicht.md` konkretisiert das frühere offene Typensystem des GDD: Feuer, Wasser, Natur, Schatten und Licht. Eis/Frost gehören zu Wasser, Erde/Stein zu Natur. Programmierkonzepte sind typübergreifend lernbar; Artenprofile und Spezialfähigkeiten unterscheiden die Wesen. Typenvorteile mit Schadensmultiplikatoren und endgültige Balancewerte bleiben offen.
+
+Im ersten Weltabschnitt gibt es garantierte Fundbegegnungen mit Moosling und Glutling. Moosling wird als Natur-Art mit mehr LP und schwächerem Basisangriff ausgestaltet, Glutling als Feuer-Art mit weniger LP und stärkerem Basisangriff. Die Werte 5 LP/1 Schaden beziehungsweise 4 LP/2 Schaden sind vorläufig. Die im Sammelprofil genannten Ranken-, Heilungs- und Feuerfähigkeiten sind Entwurfsvorschauen und noch keine ausführbaren Aktionen.
+
+Die bestehenden Aufgaben werden zu „Der versperrte Runenpfad“ (Schleifen), „Das wandernde Konstrukt“ (Bedingungen) und „Gemeinsam zum Osttor“ (Duo). Der zweite Teamplatz wird nach der zweiten Quest frei. Die erste Quest vermittelt die allgemeine Nähe-Abfrage allen gesammelten Arkana; später gefundene Arkana erhalten dieselbe allgemeine Freischaltung. Damit ist der Zugang zum Programmierkonzept unabhängig vom Typ. Das konkretisiert die bisherige missionsgebundene Fähigkeitstabelle aus DD 001.
+
+Neue Quests werden an ihren Weltorten oder durch Eldren entdeckt. Das Journal erlaubt anschließend direkte Wiederholungen mit einem geeigneten Team. Questbelohnungen werden einmalig nach sichtbar abgeschlossener erfolgreicher Ausführung gespeichert. Abbruch und Niederlage lassen sofortige Neuversuche zu. Die bestehende Arena dient als Begegnungsszene und kehrt anschließend zur unveränderten Erkundungsposition zurück.

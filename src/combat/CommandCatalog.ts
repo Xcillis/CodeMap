@@ -1,7 +1,8 @@
 import type { ArkanId, ProgramBlock, ProgramNode } from './types';
 import { blocksToNodes, blocksToSource } from './DecisionProgram';
+import { ARKANA_SPECIES, type SkillId } from '../gameplay/ArkanaCatalog';
 
-export type SkillId = 'moveForward' | 'attack' | 'enemyAdjacent' | 'repeat';
+export type { SkillId } from '../gameplay/ArkanaCatalog';
 export type CommandCategory = 'movement' | 'combat' | 'senses' | 'flow';
 export type CommandId = 'move' | 'attack' | 'condition' | 'repeat';
 
@@ -18,14 +19,14 @@ export const ARKAN_SKILLS: Record<ArkanId, {
   lessons: readonly { mission: number; skills: readonly SkillId[] }[];
 }> = {
   moosling: {
-    supported: ['moveForward', 'attack', 'enemyAdjacent', 'repeat'],
+    supported: ARKANA_SPECIES.moosling.supported,
     lessons: [
       { mission: 1, skills: ['moveForward', 'attack', 'repeat'] },
       { mission: 2, skills: ['enemyAdjacent'] },
     ],
   },
   glutling: {
-    supported: ['moveForward', 'attack', 'enemyAdjacent', 'repeat'],
+    supported: ARKANA_SPECIES.glutling.supported,
     lessons: [{ mission: 3, skills: ['moveForward', 'attack', 'repeat'] }],
   },
 };
@@ -42,7 +43,7 @@ export interface CommandDefinition {
 
 export const COMMANDS: readonly CommandDefinition[] = [
   { id: 'move', category: 'movement', label: 'Zum Gegner gehen', description: 'Ein Feld zum Gegner. Belegte Felder blockieren die Bewegung.', requires: ['repeat', 'moveForward'], syntax: (actor) => `${actor}.moveForward()`, block: () => ({ kind: 'action', count: 1, action: 'MOVE_TOWARD' }) },
-  { id: 'attack', category: 'combat', label: 'Angreifen', description: 'Ein Schadenspunkt, wenn der Gegner direkt neben dem Arkan steht.', requires: ['repeat', 'attack'], syntax: (actor) => `${actor}.attack()`, block: () => ({ kind: 'action', count: 1, action: 'ATTACK' }) },
+  { id: 'attack', category: 'combat', label: 'Angreifen', description: 'Ein Basisangriff auf einen direkt benachbarten Gegner. Der Schaden hängt von der Art ab.', requires: ['repeat', 'attack'], syntax: (actor) => `${actor}.attack()`, block: () => ({ kind: 'action', count: 1, action: 'ATTACK' }) },
   { id: 'condition', category: 'senses', label: 'Gegner in der Nähe?', description: 'Prüft vor jeder Aktion die Nähe: angreifen, sonst zum Gegner gehen.', requires: ['repeat', 'enemyAdjacent', 'attack', 'moveForward'], syntax: (actor) => `${actor}.enemyAdjacent`, block: () => ({ kind: 'condition', count: 1, whenTrue: 'ATTACK', whenFalse: 'MOVE_TOWARD' }) },
   { id: 'repeat', category: 'flow', label: 'Wiederhole … mal', description: 'Wiederholt eine Aktion 1 bis 6 Mal. Starte mit einem Bewegungsschritt und wähle die Anzahl im Block.', requires: ['repeat', 'moveForward'], syntax: () => 'repeat(3, () => { … });', block: () => ({ kind: 'action', count: 3, action: 'MOVE_TOWARD' }) },
 ];
@@ -60,9 +61,8 @@ export function programCapabilityError(blocks: readonly ProgramBlock[], actor: A
   return nodesCapabilityError(blocksToNodes(blocks), actor, mission);
 }
 
-export function nodesCapabilityError(nodes: readonly ProgramNode[], actor: ArkanId, mission: number): string | undefined {
+export function nodesCapabilityError(nodes: readonly ProgramNode[], actor: ArkanId, mission: number, learned = learnedSkills(actor, mission)): string | undefined {
   const supported = ARKAN_SKILLS[actor].supported;
-  const learned = learnedSkills(actor, mission);
   const required = new Set<SkillId>();
   const visit = (list: readonly ProgramNode[]): void => {
     for (const node of list) {

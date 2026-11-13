@@ -3,6 +3,15 @@ import { BattleEngine } from './BattleEngine';
 import { blocksToSource, compileActionPlan } from './DecisionProgram';
 
 describe('BattleEngine', () => {
+  it('wendet artspezifische Basiswerte an und behält die gewählte Teamreihenfolge', () => {
+    const battle = new BattleEngine({ moosling: { x: 4, y: 3 }, glutling: { x: 5, y: 2 } });
+    battle.reset(true, 5, ['glutling', 'moosling']);
+    expect(battle.snapshot.player.id).toBe('glutling');
+    expect(battle.snapshot.player.maxHp).toBe(4); expect(battle.snapshot.companion?.maxHp).toBe(5);
+    const frames: { actor: string; hp: number }[] = [];
+    battle.runTick({ moosling: { kind: 'action', action: 'ATTACK' }, glutling: { kind: 'action', action: 'ATTACK' } }, false, (frame) => frames.push({ actor: frame.actor, hp: frame.after.enemy.hp }));
+    expect(frames).toEqual([{ actor: 'glutling', hp: 3 }, { actor: 'moosling', hp: 2 }]);
+  });
   it('führt identische Runden deterministisch aus', () => {
     const first = new BattleEngine();
     const second = new BattleEngine();

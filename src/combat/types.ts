@@ -36,6 +36,7 @@ export interface Combatant extends GridPosition {
   name: string;
   hp: number;
   maxHp: number;
+  attackPower?: number;
   guarding: boolean;
 }
 

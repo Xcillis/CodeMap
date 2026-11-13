@@ -3,8 +3,10 @@ import './style.css';
 import { WorldScene } from './scenes/WorldScene';
 import { BattleScene } from './scenes/BattleScene';
 import { GameUi } from './ui/GameUi';
+import { WorldUi } from './ui/WorldUi';
 
 new GameUi();
+new WorldUi();
 
 new Phaser.Game({
   type: Phaser.AUTO,

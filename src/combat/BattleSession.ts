@@ -3,10 +3,15 @@ import { nodesToSource, programCost, compileActionPlan, CONDITION_PROGRAM, DEFAU
 import type { ActionFrame, ArkanId, ProgramSources, ProgramStep } from './types';
 import { nodesCapabilityError } from './CommandCatalog';
 import { ProgramRunner } from './ProgramRunner';
+import type { SkillId } from '../gameplay/ArkanaCatalog';
 
 export type MissionId = 1 | 2 | 3;
 
-export function missionPrograms(mission: MissionId): ProgramSources {
+export function missionPrograms(mission: MissionId, team?: readonly ArkanId[]): ProgramSources {
+  if (team) {
+    const source = mission === 1 ? DEFAULT_PROGRAM : mission === 2 ? CONDITION_PROGRAM : FORMATION_PROGRAM;
+    return Object.fromEntries(team.map((actor) => [actor, source.replace(/moosling/g, actor)]));
+  }
   if (mission === 1) return { moosling: DEFAULT_PROGRAM };
   if (mission === 2) return { moosling: CONDITION_PROGRAM };
   return { moosling: FORMATION_PROGRAM, glutling: FORMATION_PROGRAM.replace(/moosling/g, 'glutling') };
@@ -23,13 +28,13 @@ export class BattleSession {
   get frames(): readonly ActionFrame[] { return this.actionFrames; }
   get done(): boolean { return this.snapshot.outcome !== 'ongoing' || this.length === 0 || this.actors.every((actor) => this.plans[actor]?.done); }
 
-  constructor(readonly mission: MissionId) { this.reset(); }
+  constructor(readonly mission: MissionId, private readonly team?: readonly ArkanId[], private readonly skills?: Partial<Record<ArkanId, readonly SkillId[]>>) { this.reset(); }
 
   get snapshot() { return this.engine.snapshot; }
-  get actors(): ArkanId[] { return this.mission === 3 ? ['moosling', 'glutling'] : ['moosling']; }
+  get actors(): ArkanId[] { return this.team ? [...this.team] : this.mission === 3 ? ['moosling', 'glutling'] : ['moosling']; }
 
   reset(): void {
-    this.engine.reset(this.mission === 3, this.mission === 3 ? 5 : 3);
+    this.engine.reset(this.mission === 3, this.mission === 3 ? 5 : 3, this.team);
     this.cursor = 0;
     this.signature = '';
     this.actionFrames = [];
@@ -44,7 +49,7 @@ export class BattleSession {
     for (const actor of this.actors) {
       const parsed = compileActionPlan(sources[actor] ?? '', actor);
       if (parsed.error || !parsed.nodes) return `${actor}: ${parsed.error}`;
-      const capabilityError = nodesCapabilityError(parsed.nodes, actor, this.mission);
+      const capabilityError = nodesCapabilityError(parsed.nodes, actor, this.mission, this.skills ? this.skills[actor] ?? [] : undefined);
       if (capabilityError) return capabilityError;
       plans[actor] = new ProgramRunner(parsed.nodes);
       lines[actor] = parsed.sourceMap;

@@ -22,6 +22,9 @@ export class PlayerController {
       right: keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.D),
     };
     this.interactKeys = [keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.E), keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE)];
+    // Native controls and the text editor need Space and arrow-key defaults.
+    // Movement is suspended separately while a dialog, overlay or encounter is open.
+    keyboard.disableGlobalCapture();
   }
 
   update(canMove: boolean): boolean {

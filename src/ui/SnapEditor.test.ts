@@ -84,5 +84,7 @@ describe('Echte Blockly-Verbindungen', () => {
     expect(JSON.stringify(snapToolbox('moosling', 1))).not.toContain('cm_if');
     expect(JSON.stringify(snapToolbox('moosling', 2))).toContain('cm_if');
     expect(JSON.stringify(snapToolbox('glutling', 3))).not.toContain('cm_if');
+    expect(JSON.stringify(snapToolbox('glutling', 2, ['moveForward', 'attack', 'repeat', 'enemyAdjacent']))).toContain('cm_if');
+    expect(JSON.stringify(snapToolbox('glutling', 2, []))).not.toContain('cm_attack');
   });
 });

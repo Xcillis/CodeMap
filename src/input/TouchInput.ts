@@ -25,6 +25,7 @@ export class TouchInput {
     this.interactRequested = false;
     return requested;
   }
+  clear(): void { this.heldDirections.clear(); this.interactRequested = false; }
 }
 
 export const touchInput = new TouchInput();

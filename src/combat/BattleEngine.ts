@@ -1,4 +1,5 @@
 import type { ActionFrame, ArkanId, BattleState, CombatAction, Combatant, GridPosition, ProgramStep } from './types';
+import { ARKANA_SPECIES } from '../gameplay/ArkanaCatalog';
 
 const GRID_SIZE = 7;
 
@@ -13,8 +14,8 @@ export class BattleEngine {
     return structuredClone(this.state);
   }
 
-  reset(withCompanion = false, enemyHp = 3): void {
-    this.state = this.initialState(withCompanion, enemyHp);
+  reset(withCompanion = false, enemyHp = 3, team?: readonly ArkanId[]): void {
+    this.state = this.initialState(withCompanion, enemyHp, team);
   }
 
   runStep(playerAction: CombatAction, enemyActive = false): Readonly<BattleState> {
@@ -50,12 +51,18 @@ export class BattleEngine {
     return this.snapshot;
   }
 
-  private initialState(withCompanion = false, enemyHp = 3): BattleState {
+  private initialState(withCompanion = false, enemyHp = 3, team?: readonly ArkanId[]): BattleState {
+    const roster: readonly ArkanId[] = team ?? (withCompanion ? ['moosling', 'glutling'] : ['moosling']);
+    if (!roster.length || roster.length > 2 || new Set(roster).size !== roster.length) throw new Error('Wähle ein Team aus ein oder zwei unterschiedlichen Arkanen.');
+    const ally = (id: ArkanId, y: number): Combatant => {
+      const species = ARKANA_SPECIES[id];
+      return { id, name: species.name, hp: species.maxHp, maxHp: species.maxHp, attackPower: species.attack, x: 1, y, guarding: false };
+    };
     const state: BattleState = {
       tick: 0,
       outcome: 'ongoing',
-      player: { id: 'moosling', name: 'Moosling', hp: 5, maxHp: 5, x: 1, y: 3, guarding: false },
-      companion: withCompanion ? { id: 'glutling', name: 'Glutling', hp: 4, maxHp: 4, x: 1, y: 2, guarding: false } : undefined,
+      player: ally(roster[0], 3),
+      companion: roster[1] ? ally(roster[1], 2) : undefined,
       enemy: { id: 'konstrukt', name: 'Übungskonstrukt', hp: enemyHp, maxHp: enemyHp, x: 5, y: 3, guarding: false },
       log: ['Trainingsarena bereit. Das Konstrukt beobachtet deinen Aktionsplan.'],
     };
@@ -82,7 +89,7 @@ export class BattleEngine {
       this.addLog(`${actor.name} ist noch außer Reichweite.`);
       return;
     }
-    const damage = target.guarding ? 0 : 1;
+    const damage = target.guarding ? 0 : Math.min(target.hp, actor.attackPower ?? 1);
     target.hp = Math.max(0, target.hp - damage);
     this.addLog(damage === 0 ? `${target.name} blockt den Angriff.` : `${actor.name} trifft ${target.name} für ${damage} Schaden.`);
     if (target.hp === 0) {

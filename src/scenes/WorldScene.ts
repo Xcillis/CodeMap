@@ -2,8 +2,11 @@ import Phaser from 'phaser';
 import { gameEvents } from '../game/events';
 import { InteractionController } from '../gameplay/InteractionController';
 import { PlayerController } from '../gameplay/PlayerController';
-import { QuestStore } from '../gameplay/QuestStore';
 import { loadProgress, saveProgress } from '../gameplay/LocalProgress';
+import { Campaign } from '../gameplay/Campaign';
+import { WORLD_QUESTS, type CampaignAction } from '../gameplay/WorldQuests';
+import type { MissionId } from '../combat/BattleSession';
+import { touchInput } from '../input/TouchInput';
 
 const WORLD_WIDTH = 1600;
 const WORLD_HEIGHT = 1040;
@@ -12,13 +15,36 @@ export class WorldScene extends Phaser.Scene {
   private player!: Phaser.GameObjects.Arc;
   private playerController!: PlayerController;
   private interactionController!: InteractionController;
-  private readonly quest = new QuestStore({
-    id: 'm1-speak-to-the-arcanist',
-    title: 'Sprich mit dem Arkanisten',
-    objective: loadProgress().questCompleted ? 'Quest abgeschlossen: Sprich mit dem Arkanisten.' : 'Sprich mit dem Arkanisten.',
-    status: loadProgress().questCompleted ? 'complete' : 'active',
-  });
+  private readonly campaign = new Campaign(loadProgress().campaign);
+  private readonly encounterLabels = new Map<string, Phaser.GameObjects.Text>();
   private dialogActive = false;
+  private overlayActive = false;
+  private pendingReward?: string;
+  private readonly onDialogClosed = () => { this.dialogActive = false; this.clearInput(); };
+  private readonly onOverlay = (open: boolean) => { this.overlayActive = open; this.clearInput(); };
+  private readonly onTeamToggle = (id: string) => { const message = this.campaign.toggleTeam(id); this.publishCampaign(); gameEvents.emit('world-notice', message); };
+  private readonly onCampaignAction = (action: CampaignAction) => {
+    if (action.startsWith('quest-')) {
+      const id = Number(action.slice(6)) as MissionId;
+      const encounter = this.campaign.beginMission(id);
+      if (typeof encounter === 'string') { gameEvents.emit('world-notice', encounter); return; }
+      this.clearInput(); this.scene.pause('world'); this.scene.launch('battle', encounter);
+    } else {
+      const message = this.campaign.apply(action); this.publishCampaign(); gameEvents.emit('world-notice', message);
+    }
+  };
+  private readonly onVictory = (id: MissionId) => {
+    const reward = this.campaign.completeMission(id);
+    if (reward) { this.pendingReward = reward; this.publishCampaign(); }
+  };
+  private readonly onReturned = () => {
+    this.campaign.leaveMission(); this.publishCampaign(); this.clearInput();
+    if (this.pendingReward) {
+      this.dialogActive = true;
+      gameEvents.emit('dialog-opened', { speaker: 'QUEST ABGESCHLOSSEN', text: this.pendingReward });
+      this.pendingReward = undefined;
+    }
+  };
 
   constructor() {
     super('world');
@@ -32,44 +58,64 @@ export class WorldScene extends Phaser.Scene {
     this.physics.add.collider(this.player, obstacles);
     this.playerController = new PlayerController(this, this.player);
     this.createNpc(915, 540);
-    this.interactionController = new InteractionController([{ id: 'arkanist-eldren', label: 'Arkanist Eldren', x: 915, y: 540, range: 75 }]);
+    this.createWorldEncounter('moosling', 'Moosling', 600, 650, 0x78bc69);
+    this.createWorldEncounter('glutling', 'Glutling', 1290, 650, 0xef934a);
+    for (const quest of WORLD_QUESTS) this.createWorldEncounter(`quest-${quest.id}`, quest.target, quest.x, quest.y, 0xe1c970);
+    this.interactionController = new InteractionController([
+      { id: 'arkanist-eldren', label: 'Arkanist Eldren', x: 915, y: 540, range: 75 },
+      { id: 'moosling', label: 'Moosling begegnen', x: 600, y: 650, range: 70 },
+      { id: 'glutling', label: 'Feuerspur untersuchen', x: 1290, y: 650, range: 70 },
+      ...WORLD_QUESTS.map((quest) => ({ id: `quest-${quest.id}`, label: quest.target, x: quest.x, y: quest.y, range: 70 })),
+    ]);
 
     this.cameras.main.setBounds(0, 0, WORLD_WIDTH, WORLD_HEIGHT);
     this.cameras.main.startFollow(this.player, true, 0.12, 0.12);
     this.cameras.main.setZoom(1.12);
-    gameEvents.emit('quest-updated', this.quest.current.objective, this.quest.current.status === 'complete');
-    gameEvents.on('dialog-closed', () => (this.dialogActive = false));
-    gameEvents.on('start-battle', () => {
-      this.scene.pause('world');
-      this.scene.launch('battle');
+    gameEvents.on('dialog-closed', this.onDialogClosed);
+    gameEvents.on('world-overlay', this.onOverlay);
+    gameEvents.on('team-toggle', this.onTeamToggle);
+    gameEvents.on('campaign-action', this.onCampaignAction);
+    gameEvents.on('world-quest-victory', this.onVictory);
+    gameEvents.on('world-returned', this.onReturned);
+    this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
+      gameEvents.off('dialog-closed', this.onDialogClosed); gameEvents.off('world-overlay', this.onOverlay);
+      gameEvents.off('team-toggle', this.onTeamToggle); gameEvents.off('campaign-action', this.onCampaignAction);
+      gameEvents.off('world-quest-victory', this.onVictory); gameEvents.off('world-returned', this.onReturned);
+      this.encounterLabels.clear();
     });
+    this.publishCampaign();
   }
 
   update(): void {
-    const interactionPressed = this.playerController.update(!this.dialogActive);
+    const interactionPressed = this.playerController.update(!this.dialogActive && !this.overlayActive);
     const nearby = this.interactionController.nearestTo(this.player.x, this.player.y);
-    gameEvents.emit('interaction-hint', nearby && !this.dialogActive ? 'E oder Leertaste: Mit Arkanist Eldren sprechen' : '');
+    gameEvents.emit('interaction-hint', nearby && !this.dialogActive && !this.overlayActive ? `E oder Leertaste: ${nearby.label}` : '');
 
-    if (interactionPressed && nearby && !this.dialogActive) {
-      this.startArcanistConversation();
+    if (interactionPressed && nearby && !this.dialogActive && !this.overlayActive) {
+      this.dialogActive = true;
+      gameEvents.emit('dialog-opened', this.campaign.interact(nearby.id));
+      this.publishCampaign();
     }
   }
 
-  private startArcanistConversation(): void {
-    this.dialogActive = true;
-    const completed = this.quest.completeForInteraction('arkanist-eldren');
-    if (completed) {
-      saveProgress({ questCompleted: true });
-      gameEvents.emit('quest-updated', this.quest.current.objective, true);
-    }
-    const canTrain = completed || this.quest.current.status === 'complete';
-    gameEvents.emit('dialog-opened', {
-      speaker: 'ARKANIST ELDREN',
-      text: canTrain
-        ? 'Willkommen, Lehrling. Dein erster Schritt ist getan. Jetzt zeigt dir Moosling in der Trainingsarena, wie Entscheidungen im Kampf wirken.'
-        : 'Die Akademie zählt auf deinen wachen Blick. Erkunde das Gelände, wenn du bereit bist.',
-      action: canTrain ? 'start-battle' : undefined,
-    });
+  private publishCampaign(): void {
+    const state = this.campaign.snapshot;
+    saveProgress({ campaign: state, questCompleted: state.introduced });
+    gameEvents.emit('campaign-updated', state);
+    gameEvents.emit('quest-updated', this.campaign.objective, state.completed.includes(3));
+    for (const id of ['moosling', 'glutling'] as const) this.encounterLabels.get(id)?.setText(`${id === 'moosling' ? 'Moosling' : 'Glutling'}${this.campaign.has(id) ? ' · entdeckt' : ' · ?'}`);
+    for (const quest of WORLD_QUESTS) this.encounterLabels.get(`quest-${quest.id}`)?.setText(`${state.completed.includes(quest.id) ? '✓' : '!'} ${quest.target}`);
+  }
+
+  private clearInput(): void { touchInput.clear(); this.input.keyboard?.resetKeys(); }
+
+  private createWorldEncounter(id: string, label: string, x: number, y: number, color: number): void {
+    const quest = id.startsWith('quest-');
+    this.add.ellipse(x, y + 18, 32, 10, 0x142c35, .3).setDepth(4);
+    if (quest) this.add.rectangle(x, y, 24, 34, color).setStrokeStyle(3, 0x3d4a41).setDepth(5);
+    else this.add.circle(x, y, 17, color).setStrokeStyle(3, 0xf7efc2).setDepth(5);
+    const text = this.add.text(x, y - 40, label, { fontSize: '15px', color: '#fff1bd', stroke: '#243a30', strokeThickness: 4 }).setOrigin(.5).setDepth(6);
+    this.encounterLabels.set(id, text);
   }
 
   private drawLandscape(): void {
