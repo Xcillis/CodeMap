@@ -9,6 +9,7 @@ export interface LearningTerm {
   explanation: string;
   example: string;
   code: string;
+  furtherExamples?: readonly { lesson: LessonId; title: string; example: string; code: string }[];
 }
 
 /** Explanations describe observable actions before naming an abstract concept. */
@@ -24,9 +25,14 @@ export const LEARNING_TERMS: readonly LearningTerm[] = [
     example: 'Das Konstrukt beginnt mit 4 LP. Glutlings Angriff zieht ihm 2 LP ab. Danach bleiben 2 LP übrig.', code: 'glutling.attack();' },
   { id: 'loop', label: 'Schleife', aliases: ['Schleife', 'Schleifen'], lesson: 'q03-wiederkehr', category: 'Programmieren',
     explanation: 'Du kannst Befehle automatisch mehrmals ausführen lassen. Das nennt man eine Schleife. Die Zahl beim Wiederholen legt fest, wie oft die Befehle im Inneren ausgeführt werden.',
-    example: 'Dieser Wiederholungsblock lässt Glutling dreimal einen Schritt nach rechts gehen.', code: 'repeat(3, () => {\n  glutling.moveRight();\n});' },
+    example: 'Dieser Wiederholungsblock lässt Glutling dreimal einen Schritt nach rechts gehen.', code: 'repeat(3, () => {\n  glutling.moveRight();\n});',
+    furtherExamples: [{ lesson: 'q04-musterpfad', title: 'Mehrere Anweisungen gemeinsam wiederholen', example: 'Bei jedem Durchlauf geht Glutling zuerst nach rechts und danach nach oben. Zwei Durchläufe ergeben vier einzelne Bewegungen.', code: 'repeat(2, () => {\n  glutling.moveRight();\n  glutling.moveUp();\n});' }] },
+  { id: 'loop-body', label: 'Schleifenrumpf', aliases: ['Schleifenrumpf'], lesson: 'q04-musterpfad', category: 'Programmieren',
+    explanation: 'Die Befehle im Inneren eines Wiederholungsblocks werden bei jedem Durchlauf nacheinander ausgeführt. Dieses Innere heißt Schleifenrumpf. Es kann mehrere Anweisungen enthalten.',
+    example: '„Nach rechts“ und „nach oben“ stehen beide im Schleifenrumpf. Glutling führt bei jedem Durchlauf beide Bewegungen in dieser Reihenfolge aus.', code: 'repeat(2, () => {\n  glutling.moveRight();\n  glutling.moveUp();\n});' },
 ];
 
 export function learnedTerms(completed: readonly LessonId[]): readonly LearningTerm[] {
-  return LEARNING_TERMS.filter((term) => completed.includes(term.lesson));
+  return LEARNING_TERMS.filter((term) => completed.includes(term.lesson))
+    .map((term) => ({ ...term, furtherExamples: term.furtherExamples?.filter((example) => completed.includes(example.lesson)) }));
 }

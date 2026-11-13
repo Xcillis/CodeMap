@@ -9,6 +9,7 @@ const solutions = [
   'glutling.moveRight(); glutling.moveRight(); glutling.moveUp();',
   'glutling.moveRight(); glutling.moveRight(); glutling.attack(); glutling.attack();',
   'repeat(4, () => { glutling.moveRight(); });',
+  'repeat(3, () => { glutling.moveRight(); glutling.moveUp(); });',
 ];
 describe('Lernaufgaben mit eigenen Freigaben und Zielen', () => {
   for (const [index, id] of LESSON_IDS.entries()) it(`${id}: liefert schrittweise und vollständig dieselben Zustände und Traces`, () => {
@@ -47,6 +48,45 @@ describe('Lernaufgaben mit eigenen Freigaben und Zielen', () => {
       expect(session.snapshot).toMatchObject({ outcome: 'incomplete', player: { x: 5, y: 3 } });
       expect(session.frames.at(-1)?.after.outcome).toBe('incomplete');
     }
+  });
+  it('verlangt auf dem Musterpfad die gemeinsam wiederholte Bewegungssequenz', () => {
+    const lesson = getLesson('q04-musterpfad');
+    for (const source of [
+      'glutling.moveRight(); glutling.moveUp(); glutling.moveRight(); glutling.moveUp(); glutling.moveRight(); glutling.moveUp();',
+      'repeat(1, () => { glutling.moveRight(); glutling.moveUp(); }); glutling.moveRight(); glutling.moveUp(); glutling.moveRight(); glutling.moveUp();',
+      'repeat(1, () => { glutling.moveRight(); }); repeat(1, () => { glutling.moveUp(); }); repeat(1, () => { glutling.moveRight(); }); repeat(1, () => { glutling.moveUp(); }); repeat(1, () => { glutling.moveRight(); }); repeat(1, () => { glutling.moveUp(); });',
+      'repeat(3, () => { repeat(1, () => { glutling.moveRight(); }); }); glutling.moveUp(); glutling.moveRight(); glutling.moveUp(); glutling.moveRight(); glutling.moveUp();',
+      'repeat(3, () => { glutling.moveRight(); glutling.moveRight(); glutling.moveUp(); });',
+      'repeat(2, () => { glutling.moveRight(); glutling.moveUp(); glutling.moveRight(); }); glutling.moveUp(); glutling.moveRight(); glutling.moveUp();',
+    ]) {
+      const session = new LessonSession(lesson, lesson.allowed);
+      expect(session.execute({ glutling: source }, true)).toContain('Musterübung');
+      expect(session.snapshot).toMatchObject({ outcome: 'incomplete', player: { x: 4, y: 1 } });
+      expect(session.frames.at(-1)?.after.outcome).toBe('incomplete');
+    }
+  });
+  it('erhält gültige Varianten und setzt den Musternachweis bei Neustart und Programmänderung zurück', () => {
+    const lesson = getLesson('q04-musterpfad'); const session = new LessonSession(lesson, lesson.allowed);
+    for (const source of [solutions[3], 'glutling.moveRight(); glutling.moveUp(); repeat(2, () => { glutling.moveRight(); glutling.moveUp(); });',
+      'repeat(3, () => { repeat(1, () => { glutling.moveRight(); glutling.moveUp(); }); });']) {
+      expect(session.execute({ glutling: source }, true)).toContain('Questziel erreicht');
+      expect(session.snapshot.outcome).toBe('victory');
+    }
+    const singles = 'glutling.moveRight(); glutling.moveUp(); glutling.moveRight(); glutling.moveUp(); glutling.moveRight(); glutling.moveUp();';
+    session.execute({ glutling: singles }, true); expect(session.snapshot.outcome).toBe('incomplete');
+    session.reset(); expect(session.snapshot).toMatchObject({ tick: 0, outcome: 'ongoing' });
+    session.execute({ glutling: solutions[3] }); session.execute({ glutling: solutions[3] });
+    session.execute({ glutling: singles }); expect(session.snapshot).toMatchObject({ tick: 1, outcome: 'ongoing' });
+  });
+  it('sperrt den Angriff und Bedingungen auch mit einem alten vollständig freigeschalteten Arkana im Musterpfad', () => {
+    const lesson = getLesson('q04-musterpfad'); const session = new LessonSession(lesson, ARKANA_SPECIES.glutling.supported);
+    const before = session.snapshot;
+    for (const source of ['glutling.attack();', 'if (glutling.enemyAdjacent) { glutling.moveRight(); }']) {
+      expect(session.execute({ glutling: source }, true)).toContain('nicht freigegeben'); expect(session.snapshot).toEqual(before);
+    }
+    session.execute({ glutling: lesson.starter }, true); expect(session.snapshot).toMatchObject({ outcome: 'ongoing', tick: 1 });
+    session.execute({ glutling: 'glutling.moveUp();' }, true); expect(session.snapshot.player).toMatchObject({ x: 1, y: 4 });
+    expect(session.snapshot.log.at(-1)).toContain('blockiert');
   });
   it('prüft Hindernisse und Kartenränder ohne automatische Umgehung', () => {
     const lesson = getLesson(LESSON_IDS[0]); if (lesson.kind !== 'puzzle') throw new Error('puzzle expected');

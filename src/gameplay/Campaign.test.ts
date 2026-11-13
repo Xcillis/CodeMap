@@ -10,6 +10,7 @@ const solutions: Record<LessonId, string> = {
   'q01-glutspur': 'glutling.moveRight(); glutling.moveRight(); glutling.moveUp();',
   'q02-basisangriff': 'glutling.moveRight(); glutling.moveRight(); glutling.attack(); glutling.attack();',
   'q03-wiederkehr': 'repeat(4, () => { glutling.moveRight(); });',
+  'q04-musterpfad': 'repeat(3, () => { glutling.moveRight(); glutling.moveUp(); });',
 };
 function introduced(): Campaign {
   const campaign = new Campaign(); campaign.apply('meet-eldren'); campaign.apply('recruit-glutling'); return campaign;
@@ -86,10 +87,24 @@ describe('Gestufte Lernquests und freie Trainingsarena', () => {
     win(campaign, LESSON_IDS[2]);
     expect(campaign.snapshot.owned[0].learned).toContain('repeat');
     expect(campaign.snapshot.owned[0].learned).not.toContain('enemyAdjacent');
-    expect(campaign.snapshot.completed).toEqual([...LESSON_IDS]);
+    expect(campaign.snapshot.completed).toEqual([...LESSON_IDS.slice(0, 3)]);
     campaign.apply('recruit-moosling'); expect(campaign.has('moosling')).toBe(true);
     expect(campaign.snapshot.owned[1].learned).toContain('repeat');
     expect(campaign.teamLimit).toBe(1);
+  });
+  it('führt nach Q03 zum Musterpfad, erhält Mooslings Fund und belohnt Q04 nur einmal', () => {
+    const campaign = introduced();
+    campaign.interact('lesson:q04-musterpfad'); expect(campaign.lessonOffer('q04-musterpfad').action).toBeUndefined();
+    expect(campaign.prepareMission('q04-musterpfad')).toContain('vorherige');
+    for (const id of LESSON_IDS.slice(0, 3)) win(campaign, id);
+    expect(campaign.objective).toContain('Musterstein am Nordweg');
+    expect(campaign.interact('moosling').action).toBe('recruit-moosling');
+    expect(campaign.interact('arkanist-eldren').speaker).toBe('DER MUSTERPFAD');
+    expect(campaign.lessonOffer('q04-musterpfad').action).toBe('lesson:q04-musterpfad');
+    const skills = campaign.snapshot.owned[0].learned;
+    win(campaign, 'q04-musterpfad'); expect(campaign.snapshot.completed).toEqual([...LESSON_IDS]);
+    expect(campaign.snapshot.owned[0].learned).toEqual(skills); expect(campaign.teamLimit).toBe(1);
+    begin(campaign, 'q04-musterpfad'); expect(campaign.completeMission('q04-musterpfad')).toBeUndefined();
   });
   it('begrenzt Wiederholungsquests auch bei alten Spielständen mit allen Fähigkeiten', () => {
     const campaign = new Campaign({ version: 1, introduced: true, owned: [{ speciesId: 'glutling', learned: [...ARKANA_SPECIES.glutling.supported] }], team: [instanceId('glutling')], completed: [1, 2, 3], discovered: [1, 2, 3] });

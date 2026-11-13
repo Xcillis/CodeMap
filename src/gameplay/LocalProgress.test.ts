@@ -1,10 +1,29 @@
 // @vitest-environment jsdom
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { Campaign } from './Campaign';
+import { instanceId } from './ArkanaCatalog';
 const key = 'codemap-m2-progress';
 beforeEach(() => { vi.restoreAllMocks(); vi.resetModules(); localStorage.clear(); });
 
 describe('Lokaler Weltfortschritt', () => {
+  it('öffnet Q04 für einen bestehenden Q03-Spielstand und speichert dessen Entwurf separat', async () => {
+    const campaign = { version: 2, introduced: true, owned: [{ speciesId: 'glutling', learned: ['moveRight', 'moveUp', 'attack', 'repeat'] }, { speciesId: 'moosling' }],
+      team: [instanceId('glutling')], completed: ['q01-glutspur', 'q02-basisangriff', 'q03-wiederkehr'] };
+    const programs = { 'q03-wiederkehr:glutling': 'repeat(4, () => { glutling.moveRight(); });', '1:glutling': 'glutling.attack();' };
+    localStorage.setItem(key, JSON.stringify({ programVersion: 3, campaign, programs }));
+    const { loadProgress, saveProgress, saveProgramDraft } = await import('./LocalProgress');
+    const loaded = new Campaign(loadProgress().campaign);
+    expect(loaded.snapshot.completed).toHaveLength(3); expect(loaded.snapshot.owned).toHaveLength(2);
+    expect(loaded.objective).toContain('Musterstein');
+    expect(loaded.interact('arkanist-eldren').action).toBe('lesson:q04-musterpfad');
+    expect(loaded.beginMission('q04-musterpfad')).toMatchObject({ kind: 'lesson', lesson: 'q04-musterpfad' });
+    loaded.completeMission('q04-musterpfad'); saveProgress({ campaign: loaded.snapshot });
+    const source = 'repeat(3, () => { glutling.moveRight(); glutling.moveUp(); });';
+    saveProgramDraft('q04-musterpfad', 'glutling', source);
+    vi.resetModules(); const reloaded = await import('./LocalProgress');
+    expect(reloaded.loadProgress().campaign.completed).toContain('q04-musterpfad');
+    expect(reloaded.loadProgress().programs).toEqual({ ...programs, 'q04-musterpfad:glutling': source });
+  });
   it('archiviert alte Questabschlüsse und erhält Sammlung, Teams und alle Programmplätze', async () => {
     const programs = { '1:glutling': 'repeat(3, () => { glutling.attack(); });' };
     const workspaces = { '1:glutling': '{"blocks":{"blocks":[]}}' };

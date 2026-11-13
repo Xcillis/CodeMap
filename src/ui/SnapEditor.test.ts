@@ -5,8 +5,23 @@ import { blockAtPath, loadNodes, workspaceNodes, snapToolbox, restoreWorkspaceSt
 import { compileActionPlan, nodesToSource } from '../combat/DecisionProgram';
 import { BattleSession } from '../combat/BattleSession';
 import { getLesson } from '../gameplay/WorldQuests';
+import { LessonSession } from '../combat/LessonSession';
 
 describe('Echte Blockly-Verbindungen', () => {
+  it('löst Q04 mit zwei eingerasteten Bewegungen im selben Rumpf und erhält den Block-Text-Wechsel', () => {
+    const lesson = getLesson('q04-musterpfad'); const workspace = new Blockly.Workspace();
+    try {
+      const start = workspace.newBlock('cm_start'); const repeat = workspace.newBlock('cm_repeat'); repeat.setFieldValue(3, 'COUNT');
+      const right = workspace.newBlock('cm_move_right'); const up = workspace.newBlock('cm_move_up');
+      start.nextConnection!.connect(repeat.previousConnection!); repeat.getInput('BODY')!.connection!.connect(right.previousConnection!); right.nextConnection!.connect(up.previousConnection!);
+      const source = nodesToSource(workspaceNodes(workspace), 'glutling'); const parsed = compileActionPlan(source, 'glutling');
+      const session = new LessonSession(lesson, lesson.allowed); session.execute({ glutling: source }, true);
+      expect(session.snapshot).toMatchObject({ outcome: 'victory', tick: 6, player: { x: 4, y: 1 } });
+      loadNodes(workspace, parsed.nodes!, 'glutling'); expect(nodesToSource(workspaceNodes(workspace), 'glutling')).toBe(source);
+      const toolbox = JSON.stringify(snapToolbox('glutling', 0, lesson.allowed));
+      expect(toolbox).toContain('cm_repeat'); expect(toolbox).toContain('cm_move_up'); expect(toolbox).not.toContain('cm_if'); expect(toolbox).not.toContain('cm_attack');
+    } finally { workspace.dispose(); }
+  });
   it('bietet den Startblock ohne Schleifenfreigabe an und serialisiert gerichtete Bewegungen', () => {
     const lesson = getLesson('q01-glutspur');
     const toolbox = JSON.stringify(snapToolbox('glutling', 0, lesson.allowed));

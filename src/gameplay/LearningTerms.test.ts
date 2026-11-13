@@ -17,6 +17,13 @@ describe('Gelernte Fachbegriffe', () => {
     campaign.interact('lesson:q03-wiederkehr'); campaign.beginMission(LESSON_IDS[2]); campaign.completeMission(LESSON_IDS[2]);
     const loaded = new Campaign(JSON.parse(JSON.stringify(campaign.snapshot)));
     expect(learnedTerms(loaded.snapshot.completed).map((term) => term.id)).toEqual(['instruction', 'sequence', 'health', 'loop']);
+    expect(learnedTerms(loaded.snapshot.completed).find((term) => term.id === 'loop')?.furtherExamples).toEqual([]);
+    loaded.leaveMission(); loaded.interact('lesson:q04-musterpfad'); loaded.beginMission('q04-musterpfad');
+    expect(learnedTerms(loaded.snapshot.completed).map((term) => term.id)).not.toContain('loop-body');
+    loaded.completeMission('q04-musterpfad');
+    const terms = learnedTerms(new Campaign(JSON.parse(JSON.stringify(loaded.snapshot))).snapshot.completed);
+    expect(terms.map((term) => term.id)).toEqual(['instruction', 'sequence', 'health', 'loop', 'loop-body']);
+    expect(terms.find((term) => term.id === 'loop')?.furtherExamples?.[0].code).toContain('glutling.moveUp();');
   });
   it('übernimmt keine Begriffe aus alten Arenasiegen oder freiem Training', () => {
     const campaign = new Campaign({ version: 1, introduced: true, completed: [1, 2, 3], owned: [{ speciesId: 'glutling', learned: ['attack', 'repeat'] }] });

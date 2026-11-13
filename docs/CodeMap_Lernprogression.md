@@ -6,7 +6,7 @@ Dieser Plan ordnet die Programmiergrundlagen in eine verständliche Lernfolge in
 
 **Festgelegt durch die Nutzerkorrektur:** Anweisungen und Sequenzen kommen zuerst, der Basisangriff folgt in einer eigenen Quest, Schleifen werden anschließend gelernt. Arkana werden weiterhin in der Welt gefunden und in Sammlung und Team verwaltet. Programmierkonzepte sind typübergreifend lernbar.
 
-**Umsetzungsstand:** Q01 bis Q03 sind mit Glutlings garantierter Fundbegegnung, gerichteter Bewegung, eigenem Rätselziel, Angriffsaufgabe und Schleifenkriterium implementiert. Die folgenden Quests und späteren Kapitel bleiben Ausbauplanung. Die bisherigen drei Arena-Aufgaben sind als freie Trainingsaufgaben verfügbar.
+**Umsetzungsstand:** Q01 bis Q04 sind mit Glutlings garantierter Fundbegegnung, gerichteter Bewegung, Rätselzielen, Angriffsaufgabe sowie Schleifen- und Musterkriterium implementiert. Q05, Q06 und spätere Kapitel bleiben Ausbauplanung. Die bisherigen drei Arena-Aufgaben sind als freie Trainingsaufgaben verfügbar.
 
 ## Regeln für jede Lernquest
 
@@ -23,7 +23,7 @@ Dieser Plan ordnet die Programmiergrundlagen in eine verständliche Lernfolge in
 
 ## Erstes Kapitel
 
-Die folgende Folge ist der grundlegende Ausbauplan. Q01 bis Q03 sind spielbar. Q04 bis Q06 bauen anschließend darauf auf.
+Die folgende Folge ist der grundlegende Ausbauplan. Q01 bis Q04 sind spielbar. Q05 und Q06 bauen anschließend darauf auf.
 
 | Quest | Aufgabe in der Welt | Neues Lernziel | Verfügbare Befehle und Strukturen | Erfolg |
 | --- | --- | --- | --- | --- |
@@ -66,6 +66,16 @@ Ein gerader Weg erfordert beispielsweise vier gleiche Schritte. Der Einstieg zei
 Die Anzeige zeigt den aktuellen Durchlauf und markiert die ausgeführte innere Anweisung. Ein sinnvoller nächster Versuch verändert die Anzahl und vergleicht Vorhersage und Ergebnis.
 
 Das Lernkriterium wird vor Beginn sichtbar genannt: Das Ziel muss mithilfe einer tatsächlich ausgeführten Wiederholung erreicht werden. Eine leere Schleife neben vier Einzelbefehlen erfüllt dieses Kriterium nicht. Eine reine Sequenz kann das räumliche Ziel erreichen, erhält aber den Hinweis, dass die Schleifenübung noch offen ist.
+
+### Q04 Der Musterpfad
+
+Nach Q03 zeigt das Weltziel zum Musterstein am Nordweg. Eldren bietet dieselbe Einführung und Startaktion an. Ein schmaler, durch Steine begrenzter Treppenweg führt von `(1, 4)` nach `(4, 1)`. Jede Stufe besteht aus rechts und oben; drei Stufen führen zur Rune. Glutling bleibt das einzige aktive Arkana. Angriff und Bedingungen sind in diesem Bewegungsrätsel ausgeblendet und werden auch bei Texteingabe abgelehnt.
+
+Die Einführung beschreibt zuerst die beiden gemeinsam wiederholten Bewegungen. Danach benennt sie die inneren Anweisungen als **Schleifenrumpf** und knüpft an die bekannte **Sequenz** an. Ein vorbereiteter Wiederholungsblock enthält zunächst nur einen Rechtsschritt mit Anzahl 1. Lernende ergänzen die zweite Anweisung und bestimmen die Anzahl selbst. Gestufte Hinweise lenken erst auf den Weg, dann auf das gemeinsame Innere und zuletzt auf die drei Stufen.
+
+Das Lernkriterium ist vor dem Start sichtbar: Mindestens zwei Durchläufe derselben Schleife müssen dieselbe Folge aus mehreren Anweisungen mit verschiedenen Bewegungsrichtungen erfolgreich ausführen. Einzelschritte außerhalb einer Schleife, bloße Einzelschleifen je Richtung und blockierte Durchläufe erfüllen dieses Musterkriterium nicht. Das räumliche Ziel allein führt dann zu einer noch offenen Lernübung. Gültige Varianten, etwa eine einzelne erste Stufe und zwei gemeinsam wiederholte weitere Stufen, werden akzeptiert.
+
+Die Ausführungsmarkierung zeigt jede innere Anweisung und den zugehörigen Durchlauf. Block- und Textmodus verwenden denselben Nachweis. Nach dem Abschluss erweitert sich der Begriff **Schleife** um ein Beispiel mit zwei inneren Anweisungen; **Schleifenrumpf** erhält einen eigenen Eintrag. Mooslings garantierter Fund bleibt nach Q03 möglich. Ein zweiter Teamplatz und Bedingungen werden durch Q04 nicht vorweggenommen.
 
 ## Sammlung und spätere Teamaufgaben
 
@@ -110,12 +120,13 @@ Ein älterer Spielstand mit Moosling erhält einen nachvollziehbaren Einstieg zu
 
 ## Abnahme des ersten Umsetzungsschritts
 
-Der erste Spielumbau umfasst Q01 bis Q03 mit Glutlings Fund, Bewegungsrätsel, Angriffsaufgabe und anschließender Schleifeneinführung. Q04 und spätere Inhalte folgen darauf. Die freie Trainingsarena verwendet sämtliche implementierten Befehle unabhängig vom Lernfortschritt und erzeugt keine Questbelohnungen.
+Der erste Spielumbau umfasst Q01 bis Q03 mit Glutlings Fund, Bewegungsrätsel, Angriffsaufgabe und anschließender Schleifeneinführung. Q04 ergänzt nun das Wiederholen einer ganzen Bewegungssequenz. Q05 und spätere Inhalte folgen darauf. Die freie Trainingsarena verwendet sämtliche implementierten Befehle unabhängig vom Lernfortschritt und erzeugt keine Questbelohnungen.
 
 - Ein neuer Spielstand findet Glutling und zeigt in Q01 ausschließlich die eingeführten Bewegungsbefehle.
 - Eine einzelne Anweisung und eine selbst gebaute Sequenz erreichen die jeweiligen Ziele ohne Gegner.
 - Angriff erscheint nach seiner Einführung in Q02. Schleifen und Bedingungen bleiben dort gesperrt.
 - Erst Q03 führt `repeat` ein. Ein mehrfach ausgeführter Schleifenrumpf ist für den Lernabschluss erforderlich.
+- Q04 verlangt mehrere gemeinsam wiederholte Bewegungsanweisungen; Zielerreichung ohne diesen Nachweis bleibt eine offene Lernübung. Ein vorhandener Q03-Spielstand kann Q04 ohne Reset beginnen.
 - Block- und Textmodus erlauben dieselben Lösungen und lehnen dieselben noch nicht erlaubten Strukturen ab.
 - Erfolg, Fehlversuch und Abbruch führen korrekt zur Welt zurück. Ein Neuversuch behält den bearbeiteten Entwurf.
 - Alte Sammlungen und Programme bleiben nach der Fortschrittsmigration erhalten.

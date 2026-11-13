@@ -63,6 +63,11 @@ export function renderCharacterView(content: HTMLElement, tab: CharacterTab, cam
       const example = paragraph('Beispiel'); example.className = 'glossary-example-label';
       const pre = document.createElement('pre'); const code = document.createElement('code'); code.textContent = term.code; pre.append(code);
       card.append(category, heading(term.label), paragraph(term.explanation), example, paragraph(term.example), pre); content.append(card);
+      for (const further of term.furtherExamples ?? []) {
+        const title = paragraph(further.title); title.className = 'glossary-example-label';
+        const pre = document.createElement('pre'); const code = document.createElement('code'); code.textContent = further.code; pre.append(code);
+        card.append(title, paragraph(further.example), pre);
+      }
     }
   }
 }

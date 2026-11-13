@@ -110,7 +110,7 @@ export class WorldScene extends Phaser.Scene {
     const state = this.campaign.snapshot;
     saveProgress({ campaign: state, questCompleted: state.introduced });
     gameEvents.emit('campaign-updated', state);
-    gameEvents.emit('quest-updated', this.campaign.objective, state.completed.includes('q03-wiederkehr'));
+    gameEvents.emit('quest-updated', this.campaign.objective, WORLD_QUESTS.every((quest) => state.completed.includes(quest.id)));
     for (const id of ['moosling', 'glutling'] as const) {
       if (!this.campaign.has(id)) continue;
       const visuals = this.arkanaVisuals.get(id);

@@ -4,6 +4,8 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { WorldUi } from './WorldUi';
 import { Campaign } from '../gameplay/Campaign';
 import { gameEvents } from '../game/events';
+import { LESSON_IDS } from '../gameplay/WorldQuests';
+import { instanceId } from '../gameplay/ArkanaCatalog';
 
 const listeners = vi.hoisted(() => new Map<string, ((...args: unknown[]) => void)[]>());
 vi.mock('../game/events', () => ({ gameEvents: {
@@ -27,6 +29,23 @@ beforeEach(() => {
 afterEach(() => { for (const [name, callback] of domListeners) document.removeEventListener(name, callback); vi.restoreAllMocks(); });
 
 describe('Sammlung und Questjournal', () => {
+  it('öffnet den Musterpfad nach Q03 im Journal und erweitert das Nachschlagebuch erst nach Q04', () => {
+    campaign = new Campaign({ version: 2, introduced: true, completed: LESSON_IDS.slice(0, 3), owned: [{ speciesId: 'glutling' }], team: [instanceId('glutling')] });
+    gameEvents.emit('campaign-updated', campaign.snapshot); click('open-journal');
+    expect((el('journal-quest-q04-musterpfad') as HTMLButtonElement).disabled).toBe(true);
+    campaign.interact('arkanist-eldren'); gameEvents.emit('campaign-updated', campaign.snapshot);
+    expect((el('journal-quest-q04-musterpfad') as HTMLButtonElement).disabled).toBe(false);
+    expect(el('world-panel-content').textContent).toContain('Musterstein am Nordweg');
+    let action = ''; gameEvents.on('campaign-action', (value: string) => { action = value; });
+    click('journal-quest-q04-musterpfad'); expect(action).toBe('lesson:q04-musterpfad');
+    campaign.beginMission('q04-musterpfad'); gameEvents.emit('campaign-updated', campaign.snapshot);
+    click('open-collection'); click('character-tab-glossary');
+    expect(document.querySelector('.glossary-card[data-term="loop-body"]')).toBeNull();
+    expect(document.querySelectorAll('.glossary-card[data-term="loop"] pre')).toHaveLength(1);
+    campaign.completeMission('q04-musterpfad'); gameEvents.emit('campaign-updated', campaign.snapshot);
+    expect(document.querySelector('.glossary-card[data-term="loop-body"] h3')?.textContent).toBe('Schleifenrumpf');
+    expect(document.querySelectorAll('.glossary-card[data-term="loop"] pre')).toHaveLength(2);
+  });
   it('bietet im Journal den direkten Start mit Glutling bei einer ungeeigneten Weltbesetzung an', () => {
     campaign = new Campaign({ introduced: true, owned: [{ speciesId: 'glutling' }], team: [] });
     campaign.interact('lesson:q01-glutspur'); gameEvents.emit('campaign-updated', campaign.snapshot); click('open-journal');

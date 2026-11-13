@@ -47,6 +47,18 @@ beforeEach(() => {
 });
 
 describe('Editorzustand und Arkan-Zuordnung', () => {
+  it('zeigt Q04 mit Bewegung und Ablauf, erklärt den Rumpf und behält das Programm beim Moduswechsel', () => {
+    const lesson = getLesson('q04-musterpfad');
+    const presentation = { title: lesson.title, mode: 'lesson', instructions: lesson.introduction, objective: lesson.objective, hints: lesson.hints };
+    gameEvents.emit('battle-opened', { glutling: lesson.starter }, lesson.id, { glutling: lesson.allowed }, presentation);
+    expect(document.getElementById('category-combat')).toBeNull(); expect(document.getElementById('category-senses')).toBeNull();
+    expect(document.getElementById('category-flow')).not.toBeNull();
+    expect(document.querySelector('#encounter-instructions .learning-term[data-term="loop-body"]')?.textContent).toBe('Schleifenrumpf');
+    click('text-mode'); expect(text().value).toBe(lesson.starter);
+    const source = 'repeat(3, () => {\n  glutling.moveRight();\n  glutling.moveUp();\n});';
+    type(source); click('blocks-mode'); click('text-mode'); expect(text().value).toBe(source);
+    click('lesson-hint-button'); expect(document.getElementById('lesson-hint')!.textContent).toBe(lesson.hints[0]);
+  });
   it('hebt Fachbegriffe im Questabschluss hervor und ersetzt sie sauber beim nächsten Dialog', () => {
     const reward = getLesson('q01-glutspur').reward;
     gameEvents.emit('dialog-opened', { speaker: 'QUEST ABGESCHLOSSEN', text: reward });
