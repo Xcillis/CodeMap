@@ -7,6 +7,8 @@ import { Campaign } from '../gameplay/Campaign';
 import { WORLD_QUESTS, type CampaignAction } from '../gameplay/WorldQuests';
 import type { MissionId } from '../combat/BattleSession';
 import { touchInput } from '../input/TouchInput';
+import { isArkanId } from '../gameplay/ArkanaCatalog';
+import type { ArkanId } from '../combat/types';
 
 const WORLD_WIDTH = 1600;
 const WORLD_HEIGHT = 1040;
@@ -17,6 +19,7 @@ export class WorldScene extends Phaser.Scene {
   private interactionController!: InteractionController;
   private readonly campaign = new Campaign(loadProgress().campaign);
   private readonly encounterLabels = new Map<string, Phaser.GameObjects.Text>();
+  private readonly arkanaVisuals = new Map<ArkanId, readonly Phaser.GameObjects.GameObject[]>();
   private dialogActive = false;
   private overlayActive = false;
   private pendingReward?: string;
@@ -82,6 +85,7 @@ export class WorldScene extends Phaser.Scene {
       gameEvents.off('team-toggle', this.onTeamToggle); gameEvents.off('campaign-action', this.onCampaignAction);
       gameEvents.off('world-quest-victory', this.onVictory); gameEvents.off('world-returned', this.onReturned);
       this.encounterLabels.clear();
+      this.arkanaVisuals.clear();
     });
     this.publishCampaign();
   }
@@ -103,19 +107,32 @@ export class WorldScene extends Phaser.Scene {
     saveProgress({ campaign: state, questCompleted: state.introduced });
     gameEvents.emit('campaign-updated', state);
     gameEvents.emit('quest-updated', this.campaign.objective, state.completed.includes(3));
-    for (const id of ['moosling', 'glutling'] as const) this.encounterLabels.get(id)?.setText(`${id === 'moosling' ? 'Moosling' : 'Glutling'}${this.campaign.has(id) ? ' · entdeckt' : ' · ?'}`);
+    for (const id of ['moosling', 'glutling'] as const) {
+      if (!this.campaign.has(id)) continue;
+      const visuals = this.arkanaVisuals.get(id);
+      if (visuals) {
+        for (const visual of visuals) visual.destroy();
+        this.arkanaVisuals.delete(id);
+        this.encounterLabels.delete(id);
+        gameEvents.emit('interaction-hint', '');
+      }
+      this.interactionController.removeTarget(id);
+    }
     for (const quest of WORLD_QUESTS) this.encounterLabels.get(`quest-${quest.id}`)?.setText(`${state.completed.includes(quest.id) ? '✓' : '!'} ${quest.target}`);
   }
 
   private clearInput(): void { touchInput.clear(); this.input.keyboard?.resetKeys(); }
 
   private createWorldEncounter(id: string, label: string, x: number, y: number, color: number): void {
+    if (isArkanId(id) && this.campaign.has(id)) return;
     const quest = id.startsWith('quest-');
-    this.add.ellipse(x, y + 18, 32, 10, 0x142c35, .3).setDepth(4);
-    if (quest) this.add.rectangle(x, y, 24, 34, color).setStrokeStyle(3, 0x3d4a41).setDepth(5);
-    else this.add.circle(x, y, 17, color).setStrokeStyle(3, 0xf7efc2).setDepth(5);
+    const shadow = this.add.ellipse(x, y + 18, 32, 10, 0x142c35, .3).setDepth(4);
+    const marker = quest
+      ? this.add.rectangle(x, y, 24, 34, color).setStrokeStyle(3, 0x3d4a41).setDepth(5)
+      : this.add.circle(x, y, 17, color).setStrokeStyle(3, 0xf7efc2).setDepth(5);
     const text = this.add.text(x, y - 40, label, { fontSize: '15px', color: '#fff1bd', stroke: '#243a30', strokeThickness: 4 }).setOrigin(.5).setDepth(6);
     this.encounterLabels.set(id, text);
+    if (isArkanId(id)) this.arkanaVisuals.set(id, [shadow, marker, text]);
   }
 
   private drawLandscape(): void {

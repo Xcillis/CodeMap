@@ -19,6 +19,8 @@ Der [neue Lern- und Questplan](docs/CodeMap_Lernprogression.md) legt den nächst
 
 Die Sammlung zeigt Typ, Basiswerte, Stärken, Schwächen und erlernte Befehle. Vorläufige Werte: Moosling (Natur) hat 5 LP und 1 Angriffsschaden, Glutling (Feuer) 4 LP und 2 Angriffsschaden. Die Teamreihenfolge bestimmt die Reihenfolge der Aktionen; Entfernen und erneutes Hinzufügen setzt ein Arkana ans Teamende. Bei einem Teamplatz ersetzt „Aktiv setzen“ den bisherigen Begleiter.
 
+Nach der Aufnahme verschwindet das Arkana mit Schatten, Beschriftung und Interaktion von seinem Fundort. Der gespeicherte Sammlungsbesitz verhindert ein erneutes Erscheinen nach dem Neuladen. Das Herausnehmen aus dem aktiven Team lässt es weiterhin in der Sammlung.
+
 Die Datenbasis folgt [Arkana-Typen und Fähigkeiten](docs/CodeMap_Arkana_Uebersicht.md): Feuer, Wasser, Natur, Schatten und Licht. Zunächst sind je eine Instanz von Moosling und Glutling auffindbar. Die Sammlung kennzeichnet spätere Spezialfähigkeiten als Vorschau. Elementare Schadensmultiplikatoren und deren Balancing bleiben offen.
 
 Sammlung, Team, entdeckte und abgeschlossene Quests sowie Programme werden lokal gespeichert. Bestehende Block- und Textentwürfe bleiben erhalten; ein früher abgeschlossenes Eldren-Gespräch wird übernommen. Bei gesperrtem Browser-Speicher bleibt der Fortschritt für die laufende Sitzung im Arbeitsspeicher verfügbar. Abbruch und Niederlage vergeben keine Questbelohnung. Siege werden nach Ende der sichtbaren Wiedergabe gespeichert; Wiederholungen erzeugen keine doppelten Belohnungen.

@@ -1,5 +1,3 @@
-import Phaser from 'phaser';
-
 export interface InteractionTarget {
   id: string;
   label: string;
@@ -9,11 +7,15 @@ export interface InteractionTarget {
 }
 
 export class InteractionController {
-  constructor(private readonly targets: readonly InteractionTarget[]) {}
+  constructor(private targets: readonly InteractionTarget[]) {}
+
+  removeTarget(id: string): void {
+    this.targets = this.targets.filter((target) => target.id !== id);
+  }
 
   nearestTo(x: number, y: number): InteractionTarget | undefined {
     return this.targets
-      .map((target) => ({ target, distance: Phaser.Math.Distance.Between(x, y, target.x, target.y) }))
+      .map((target) => ({ target, distance: Math.hypot(x - target.x, y - target.y) }))
       .filter(({ target, distance }) => distance <= target.range)
       .sort((left, right) => left.distance - right.distance)[0]?.target;
   }
