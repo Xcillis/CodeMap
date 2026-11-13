@@ -1,5 +1,6 @@
 import type { ActionFrame, ArkanId, BattleState, CombatAction, Combatant, GridPosition, ProgramStep } from './types';
 import { ARKANA_SPECIES } from '../gameplay/ArkanaCatalog';
+import { ACTIONS, directionDelta } from './ActionCatalog';
 
 const GRID_SIZE = 7;
 
@@ -19,7 +20,7 @@ export class BattleEngine {
   }
 
   runStep(playerAction: CombatAction, enemyActive = false): Readonly<BattleState> {
-    return this.runTick({ moosling: { kind: 'action', action: playerAction } }, enemyActive);
+    return this.runTick({ [this.state.player.id]: { kind: 'action', action: playerAction } }, enemyActive);
   }
 
   runTick(programs: Partial<Record<ArkanId, ProgramStep | ((adjacent: boolean) => ProgramStep | undefined)>>, enemyActive = false, onAction?: (frame: ActionFrame) => void): Readonly<BattleState> {
@@ -38,7 +39,7 @@ export class BattleEngine {
       const adjacent = this.areAdjacent(actor, this.state.enemy);
       const action = step.kind === 'action' ? step.action : adjacent ? step.whenTrue : step.whenFalse;
       const before = this.snapshot;
-      this.addLog(`${actor.id}.${action === 'ATTACK' ? 'attack()' : 'moveForward()'}${step.kind === 'condition' ? ` – enemyAdjacent = ${adjacent}` : ''}`);
+      this.addLog(`${actor.id}.${ACTIONS[action].method}()${step.kind === 'condition' ? ` – enemyAdjacent = ${adjacent}` : ''}`);
       this.act(actor, this.state.enemy, action);
       onAction?.({ actor: actor.id, action, before, after: this.snapshot });
     }
@@ -74,6 +75,8 @@ export class BattleEngine {
 
   private act(actor: Combatant, target: Combatant, action: CombatAction): void {
     actor.guarding = false;
+    const delta = directionDelta(action);
+    if (delta) { this.moveTo(actor, actor.x + delta.x, actor.y + delta.y); return; }
     switch (action) {
       case 'ATTACK':
         this.attack(actor, target);
@@ -112,6 +115,10 @@ export class BattleEngine {
     } else if (verticalDistance !== 0) {
       nextY += Math.sign(verticalDistance);
     }
+    this.moveTo(actor, nextX, nextY);
+  }
+
+  private moveTo(actor: Combatant, nextX: number, nextY: number): void {
     const occupant = [this.state.player, this.state.companion, this.state.enemy].find((unit) => unit && unit.id !== actor.id && unit.x === nextX && unit.y === nextY);
     if (occupant || nextX < 0 || nextX >= GRID_SIZE || nextY < 0 || nextY >= GRID_SIZE) {
       this.addLog(`${actor.name}: Bewegung blockiert${occupant ? ` – Feld von ${occupant.name} belegt` : ' – Kartenrand'}.`);

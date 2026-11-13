@@ -6,7 +6,7 @@ Dieser Plan ordnet die Programmiergrundlagen in eine verständliche Lernfolge in
 
 **Festgelegt durch die Nutzerkorrektur:** Anweisungen und Sequenzen kommen zuerst, der Basisangriff folgt in einer eigenen Quest, Schleifen werden anschließend gelernt. Arkana werden weiterhin in der Welt gefunden und in Sammlung und Team verwaltet. Programmierkonzepte sind typübergreifend lernbar.
 
-**Konkrete Ausgestaltung dieses Plans:** Glutling ist das erste garantiert auffindbare Arkana. Questnamen, Raster, gerichtete Bewegungsbefehle und spätere Questfolgen sind Vorschläge für die Umsetzung. Die bestehende Spielversion enthält weiterhin die bisherigen drei Weltquests; dieses Dokument beschreibt deren geplanten Umbau.
+**Umsetzungsstand:** Q01 bis Q03 sind mit Glutlings garantierter Fundbegegnung, gerichteter Bewegung, eigenem Rätselziel, Angriffsaufgabe und Schleifenkriterium implementiert. Die folgenden Quests und späteren Kapitel bleiben Ausbauplanung. Die bisherigen drei Arena-Aufgaben sind als freie Trainingsaufgaben verfügbar.
 
 ## Regeln für jede Lernquest
 
@@ -22,7 +22,7 @@ Dieser Plan ordnet die Programmiergrundlagen in eine verständliche Lernfolge in
 
 ## Erstes Kapitel
 
-Die folgende Folge ist der grundlegende Ausbauplan. Q01 bis Q03 bilden den nächsten Umsetzungsschritt. Q04 bis Q06 bauen anschließend darauf auf.
+Die folgende Folge ist der grundlegende Ausbauplan. Q01 bis Q03 sind spielbar. Q04 bis Q06 bauen anschließend darauf auf.
 
 | Quest | Aufgabe in der Welt | Neues Lernziel | Verfügbare Befehle und Strukturen | Erfolg |
 | --- | --- | --- | --- | --- |
@@ -107,9 +107,9 @@ Die neue Questfolge erhält neue stabile IDs und eine eigene Fortschrittsversion
 
 Ein älterer Spielstand mit Moosling erhält einen nachvollziehbaren Einstieg zu Glutlings garantierter Fundbegegnung. Bereits besessene Wesen werden nicht entfernt. Alte Schleifen- und Bedingungsfreigaben dürfen die begrenzte Bibliothek der neuen Einstiegsübungen nicht aufheben.
 
-## Nächster Umsetzungsschritt und Abnahme
+## Abnahme des ersten Umsetzungsschritts
 
-Der nächste Spielumbau umfasst Q01 bis Q03 mit Glutlings Fund, Bewegungsrätsel, Angriffsaufgabe und anschließender Schleifeneinführung. Q04 und spätere Inhalte folgen darauf.
+Der erste Spielumbau umfasst Q01 bis Q03 mit Glutlings Fund, Bewegungsrätsel, Angriffsaufgabe und anschließender Schleifeneinführung. Q04 und spätere Inhalte folgen darauf. Die freie Trainingsarena verwendet sämtliche implementierten Befehle unabhängig vom Lernfortschritt und erzeugt keine Questbelohnungen.
 
 - Ein neuer Spielstand findet Glutling und zeigt in Q01 ausschließlich die eingeführten Bewegungsbefehle.
 - Eine einzelne Anweisung und eine selbst gebaute Sequenz erreichen die jeweiligen Ziele ohne Gegner.

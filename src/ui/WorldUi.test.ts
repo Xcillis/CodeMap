@@ -27,31 +27,44 @@ beforeEach(() => {
 afterEach(() => { for (const [name, callback] of domListeners) document.removeEventListener(name, callback); vi.restoreAllMocks(); });
 
 describe('Sammlung und Questjournal', () => {
+  it('trennt die freie Trainingsvorbereitung von Lernquests und validiert die Besetzung', () => {
+    campaign.apply('meet-eldren'); campaign.apply('recruit-glutling');
+    gameEvents.emit('campaign-updated', campaign.snapshot); click('open-training');
+    expect(el('world-panel-title').textContent).toBe('Freie Trainingsarena');
+    expect(el('world-panel-intro').textContent).toContain('Alle implementierten Befehle');
+    const select = el('training-preset') as HTMLSelectElement;
+    select.value = '3'; click('training-launch');
+    expect(el('world-panel').hidden).toBe(false); expect(el('world-panel-content').textContent).toContain('Wähle zwei');
+    let selected: unknown; gameEvents.on('training-start', (mission: number, team: string[]) => { selected = { mission, team }; });
+    select.value = '2'; click('training-launch');
+    expect(selected).toEqual({ mission: 2, team: ['glutling'] }); expect(el('world-panel').hidden).toBe(true);
+    expect(campaign.snapshot.completed).toEqual([]); expect(campaign.snapshot.owned[0].learned).not.toContain('repeat');
+  });
   it('zeigt nur gefundene Arkana mit Typ, Stärken, Schwächen und tatsächlichen Teamplätzen', () => {
     click('open-collection'); expect(el('world-panel-content').textContent).toContain('noch leer');
-    campaign.apply('meet-eldren'); campaign.apply('recruit-moosling');
+    campaign.apply('meet-eldren'); campaign.apply('recruit-glutling');
     gameEvents.emit('campaign-updated', campaign.snapshot);
     const content = el('world-panel-content').textContent!;
-    expect(content).toContain('Moosling · Natur'); expect(content).toContain('Stärke:'); expect(content).toContain('Schwäche:');
-    expect(content).toContain('noch nicht freigeschaltet'); expect(content).not.toContain('Glutling · Feuer');
-    expect(el('active-team-summary').textContent).toContain('Team 1/1: Moosling');
-    click('team-moosling'); expect(campaign.activeTeam).toEqual([]);
+    expect(content).toContain('Glutling · Feuer'); expect(content).toContain('Stärke:'); expect(content).toContain('Schwäche:');
+    expect(content).toContain('noch nicht freigeschaltet'); expect(content).not.toContain('Moosling · Natur');
+    expect(el('active-team-summary').textContent).toContain('Team 1/1: Glutling');
+    click('team-glutling'); expect(campaign.activeTeam).toEqual([]);
     expect(el('world-panel-content').textContent).toContain('In der Sammlung');
-    click('team-moosling'); expect(campaign.activeTeam).toHaveLength(1);
-    expect(document.activeElement?.id).toBe('team-moosling');
+    click('team-glutling'); expect(campaign.activeTeam).toHaveLength(1);
+    expect(document.activeElement?.id).toBe('team-glutling');
   });
 
   it('sperrt unentdeckte Quests und startet eine entdeckte Quest mit gültigem Team', () => {
-    campaign.apply('meet-eldren'); campaign.apply('recruit-moosling');
+    campaign.apply('meet-eldren'); campaign.apply('recruit-glutling');
     gameEvents.emit('campaign-updated', campaign.snapshot); click('open-journal');
-    expect((el('journal-quest-1') as HTMLButtonElement).disabled).toBe(true);
-    campaign.interact('quest-1'); gameEvents.emit('campaign-updated', campaign.snapshot);
-    expect((el('journal-quest-1') as HTMLButtonElement).disabled).toBe(false);
-    expect((el('journal-quest-2') as HTMLButtonElement).disabled).toBe(true);
+    expect((el('journal-quest-q01-glutspur') as HTMLButtonElement).disabled).toBe(true);
+    campaign.interact('lesson:q01-glutspur'); gameEvents.emit('campaign-updated', campaign.snapshot);
+    expect((el('journal-quest-q01-glutspur') as HTMLButtonElement).disabled).toBe(false);
+    expect((el('journal-quest-q02-basisangriff') as HTMLButtonElement).disabled).toBe(true);
     let submitted = ''; let overlay = true;
     gameEvents.on('campaign-action', (action: string) => { submitted = action; });
     gameEvents.on('world-overlay', (open: boolean) => { overlay = open; });
-    click('journal-quest-1'); expect(submitted).toBe('quest-1'); expect(overlay).toBe(false); expect(el('world-panel').hidden).toBe(true);
+    click('journal-quest-q01-glutspur'); expect(submitted).toBe('lesson:q01-glutspur'); expect(overlay).toBe(false); expect(el('world-panel').hidden).toBe(true);
   });
 
   it('verhindert Sammlung und Teamänderungen über die Oberfläche während Dialog und Kampf', () => {

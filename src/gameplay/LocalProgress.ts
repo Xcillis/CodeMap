@@ -45,6 +45,6 @@ export function saveProgress(update: Partial<StoredProgress>): void {
   } catch { /* Storage may be disabled; in-memory editing still works. */ }
 }
 
-export function saveProgramDraft(mission: number, actor: string, source: string): void {
+export function saveProgramDraft(mission: number | string, actor: string, source: string): void {
   saveProgress({ programs: { ...loadProgress().programs, [`${mission}:${actor}`]: source } });
 }

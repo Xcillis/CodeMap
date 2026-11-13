@@ -17,6 +17,7 @@
         <p id="active-team-summary">Team: noch leer</p>
         <button id="open-collection" type="button">Sammlung & Team · C</button>
         <button id="open-journal" type="button">Questjournal · J</button>
+        <button id="open-training" type="button">Freie Trainingsarena</button>
         <p id="world-notice" role="status"></p>
       </nav>
       <section id="world-panel" role="dialog" aria-modal="true" aria-labelledby="world-panel-title" hidden>
@@ -37,7 +38,12 @@
       </section>
       <section id="battle-panel" aria-labelledby="battle-title" hidden>
         <div class="battle-card">
-          <p class="eyebrow" id="battle-title">RUNENSKRIPT – DIE ERSTE SCHLEIFE</p>
+          <p class="eyebrow" id="battle-title">RUNENSKRIPT</p>
+          <div class="encounter-briefing">
+            <p id="encounter-objective"></p>
+            <details id="encounter-guide"><summary>Aufgabe & Einführung</summary><p id="encounter-instructions"></p></details>
+            <button id="lesson-hint-button" type="button" hidden>Hinweis anzeigen</button><p id="lesson-hint" role="status" hidden></p>
+          </div>
           <p class="eyebrow">ARKAN AUSWÄHLEN</p>
           <div id="arkan-tabs" class="arkan-selector" role="group" aria-label="Arkan programmieren">
             <button id="select-moosling" type="button" aria-pressed="true"><span class="arkan-avatar moosling-avatar" aria-hidden="true">✦</span><span class="arkan-name">Moosling</span><span class="arkan-selection-state">Ausgewählt</span></button>
@@ -65,7 +71,7 @@
             </header>
           <div class="program-scroll" id="program-drop-area">
           <div id="block-editor" aria-label="Blockeditor">
-            <p class="block-intro">Blöcke am Startblock einrasten oder in „wiederhole“ und „falls“ hineinziehen. Entfernen mit Entf oder Papierkorb.</p>
+            <p class="block-intro">Ziehe Befehle aus der Bibliothek und stecke sie unter den Startblock. Entfernen mit Entf oder Papierkorb.</p>
             <div id="snap-editor" aria-label="Zusammensteckbare Arkan-Blöcke"></div>
           </div>
           <textarea id="program-source" spellcheck="false" wrap="off" aria-describedby="program-help active-code-line" hidden></textarea>
@@ -76,11 +82,11 @@
           </div>
           <div class="battle-footer">
           <p id="editor-tooltip" class="editor-tooltip" role="status" aria-live="polite" hidden></p>
-          <div class="battle-status" aria-label="Kampfstatus">
+          <div class="battle-status" id="battle-status" aria-label="Aufgabenstatus">
             <p>Schritt <strong id="battle-round">0</strong></p>
             <label for="player-health"><span id="player-health-name">Moosling</span> <span id="player-health-text">5/5</span><progress id="player-health" max="5" value="5">5 von 5</progress></label>
             <label id="companion-health-status" for="companion-health" hidden><span id="companion-health-name">Glutling</span> <span id="companion-health-text">4/4</span><progress id="companion-health" max="4" value="4">4 von 4</progress></label>
-            <label for="enemy-health">Konstrukt <span id="enemy-health-text">3/3</span><progress id="enemy-health" max="3" value="3">3 von 3</progress></label>
+            <label id="enemy-health-status" for="enemy-health">Konstrukt <span id="enemy-health-text">3/3</span><progress id="enemy-health" max="3" value="3">3 von 3</progress></label>
           </div>
           <p id="battle-feedback" aria-live="polite"></p>
           <p id="execution-trace" class="execution-trace" aria-live="polite" hidden></p>
@@ -96,7 +102,7 @@
             <button id="battle-exit" type="button">Zur Erkundung</button>
           </div>
           <details class="battle-log-panel">
-            <summary>Kampfprotokoll</summary>
+            <summary>Ausführungsprotokoll</summary>
             <ol id="battle-log" aria-label="Kampfprotokoll"></ol>
           </details>
           </div>

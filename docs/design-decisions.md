@@ -28,16 +28,24 @@ Die Übersicht `CodeMap_Arkana_Uebersicht.md` konkretisiert das frühere offene 
 
 Im ersten Weltabschnitt gibt es garantierte Fundbegegnungen mit Moosling und Glutling. Moosling wird als Natur-Art mit mehr LP und schwächerem Basisangriff ausgestaltet, Glutling als Feuer-Art mit weniger LP und stärkerem Basisangriff. Die Werte 5 LP/1 Schaden beziehungsweise 4 LP/2 Schaden sind vorläufig. Die im Sammelprofil genannten Ranken-, Heilungs- und Feuerfähigkeiten sind Entwurfsvorschauen und noch keine ausführbaren Aktionen.
 
-Der bisherige Prototyp verwendet „Der versperrte Runenpfad“ (Schleifen), „Das wandernde Konstrukt“ (Bedingungen) und „Gemeinsam zum Osttor“ (Duo). Er vergibt den zweiten Teamplatz nach der zweiten Quest und die Nähe-Abfrage nach der ersten Quest. Diese frühe Freigabefolge wird durch die Planung in DD 003 abgelöst; der Spielumbau steht noch aus.
+Der frühere Prototyp verwendete unmittelbar Schleifen, Bedingungen und Duo-Aufgaben. Diese Aufgaben bleiben in der freien Trainingsarena verfügbar. Die Lernfolge und Freischaltungen der Weltquests richten sich jetzt nach DD 003 und DD 004. Bereits gespeicherte Sammlungen, Fähigkeiten und Teams bleiben bei der Migration erhalten.
 
 Neue Quests werden an ihren Weltorten oder durch Eldren entdeckt. Das Journal erlaubt anschließend direkte Wiederholungen mit einem geeigneten Team. Questbelohnungen werden einmalig nach sichtbar abgeschlossener erfolgreicher Ausführung gespeichert. Abbruch und Niederlage lassen sofortige Neuversuche zu. Die bestehende Arena dient als Begegnungsszene und kehrt anschließend zur unveränderten Erkundungsposition zurück.
 
 ## DD 003 Anweisungen vor Angriff und Schleifen
 
-**Status:** Lernreihenfolge durch Nutzerkorrektur festgelegt; konkreter Questplan als Grundlage für den folgenden Spielumbau dokumentiert.
+**Status:** Lernreihenfolge durch Nutzerkorrektur festgelegt; Q01 bis Q03 implementiert, spätere Inhalte geplant.
 
 Der Einstieg beginnt mit einzelnen Anweisungen und Bewegungssequenzen in einem einfachen Rätsel. Eine eigene Folgequest führt den Basisangriff ein. Erst anschließend wird die feste Wiederholung gelehrt und freigeschaltet. Bedingungen, mehrere aktive Arkana und komplexere Aufgaben folgen nach diesen Grundlagen. Beim Fund werden Angriff, Schleifen und Wahrnehmung nicht mehr gemeinsam als Startpaket vorgesehen.
 
 Als konkrete Ausgestaltung beginnt der neue Questplan mit Glutling. Der Plan `CodeMap_Lernprogression.md` beschreibt sechs aufbauende Grundlagenquests, spätere Themen, die gemeinsame Freigabeprüfung für Block- und Textmodus sowie die Migration der bisherigen Spielstände. Neue Befehle werden in ihrer Einführung erklärt und bereitgestellt; ein Questabschluss öffnet die nächste Einführung. Ein früher Aufgabenraum kann die erlaubten Strukturen gezielt begrenzen, auch wenn ein bestehender Spielstand bereits weiter fortgeschritten ist.
 
-Die ersten drei Aufgaben werden als nächster Umsetzungsschritt geplant. Dieses Dokumentationsupdate verändert noch keine Missionsdaten oder Laufzeitfreigaben der bestehenden Spielversion.
+Die ersten drei Aufgaben sind mit Glutling umgesetzt. Beim Fund stehen zunächst rechts und oben zur Verfügung. Die zweite Einführung ergänzt den Angriff, die dritte feste Wiederholungen. Rätsel benötigen keinen Gegner. Der Schleifenabschluss verlangt mehrere erfolgreiche Bewegungen in unterschiedlichen Durchläufen derselben Schleife. Bedingungen und spätere Aufgaben werden nicht vorzeitig als Weltfortschritt freigegeben.
+
+## DD 004 Freies Training und gestufte Weltquests
+
+**Status:** Nutzerentscheidung vom 13. November 2026; umgesetzt.
+
+In der freien Trainingsarena sind alle implementierten Befehle zum Experimentieren verfügbar. Die Trainingsbesetzung wird separat aus gesammelten Arkana gewählt; Solo- und Duo-Versuche verändern das aktive Weltteam nicht. Trainingssiege vergeben weder Lernfähigkeiten noch Weltquestabschlüsse.
+
+Lernquests begrenzen ihre erlaubten Befehle auch für ältere, weiter fortgeschrittene Spielstände. Für neue Quest-IDs wird ein eigener Fortschritt geführt. Die bisherigen numerischen Programmplätze und Blockly-Arbeitsbereiche bleiben in den entsprechenden freien Trainingsaufgaben nutzbar. Ein Reset ist für den neuen Lerneinstieg nicht erforderlich.

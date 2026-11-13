@@ -1,23 +1,26 @@
 import Phaser from 'phaser';
-import { BattleSession, missionPrograms, type MissionId } from '../combat/BattleSession';
-import type { ActionFrame, BattleState, Combatant, ProgramSources } from '../combat/types';
+import { BattleSession, missionPrograms } from '../combat/BattleSession';
+import { LessonSession } from '../combat/LessonSession';
+import type { ActionFrame, EncounterState, Combatant, ProgramSources } from '../combat/types';
 import { Playback } from '../combat/Playback';
 import { gameEvents } from '../game/events';
 import type { WorldEncounter } from '../gameplay/Campaign';
-import { WORLD_QUESTS } from '../gameplay/WorldQuests';
+import { getLesson, type EncounterPresentation } from '../gameplay/WorldQuests';
+import { ARKANA_SPECIES } from '../gameplay/ArkanaCatalog';
+import { ACTIONS } from '../combat/ActionCatalog';
 
 const TILE = 72;
 const GRID_START_X = 110;
 const GRID_START_Y = 130;
 
 export class BattleScene extends Phaser.Scene {
-  private session = new BattleSession(1);
+  private session: BattleSession | LessonSession = new BattleSession(1);
   private grid!: Phaser.GameObjects.Graphics;
   private actors!: Phaser.GameObjects.Container;
   private effects!: Phaser.GameObjects.Container;
   private visuals = new Map<Combatant['id'], { root: Phaser.GameObjects.Container; marker: Phaser.GameObjects.Arc; label: Phaser.GameObjects.Text }>();
-  private currentFrame?: ActionFrame;
-  private playback = new Playback<ActionFrame>(
+  private currentFrame?: ActionFrame<EncounterState>;
+  private playback = new Playback<ActionFrame<EncounterState>>(
     (frame, duration) => this.animateFrame(frame, duration),
     (state) => {
       gameEvents.emit('battle-playback', state);
@@ -26,8 +29,8 @@ export class BattleScene extends Phaser.Scene {
   );
   private heading!: Phaser.GameObjects.Text;
   private subtitle!: Phaser.GameObjects.Text;
-  private mission: 1 | 2 | 3 = 1;
-  private encounter?: WorldEncounter;
+  private goalLabel!: Phaser.GameObjects.Text;
+  private encounter: WorldEncounter = { kind: 'training', mission: 1, team: ['moosling'], skills: { moosling: ARKANA_SPECIES.moosling.supported } };
   private awarded = false;
   private readonly onStep = (sources: ProgramSources) => this.execute(sources);
   private readonly onRunProgram = (sources: ProgramSources) => this.execute(sources, true);
@@ -47,7 +50,7 @@ export class BattleScene extends Phaser.Scene {
   }
 
   create(encounter?: WorldEncounter): void {
-    this.encounter = encounter?.team ? encounter : undefined;
+    this.encounter = encounter?.team ? encounter : { kind: 'training', mission: 1, team: ['moosling'], skills: { moosling: ARKANA_SPECIES.moosling.supported } };
     this.awarded = false;
     this.cameras.main.setBackgroundColor('#142c35');
     this.grid = this.add.graphics();
@@ -55,6 +58,7 @@ export class BattleScene extends Phaser.Scene {
     this.effects = this.add.container().setDepth(20);
     this.heading = this.add.text(GRID_START_X, 52, '', { fontFamily: 'Georgia, serif', fontSize: '30px', color: '#fff0bd' });
     this.subtitle = this.add.text(GRID_START_X, 88, '', { fontSize: '16px', color: '#b8d8cf' });
+    this.goalLabel = this.add.text(0, 0, 'Ziel', { fontSize: '13px', color: '#fff2b0', stroke: '#142c35', strokeThickness: 3 }).setOrigin(.5).setDepth(10).setVisible(false);
     gameEvents.on('battle-step', this.onStep);
     gameEvents.on('battle-run-program', this.onRunProgram);
     gameEvents.on('battle-restart', this.onRestart);
@@ -63,22 +67,33 @@ export class BattleScene extends Phaser.Scene {
     gameEvents.on('battle-pause', this.onPause);
     gameEvents.on('battle-speed', this.onSpeed);
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => this.removeListeners());
-    this.startMission(this.encounter?.mission ?? 1);
+    this.startEncounter();
   }
 
-  private startMission(mission: MissionId): void {
+  private startEncounter(): void {
     this.playback.stop(); this.currentFrame = undefined; gameEvents.emit('battle-trace-clear');
-    this.mission = mission;
-    this.session = new BattleSession(mission, this.encounter?.team, this.encounter?.skills);
-    this.heading.setText(WORLD_QUESTS.find((quest) => quest.id === mission)!.title);
-    this.subtitle.setText(mission === 1
-      ? 'Dein Arkan folgt seinem Aktionsplan. Das Konstrukt bleibt passiv.'
-      : mission === 2 ? 'Das Konstrukt bewegt sich. Prüfe bei jedem Schritt die Nähe.' : 'Dein Team handelt in der gewählten Reihenfolge.');
+    const encounter = this.encounter;
+    let programs: ProgramSources;
+    let key: number | string;
+    let presentation: EncounterPresentation;
+    if (encounter.kind === 'lesson') {
+      const lesson = getLesson(encounter.lesson);
+      this.session = new LessonSession(lesson, encounter.skills.glutling ?? []);
+      programs = { glutling: lesson.starter }; key = lesson.id;
+      presentation = { title: lesson.title, instructions: lesson.introduction, objective: lesson.objective, hints: lesson.hints, mode: 'lesson' };
+      this.subtitle.setText(lesson.kind === 'puzzle' ? 'Goldene Rune: Ziel · Graue Steine: Hindernisse' : 'Das Konstrukt bleibt passiv. Plane Bewegung und Angriff.');
+    } else {
+      this.session = new BattleSession(encounter.mission, encounter.team, encounter.skills);
+      programs = missionPrograms(encounter.mission, encounter.team); key = encounter.mission;
+      presentation = { title: encounter.mission === 3 ? 'Duo-Training' : encounter.mission === 2 ? 'Aktives Konstrukt' : 'Passives Konstrukt', mode: 'training',
+        objective: 'Experimentiere mit allen implementierten Befehlen und besiege das Konstrukt.', hints: [],
+        instructions: 'Freie Trainingsarena: Alle implementierten Befehle sind verfügbar. Dieses Training vergibt keine Lernfreigaben und schließt keine Weltquest ab. Gespeicherte Programme der bisherigen Arena bleiben hier verfügbar.' };
+      this.subtitle.setText(`Freies Training · Reihenfolge: ${encounter.team.join(' → ')}`);
+    }
+    this.heading.setText(presentation.title);
     this.render(this.session.snapshot);
-    gameEvents.emit('battle-opened', missionPrograms(mission, this.encounter?.team), mission, this.encounter?.skills);
-    gameEvents.emit('battle-updated', this.session.snapshot, mission === 1
-      ? 'Führe die Schleife Schritt für Schritt aus und beobachte die Wiederholung.'
-      : mission === 2 ? 'Das Konstrukt bewegt sich nun. Prüfe bei jedem Schritt die Gegnernähe.' : `Programmiere beide Arkana. Reihenfolge: ${this.session.actors.join(' → ')}.`);
+    gameEvents.emit('battle-opened', programs, key, encounter.skills, presentation);
+    gameEvents.emit('battle-updated', this.session.snapshot, presentation.objective);
     gameEvents.emit('battle-next-available', false);
   }
 
@@ -92,8 +107,8 @@ export class BattleScene extends Phaser.Scene {
     this.playback.play([...this.session.frames], () => {
       this.render(finalState);
       gameEvents.emit('battle-updated', finalState, feedback);
-      if (finalState.outcome === 'victory' && !this.awarded) {
-        this.awarded = true; gameEvents.emit('world-quest-victory', this.mission);
+      if (finalState.outcome === 'victory' && !this.awarded && this.encounter.kind === 'lesson') {
+        this.awarded = true; gameEvents.emit('world-quest-victory', this.encounter.lesson);
       }
     });
   }
@@ -114,7 +129,7 @@ export class BattleScene extends Phaser.Scene {
     gameEvents.emit('world-returned');
   }
 
-  private render(state: Readonly<BattleState>): void {
+  private render(state: Readonly<EncounterState>): void {
     this.grid.clear();
     for (let y = 0; y < 7; y += 1) {
       for (let x = 0; x < 7; x += 1) {
@@ -122,13 +137,24 @@ export class BattleScene extends Phaser.Scene {
         this.grid.fillStyle(tileColor).fillRect(GRID_START_X + x * TILE, GRID_START_Y + y * TILE, TILE - 3, TILE - 3);
       }
     }
+    this.goalLabel.setVisible('goal' in state);
+    if ('goal' in state) {
+      for (const wall of state.walls) {
+        const x = GRID_START_X + wall.x * TILE; const y = GRID_START_Y + wall.y * TILE;
+        this.grid.fillStyle(0x697279).fillRoundedRect(x + 5, y + 5, TILE - 13, TILE - 13, 8);
+        this.grid.lineStyle(3, 0xb4c2b7).lineBetween(x + 18, y + 20, x + TILE - 20, y + TILE - 20);
+      }
+      const x = GRID_START_X + state.goal.x * TILE + TILE / 2; const y = GRID_START_Y + state.goal.y * TILE + TILE / 2;
+      this.grid.fillStyle(0xf6d96d).fillCircle(x, y, 12).lineStyle(3, 0xffe998).strokeCircle(x, y, 27);
+      this.goalLabel.setPosition(x, y + 33);
+    }
     this.tweens.killAll();
     this.effects.removeAll(true);
-    const ids = [state.player.id, state.enemy.id, ...(state.companion ? [state.companion.id] : [])];
+    const ids = [state.player.id, ...(state.enemy ? [state.enemy.id] : []), ...(state.companion ? [state.companion.id] : [])];
     for (const [id, visual] of this.visuals) if (!ids.includes(id)) { visual.root.destroy(); this.visuals.delete(id); }
     this.drawActor(state.player, state.player.id === 'glutling' ? 0xf29b4b : 0x63b76b, '#e8ffe4');
     if (state.companion) this.drawActor(state.companion, state.companion.id === 'glutling' ? 0xf29b4b : 0x63b76b, '#fff0d8');
-    this.drawActor(state.enemy, 0xc95e58, '#ffe8db');
+    if (state.enemy) this.drawActor(state.enemy, 0xc95e58, '#ffe8db');
   }
 
   private drawActor(actor: Combatant, color: number, textColor: string): void {
@@ -147,11 +173,11 @@ export class BattleScene extends Phaser.Scene {
     visual.label.setText(`${actor.name}\n${actor.hp}/${actor.maxHp}`);
   }
 
-  private animateFrame(frame: ActionFrame, duration: number): void {
+  private animateFrame(frame: ActionFrame<EncounterState>, duration: number): void {
     this.currentFrame = frame;
     this.render(frame.before);
     gameEvents.emit('battle-frame', frame);
-    const units = (state: BattleState) => [state.player, state.companion, state.enemy].filter((actor): actor is Combatant => Boolean(actor));
+    const units = (state: EncounterState) => [state.player, state.companion, state.enemy].filter((actor): actor is Combatant => Boolean(actor));
     const before = units(frame.before).find((actor) => actor.id === frame.actor)!;
     const after = units(frame.after).find((actor) => actor.id === frame.actor)!;
     const visual = this.visuals.get(frame.actor)!;
@@ -160,7 +186,7 @@ export class BattleScene extends Phaser.Scene {
     let explanation = '';
     if (moved) {
       this.tweens.add({ targets: visual.root, x: GRID_START_X + after.x * TILE + TILE / 2, y: GRID_START_Y + after.y * TILE + TILE / 2, duration: duration * .6, ease: 'Sine.easeInOut' });
-      explanation = 'geht ein Feld vorwärts';
+      explanation = ACTIONS[frame.action].label;
     } else if (frame.action === 'ATTACK') {
       const target = units(frame.after).find((actor) => actor.id !== frame.actor && actor.hp < (units(frame.before).find((old) => old.id === actor.id)?.hp ?? actor.hp));
       if (target) {

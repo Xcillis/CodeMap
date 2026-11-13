@@ -57,6 +57,7 @@ button { font: inherit; touch-action: none; }
 .snap-mode #program-help { padding: .4rem .65rem; margin: 0; }
 #snap-editor { position: relative; flex: 1; min-height: 8rem; width: 100%; }
 .blocklyToolboxDiv { font-family: inherit; }
+.blocklyToolboxCategoryLabel { color: #21363a; }
 .blocklyWidgetDiv, .blocklyDropDownDiv, .blocklyTooltipDiv { z-index: 1000 !important; }
 .program-scroll { flex: 1; min-height: 0; overflow: auto; overscroll-behavior: contain; padding: .75rem; scrollbar-gutter: stable; }
 .battle-footer { flex: none; max-height: 38%; overflow: auto; padding-top: .5rem; }
@@ -109,6 +110,17 @@ button:focus-visible, select:focus-visible, textarea:focus-visible, summary:focu
 .battle-actions button:disabled, .execution-locked [data-command] { opacity: .5; cursor: not-allowed; }
 .blocklyHighlightedConnectionPath { stroke: #ffe477; stroke-width: 5px; }
 .battle-status { display: grid; grid-template-columns: auto repeat(3, minmax(0, 1fr)); align-items: center; gap: .5rem; margin: .2rem 0; padding: .55rem; border: 1px solid #416b68; border-radius: .3rem; background: #132b2d; }
+.battle-status.puzzle-status { grid-template-columns: auto minmax(0, 1fr); }
+.encounter-briefing { flex: none; max-height: 26%; overflow: auto; margin-bottom: .6rem; padding: .5rem .65rem; border: 1px solid #527c79; border-radius: .3rem; background: #173238; font-size: .8rem; line-height: 1.45; }
+.encounter-briefing p { margin: .3rem 0; }
+#encounter-objective { color: #f2d77f; font-weight: 700; }
+#encounter-guide summary { cursor: pointer; padding: .3rem 0; }
+#lesson-hint-button { min-height: 2.5rem; margin-top: .4rem; color: #fff0bf; border: 1px solid #bba460; border-radius: .3rem; background: #345354; cursor: pointer; }
+.training-setup { display: grid; gap: .75rem; }
+.training-setup select { min-height: 2.75rem; padding: .4rem; color: #f2e8c3; background: #21444a; border: 1px solid #b7a66b; font: inherit; }
+.training-setup fieldset { border: 1px solid #648b83; border-radius: .3rem; }
+.training-setup fieldset label { display: flex; gap: .5rem; align-items: center; min-height: 2.75rem; }
+.training-setup input { width: 1.2rem; height: 1.2rem; }
 .battle-status p, .battle-status label { margin: 0; font-size: .85rem; }
 .battle-status label { display: grid; grid-template-columns: 1fr auto; gap: .2rem .6rem; }
 #companion-health-status[hidden] { display: none; }
@@ -130,6 +142,9 @@ button:focus-visible, select:focus-visible, textarea:focus-visible, summary:focu
 @media (pointer: fine) { #touch-controls { opacity: .38; transition: opacity .2s; } #touch-controls:hover { opacity: 1; } }
 @media (max-width: 600px) { #hud { width: calc(100vw - 2rem); } .dpad { grid-template-columns: repeat(3, 3rem); grid-template-rows: repeat(3, 3rem); } .interact { width: 4rem; height: 4rem; } #interaction-hint { bottom: 6.4rem; } }
 @media (max-width: 1000px) {
+  .battle-card { overflow: auto; }
+  #editor-columns { flex: none; min-height: 24rem; height: min(65dvh, 30rem); }
+  .battle-card .battle-footer { max-height: none; overflow: visible; }
   #battle-panel { top: auto; right: .5rem; bottom: max(.5rem, env(safe-area-inset-bottom)); left: .5rem; width: auto; height: 58dvh; }
   .editor-columns { grid-template-columns: minmax(12rem, .9fr) minmax(0, 2fr); min-height: 8rem; }
   .battle-footer { max-height: 32%; }

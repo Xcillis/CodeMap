@@ -5,6 +5,7 @@ import { nodesToSource } from '../combat/DecisionProgram';
 import type { ArkanId, ProgramNode } from '../combat/types';
 import { registerDuplicateMenu } from './DuplicateBlock';
 import type { SkillId } from '../gameplay/ArkanaCatalog';
+import { ACTIONS, actionForBlock, actionForCommand } from '../combat/ActionCatalog';
 
 Blockly.setLocale(Object.entries(German).reduce<Record<string, string>>((messages, [key, value]) => {
   if (typeof value === 'string') messages[key] = value;
@@ -13,8 +14,7 @@ Blockly.setLocale(Object.entries(German).reduce<Record<string, string>>((message
 registerDuplicateMenu();
 Blockly.defineBlocksWithJsonArray([
   { type: 'cm_start', message0: 'Wenn Programm ausgeführt wird', nextStatement: 'Action', colour: '#d6a728', tooltip: 'Nur die hier verbundenen Blöcke werden ausgeführt.' },
-  { type: 'cm_move', message0: 'vorwärts gehen', previousStatement: 'Action', nextStatement: 'Action', colour: '#357bd0', tooltip: 'Der ausgewählte Arkan geht ein Feld zum Gegner. Belegte Felder blockieren den Schritt.' },
-  { type: 'cm_attack', message0: 'angreifen', previousStatement: 'Action', nextStatement: 'Action', colour: '#b84b43', tooltip: 'Der ausgewählte Arkan greift einen direkt benachbarten Gegner an.' },
+  ...Object.entries(ACTIONS).map(([action, definition]) => ({ type: definition.block, message0: definition.label, previousStatement: 'Action', nextStatement: 'Action', colour: action === 'ATTACK' ? '#b84b43' : '#357bd0', tooltip: action === 'ATTACK' ? 'Greift einen direkt benachbarten Gegner an.' : action === 'MOVE_TOWARD' ? 'Ein Feld zum Gegner. Belegte Felder blockieren den Schritt.' : 'Bewegt das ausgewählte Arkana genau ein Feld in diese Richtung.' })),
   { type: 'cm_repeat', message0: 'wiederhole %1 mal', args0: [{ type: 'field_number', name: 'COUNT', value: 3, min: 1, max: 6, precision: 1 }], message1: '%1', args1: [{ type: 'input_statement', name: 'BODY', check: 'Action' }], previousStatement: 'Action', nextStatement: 'Action', colour: '#d39b26', tooltip: 'Alle eingerasteten Befehle im Inneren werden wiederholt.' },
   { type: 'cm_if', message0: 'falls Gegner nahe', message1: 'dann %1', args1: [{ type: 'input_statement', name: 'THEN', check: 'Action' }], message2: 'sonst %1', args2: [{ type: 'input_statement', name: 'ELSE', check: 'Action' }], previousStatement: 'Action', nextStatement: 'Action', colour: '#8960b6', tooltip: 'Prüft für den ausgewählten Arkan die Nähe und führt einen der verbundenen Zweige aus.' },
 ]);
@@ -27,7 +27,8 @@ export function workspaceNodes(workspace: Blockly.Workspace): ProgramNode[] {
     const nodes: ProgramNode[] = [];
     for (let block = first; block; block = block.getNextBlock()) {
       if (!block.isEnabled()) continue;
-      if (block.type === 'cm_move' || block.type === 'cm_attack') nodes.push({ kind: 'action', action: block.type === 'cm_move' ? 'MOVE_TOWARD' : 'ATTACK' });
+      const action = actionForBlock(block.type);
+      if (action) nodes.push({ kind: 'action', action });
       else if (block.type === 'cm_repeat') nodes.push({ kind: 'repeat', count: Number(block.getFieldValue('COUNT')), body: read(block.getInputTargetBlock('BODY')) });
       else if (block.type === 'cm_if') nodes.push({ kind: 'if', then: read(block.getInputTargetBlock('THEN')), otherwise: read(block.getInputTargetBlock('ELSE')) });
       else throw new Error('Unbekannter Block.');
@@ -64,7 +65,7 @@ interface BlockState {
 export function loadNodes(workspace: Blockly.Workspace, nodes: readonly ProgramNode[], _actor: ArkanId): void {
   const chain = (list: readonly ProgramNode[]): BlockState | undefined => {
     const blocks = list.map((node): BlockState => {
-      if (node.kind === 'action') return { type: node.action === 'ATTACK' ? 'cm_attack' : 'cm_move' };
+      if (node.kind === 'action') return { type: ACTIONS[node.action].block };
       if (node.kind === 'repeat') {
         const body = chain(node.body);
         return { type: 'cm_repeat', fields: { COUNT: node.count }, inputs: body ? { BODY: { block: body } } : {} };
@@ -82,11 +83,14 @@ export function loadNodes(workspace: Blockly.Workspace, nodes: readonly ProgramN
 
 export function snapToolbox(actor: ArkanId, mission: number, skills?: readonly SkillId[]): Blockly.utils.toolbox.ToolboxDefinition {
   const commands = availableCommands(actor, mission, skills);
-  const type = { move: 'cm_move', attack: 'cm_attack', condition: 'cm_if', repeat: 'cm_repeat' };
-  return { kind: 'categoryToolbox', contents: COMMAND_CATEGORIES.filter((category) => commands.some((command) => command.category === category.id)).map((category) => ({
+  const categories = COMMAND_CATEGORIES.filter((category) => commands.some((command) => command.category === category.id));
+  return { kind: 'categoryToolbox', contents: [...categories.map((category) => ({
     kind: 'category', name: category.label, colour: category.color,
-    contents: [...(category.id === 'flow' ? [{ kind: 'block', type: 'cm_start' }] : []), ...commands.filter((command) => command.category === category.id).map((command) => ({ kind: 'block', type: type[command.id], ...(command.id === 'repeat' ? { fields: { COUNT: 3 } } : {}) }))],
-  })) };
+    contents: [...(category.id === 'flow' ? [{ kind: 'block', type: 'cm_start' }] : []), ...commands.filter((command) => command.category === category.id).map((command) => {
+      const action = actionForCommand(command.id === 'move' ? 'moveForward' : command.id);
+      return { kind: 'block', type: action ? ACTIONS[action].block : command.id === 'condition' ? 'cm_if' : 'cm_repeat', ...(command.id === 'repeat' ? { fields: { COUNT: 2 } } : {}) };
+    })],
+  })), ...(!categories.some((category) => category.id === 'flow') ? [{ kind: 'category', name: 'Programmstart', colour: '#d6a728', contents: [{ kind: 'block', type: 'cm_start' }] }] : [])] };
 }
 
 /** Remove old display labels while retaining connections, positions and IDs. */

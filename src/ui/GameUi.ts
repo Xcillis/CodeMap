@@ -2,20 +2,21 @@ import { gameEvents, type DialogPayload } from '../game/events';
 import { touchInput, type TouchDirection } from '../input/TouchInput';
 import { loadProgress, saveProgress, saveProgramDraft } from '../gameplay/LocalProgress';
 import { compileActionPlan } from '../combat/DecisionProgram';
-import type { ActionFrame, ArkanId, BattleState, ProgramSources } from '../combat/types';
+import type { ActionFrame, ArkanId, EncounterState, ProgramSources } from '../combat/types';
 import type { PlaybackState } from '../combat/Playback';
 import { availableCommands, COMMAND_CATEGORIES, commandSource, type CommandCategory } from '../combat/CommandCatalog';
 import { SnapEditor } from './SnapEditor';
 import { ProgramDrag } from './ProgramDrag';
 import { isArkanId, type SkillId } from '../gameplay/ArkanaCatalog';
-import { WORLD_QUESTS } from '../gameplay/WorldQuests';
+import type { EncounterPresentation } from '../gameplay/WorldQuests';
+import { ACTIONS } from '../combat/ActionCatalog';
 
 type EditorMode = 'blocks' | 'text';
 
 export class GameUi {
   private editorMode: EditorMode = 'text';
   private selectedActor: ArkanId = 'moosling';
-  private mission = 1;
+  private mission: string | number = 1;
   private selectedCategory: CommandCategory = 'movement';
   private sources: ProgramSources = {};
   private drafts: Record<string, string> = {};
@@ -28,7 +29,9 @@ export class GameUi {
   private readonly feedback = this.el<HTMLElement>('battle-feedback');
   private readonly drag: ProgramDrag;
   private playbackState: PlaybackState = 'idle';
-  private activeFrame?: ActionFrame;
+  private activeFrame?: ActionFrame<EncounterState>;
+  private presentation?: EncounterPresentation;
+  private hintIndex = 0;
   private skills?: Partial<Record<ArkanId, readonly SkillId[]>>;
 
   constructor() {
@@ -56,16 +59,16 @@ export class GameUi {
       this.pendingDialogAction = undefined;
     });
     this.click('dialog-dismiss', () => { this.el('dialog').hidden = true; this.pendingDialogAction = undefined; gameEvents.emit('dialog-closed'); });
-    gameEvents.on('battle-opened', (programs: ProgramSources, mission: number, skills?: Partial<Record<ArkanId, readonly SkillId[]>>) => this.open(programs, mission, skills));
+    gameEvents.on('battle-opened', (programs: ProgramSources, mission: string | number, skills?: Partial<Record<ArkanId, readonly SkillId[]>>, presentation?: EncounterPresentation) => this.open(programs, mission, skills, presentation));
     gameEvents.on('battle-closed', () => {
       this.capture(); this.drag.cancel(); this.panel.hidden = true;
       this.exploration(true);
     });
-    gameEvents.on('battle-updated', (state: BattleState, feedback: string) => this.update(state, feedback));
+    gameEvents.on('battle-updated', (state: EncounterState, feedback: string) => this.update(state, feedback));
     gameEvents.on('battle-playback', (state: PlaybackState) => {
       this.playbackState = state; this.applyPlaybackState();
     });
-    gameEvents.on('battle-frame', (frame: ActionFrame) => {
+    gameEvents.on('battle-frame', (frame: ActionFrame<EncounterState>) => {
       this.activeFrame = frame;
       if (frame.actor !== 'konstrukt') this.selectActor(frame.actor);
       this.showTrace();
@@ -85,6 +88,12 @@ export class GameUi {
     this.click('battle-restart', () => gameEvents.emit('battle-restart'));
     this.click('battle-next-mission', () => gameEvents.emit('battle-next-mission'));
     this.click('battle-exit', () => gameEvents.emit('battle-exit'));
+    this.click('lesson-hint-button', () => {
+      const hints = this.presentation?.hints ?? [];
+      if (!hints.length) return;
+      this.el('lesson-hint').textContent = hints[Math.min(this.hintIndex++, hints.length - 1)];
+      this.el('lesson-hint').hidden = false;
+    });
     this.click('interact-button', () => touchInput.requestInteraction());
     this.text.addEventListener('input', () => {
       if (this.playbackState !== 'idle') return;
@@ -114,10 +123,16 @@ export class GameUi {
 
   private key(): string { return `${this.mission}:${this.selectedActor}`; }
 
-  private open(programs: ProgramSources, mission: number, skills?: Partial<Record<ArkanId, readonly SkillId[]>>): void {
+  private open(programs: ProgramSources, mission: number | string, skills?: Partial<Record<ArkanId, readonly SkillId[]>>, presentation?: EncounterPresentation): void {
     this.drag.cancel(); this.panel.hidden = false; this.exploration(false);
     this.mission = mission;
     this.skills = skills;
+    this.presentation = presentation; this.hintIndex = 0;
+    this.el('encounter-objective').textContent = presentation?.objective ?? 'Probiere dein Programm auf dem Raster aus.';
+    this.el('encounter-instructions').textContent = presentation?.instructions ?? '';
+    this.el('encounter-instructions').hidden = !presentation?.instructions;
+    this.el('lesson-hint-button').hidden = !presentation?.hints.length;
+    this.el('lesson-hint').hidden = true;
     this.sources = {};
     const progress = loadProgress();
     for (const actor of ['moosling', 'glutling'] as const) if (programs[actor] !== undefined) {
@@ -132,7 +147,7 @@ export class GameUi {
     this.selectedActor = Object.keys(programs).find(isArkanId) ?? 'moosling';
     this.el('select-moosling').hidden = programs.moosling === undefined;
     this.el('select-glutling').hidden = programs.glutling === undefined;
-    this.el('battle-title').textContent = `WELTQUEST – ${WORLD_QUESTS.find((quest) => quest.id === mission)?.title.toUpperCase() ?? 'RUNENSKRIPT'}`;
+    this.el('battle-title').textContent = `${presentation?.mode === 'lesson' ? 'LERNQUEST' : 'FREIES TRAINING'} – ${presentation?.title.toUpperCase() ?? 'RUNENSKRIPT'}`;
     this.el('battle-next-mission').hidden = true;
     this.loadActor(); this.resize();
   }
@@ -149,6 +164,7 @@ export class GameUi {
     const mode = parsed.nodes ? loadProgress().editorMode : 'text';
     this.setMode(mode, true);
     this.el('program-owner').textContent = `Du programmierst gerade: ${this.selectedActor === 'moosling' ? 'Moosling' : 'Glutling'}`;
+    this.el('program-help').textContent = `Jeder Textbefehl gehört zum ausgewählten Arkana, z. B. ${this.selectedActor}.${this.presentation?.mode === 'lesson' ? 'moveRight' : 'moveForward'}(). Höchstens zwölf ausgeführte Aktionen. Verfügbare Befehle stehen in der Bibliothek.`;
     this.panel.dataset.programActor = this.selectedActor;
     for (const actor of ['moosling', 'glutling'] as const) {
       this.el(`select-${actor}`).setAttribute('aria-pressed', String(actor === this.selectedActor));
@@ -181,8 +197,8 @@ export class GameUi {
         if (this.editorMode === 'blocks' && this.playbackState === 'idle') { this.programChanged(); this.capture(); }
       });
       const saved = this.workspaceDrafts[this.key()] ?? loadProgress().blockWorkspaces[this.key()];
-      try { this.snap.load(parsed.nodes!, this.selectedActor, this.mission, saved || undefined, this.skillsFor(this.selectedActor)); }
-      catch { this.snap.load(parsed.nodes!, this.selectedActor, this.mission, undefined, this.skillsFor(this.selectedActor)); }
+      try { this.snap.load(parsed.nodes!, this.selectedActor, this.catalogMission, saved || undefined, this.skillsFor(this.selectedActor)); }
+      catch { this.snap.load(parsed.nodes!, this.selectedActor, this.catalogMission, undefined, this.skillsFor(this.selectedActor)); }
       this.capture();
     }
     saveProgress({ editorMode: mode });
@@ -214,7 +230,7 @@ export class GameUi {
   }
 
   private renderLibrary(): void {
-    const commands = availableCommands(this.selectedActor, this.mission, this.skillsFor(this.selectedActor));
+    const commands = availableCommands(this.selectedActor, this.catalogMission, this.skillsFor(this.selectedActor));
     const categories = COMMAND_CATEGORIES.filter((category) => commands.some((command) => command.category === category.id));
     if (!categories.some((category) => category.id === this.selectedCategory)) this.selectedCategory = categories[0]?.id ?? 'movement';
     this.el('command-categories').replaceChildren(...categories.map((category) => {
@@ -240,7 +256,7 @@ export class GameUi {
 
   private insertTextCommand(id: string): void {
     if (this.playbackState !== 'idle') return;
-    const command = availableCommands(this.selectedActor, this.mission, this.skillsFor(this.selectedActor)).find((entry) => entry.id === id);
+    const command = availableCommands(this.selectedActor, this.catalogMission, this.skillsFor(this.selectedActor)).find((entry) => entry.id === id);
     if (!command || this.editorMode !== 'text') return;
     const snippet = commandSource(command, this.selectedActor);
     this.text.setRangeText(`${this.text.value.trim() ? '\n' : ''}${snippet}`, this.text.selectionStart, this.text.selectionEnd, 'end');
@@ -248,7 +264,7 @@ export class GameUi {
     this.workspaceDrafts[this.key()] = ''; this.loose[this.key()] = false; this.capture();
   }
 
-  private update(state: BattleState, feedback: string): void {
+  private update(state: EncounterState, feedback: string): void {
     this.feedback.textContent = feedback; this.el('battle-round').textContent = String(state.tick);
     for (const [prefix, actor] of [['player', state.player], ['companion', state.companion], ['enemy', state.enemy]] as const) {
       if (!actor) continue;
@@ -257,6 +273,8 @@ export class GameUi {
       if (prefix !== 'enemy') this.el(`${prefix}-health-name`).textContent = actor.name;
     }
     this.el('companion-health-status').hidden = !state.companion;
+    this.el('enemy-health-status').hidden = !state.enemy;
+    this.el('battle-status').classList.toggle('puzzle-status', !state.enemy);
     this.el<HTMLButtonElement>('battle-step').disabled = state.outcome !== 'ongoing';
     this.applyPlaybackState();
     this.el('battle-log').replaceChildren(...state.log.map((line) => { const item = document.createElement('li'); item.textContent = line; return item; }));
@@ -264,6 +282,7 @@ export class GameUi {
 
   private exploration(visible: boolean): void { for (const id of ['hud', 'touch-controls', 'interaction-hint', 'world-tools']) this.el(id).classList.toggle('screen-hidden', !visible); }
   private skillsFor(actor: ArkanId): readonly SkillId[] | undefined { return this.skills ? this.skills[actor] ?? [] : undefined; }
+  private get catalogMission(): number { return typeof this.mission === 'number' ? this.mission : 0; }
   private programChanged(): void {
     this.activeFrame = undefined; this.showTrace();
     this.el<HTMLButtonElement>('battle-step').disabled = false;
@@ -302,7 +321,7 @@ export class GameUi {
     const name = frame.actor === 'moosling' ? 'Moosling' : frame.actor === 'glutling' ? 'Glutling' : 'Konstrukt';
     const loops = frame.trace?.loops.map((loop) => `Durchlauf ${loop.iteration} von ${loop.total}`).join(' · ');
     const conditions = frame.trace?.conditions.map((condition) => `Gegner nahe: ${condition.value ? 'ja' : 'nein'}`).join(' · ');
-    trace.textContent = [name, frame.action === 'ATTACK' ? 'angreifen' : 'vorwärts gehen', loops, conditions].filter(Boolean).join(' · ');
+    trace.textContent = [name, ACTIONS[frame.action].label, loops, conditions].filter(Boolean).join(' · ');
   }
 
   private highlightLine(): void {

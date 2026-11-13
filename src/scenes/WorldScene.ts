@@ -3,8 +3,8 @@ import { gameEvents } from '../game/events';
 import { InteractionController } from '../gameplay/InteractionController';
 import { PlayerController } from '../gameplay/PlayerController';
 import { loadProgress, saveProgress } from '../gameplay/LocalProgress';
-import { Campaign } from '../gameplay/Campaign';
-import { WORLD_QUESTS, type CampaignAction } from '../gameplay/WorldQuests';
+import { Campaign, type WorldEncounter } from '../gameplay/Campaign';
+import { WORLD_QUESTS, isLessonId, type LessonId, type CampaignAction } from '../gameplay/WorldQuests';
 import type { MissionId } from '../combat/BattleSession';
 import { touchInput } from '../input/TouchInput';
 import { isArkanId } from '../gameplay/ArkanaCatalog';
@@ -26,17 +26,17 @@ export class WorldScene extends Phaser.Scene {
   private readonly onDialogClosed = () => { this.dialogActive = false; this.clearInput(); };
   private readonly onOverlay = (open: boolean) => { this.overlayActive = open; this.clearInput(); };
   private readonly onTeamToggle = (id: string) => { const message = this.campaign.toggleTeam(id); this.publishCampaign(); gameEvents.emit('world-notice', message); };
+  private readonly onTraining = (mission: MissionId, team: ArkanId[]) => this.launchEncounter(this.campaign.beginTraining(mission, team));
   private readonly onCampaignAction = (action: CampaignAction) => {
-    if (action.startsWith('quest-')) {
-      const id = Number(action.slice(6)) as MissionId;
-      const encounter = this.campaign.beginMission(id);
-      if (typeof encounter === 'string') { gameEvents.emit('world-notice', encounter); return; }
-      this.clearInput(); this.scene.pause('world'); this.scene.launch('battle', encounter);
+    if (action === 'open-training') { gameEvents.emit('world-training-open'); return; }
+    if (action.startsWith('lesson:')) {
+      const id = action.slice(7);
+      if (isLessonId(id)) this.launchEncounter(this.campaign.beginMission(id));
     } else {
       const message = this.campaign.apply(action); this.publishCampaign(); gameEvents.emit('world-notice', message);
     }
   };
-  private readonly onVictory = (id: MissionId) => {
+  private readonly onVictory = (id: LessonId) => {
     const reward = this.campaign.completeMission(id);
     if (reward) { this.pendingReward = reward; this.publishCampaign(); }
   };
@@ -61,14 +61,16 @@ export class WorldScene extends Phaser.Scene {
     this.physics.add.collider(this.player, obstacles);
     this.playerController = new PlayerController(this, this.player);
     this.createNpc(915, 540);
-    this.createWorldEncounter('moosling', 'Moosling', 600, 650, 0x78bc69);
-    this.createWorldEncounter('glutling', 'Glutling', 1290, 650, 0xef934a);
-    for (const quest of WORLD_QUESTS) this.createWorldEncounter(`quest-${quest.id}`, quest.target, quest.x, quest.y, 0xe1c970);
+    this.createWorldEncounter('glutling', 'Glutling', 600, 650, 0xef934a);
+    this.createWorldEncounter('moosling', 'Moosling', 1290, 650, 0x78bc69);
+    this.createWorldEncounter('training', 'Freie Trainingsarena', 1000, 720, 0x80c6d3);
+    for (const quest of WORLD_QUESTS) this.createWorldEncounter(`lesson:${quest.id}`, quest.target, quest.x, quest.y, 0xe1c970);
     this.interactionController = new InteractionController([
       { id: 'arkanist-eldren', label: 'Arkanist Eldren', x: 915, y: 540, range: 75 },
-      { id: 'moosling', label: 'Moosling begegnen', x: 600, y: 650, range: 70 },
-      { id: 'glutling', label: 'Feuerspur untersuchen', x: 1290, y: 650, range: 70 },
-      ...WORLD_QUESTS.map((quest) => ({ id: `quest-${quest.id}`, label: quest.target, x: quest.x, y: quest.y, range: 70 })),
+      { id: 'glutling', label: 'Glutling begegnen', x: 600, y: 650, range: 70 },
+      { id: 'moosling', label: 'Moosspur untersuchen', x: 1290, y: 650, range: 70 },
+      { id: 'training', label: 'Freie Trainingsarena', x: 1000, y: 720, range: 70 },
+      ...WORLD_QUESTS.map((quest) => ({ id: `lesson:${quest.id}`, label: quest.target, x: quest.x, y: quest.y, range: 70 })),
     ]);
 
     this.cameras.main.setBounds(0, 0, WORLD_WIDTH, WORLD_HEIGHT);
@@ -78,11 +80,13 @@ export class WorldScene extends Phaser.Scene {
     gameEvents.on('world-overlay', this.onOverlay);
     gameEvents.on('team-toggle', this.onTeamToggle);
     gameEvents.on('campaign-action', this.onCampaignAction);
+    gameEvents.on('training-start', this.onTraining);
     gameEvents.on('world-quest-victory', this.onVictory);
     gameEvents.on('world-returned', this.onReturned);
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
       gameEvents.off('dialog-closed', this.onDialogClosed); gameEvents.off('world-overlay', this.onOverlay);
       gameEvents.off('team-toggle', this.onTeamToggle); gameEvents.off('campaign-action', this.onCampaignAction);
+      gameEvents.off('training-start', this.onTraining);
       gameEvents.off('world-quest-victory', this.onVictory); gameEvents.off('world-returned', this.onReturned);
       this.encounterLabels.clear();
       this.arkanaVisuals.clear();
@@ -106,7 +110,7 @@ export class WorldScene extends Phaser.Scene {
     const state = this.campaign.snapshot;
     saveProgress({ campaign: state, questCompleted: state.introduced });
     gameEvents.emit('campaign-updated', state);
-    gameEvents.emit('quest-updated', this.campaign.objective, state.completed.includes(3));
+    gameEvents.emit('quest-updated', this.campaign.objective, state.completed.includes('q03-wiederkehr'));
     for (const id of ['moosling', 'glutling'] as const) {
       if (!this.campaign.has(id)) continue;
       const visuals = this.arkanaVisuals.get(id);
@@ -118,14 +122,19 @@ export class WorldScene extends Phaser.Scene {
       }
       this.interactionController.removeTarget(id);
     }
-    for (const quest of WORLD_QUESTS) this.encounterLabels.get(`quest-${quest.id}`)?.setText(`${state.completed.includes(quest.id) ? '✓' : '!'} ${quest.target}`);
+    for (const quest of WORLD_QUESTS) this.encounterLabels.get(`lesson:${quest.id}`)?.setText(`${state.completed.includes(quest.id) ? '✓' : '!'} ${quest.target}`);
+  }
+
+  private launchEncounter(encounter: WorldEncounter | string): void {
+    if (typeof encounter === 'string') { gameEvents.emit('world-notice', encounter); return; }
+    this.publishCampaign(); this.clearInput(); this.scene.pause('world'); this.scene.launch('battle', encounter);
   }
 
   private clearInput(): void { touchInput.clear(); this.input.keyboard?.resetKeys(); }
 
   private createWorldEncounter(id: string, label: string, x: number, y: number, color: number): void {
     if (isArkanId(id) && this.campaign.has(id)) return;
-    const quest = id.startsWith('quest-');
+    const quest = id.startsWith('lesson:') || id === 'training';
     const shadow = this.add.ellipse(x, y + 18, 32, 10, 0x142c35, .3).setDepth(4);
     const marker = quest
       ? this.add.rectangle(x, y, 24, 34, color).setStrokeStyle(3, 0x3d4a41).setDepth(5)

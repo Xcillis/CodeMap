@@ -6,6 +6,8 @@ import type { ArkanId, ProgramNode } from '../combat/types';
 import { GameUi } from './GameUi';
 import { gameEvents } from '../game/events';
 import { BattleSession, missionPrograms } from '../combat/BattleSession';
+import { getLesson } from '../gameplay/WorldQuests';
+import { LessonSession } from '../combat/LessonSession';
 
 const listeners = vi.hoisted(() => new Map<string, ((...args: unknown[]) => void)[]>());
 const snaps = vi.hoisted(() => [] as unknown[]);
@@ -44,6 +46,34 @@ beforeEach(() => {
 });
 
 describe('Editorzustand und Arkan-Zuordnung', () => {
+  it('zeigt in der ersten Lernquest nur Bewegung, einen unvollständigen Start und gestufte Hinweise', () => {
+    const lesson = getLesson('q01-glutspur');
+    const presentation = { title: lesson.title, mode: 'lesson', instructions: lesson.introduction, objective: lesson.objective, hints: lesson.hints };
+    gameEvents.emit('battle-opened', { glutling: lesson.starter }, lesson.id, { glutling: lesson.allowed }, presentation);
+    expect(document.getElementById('battle-title')!.textContent).toContain('LERNQUEST');
+    expect(document.getElementById('category-combat')).toBeNull();
+    expect(document.getElementById('category-flow')).toBeNull();
+    expect(document.getElementById('category-senses')).toBeNull();
+    expect(Array.from(document.querySelectorAll<HTMLElement>('[data-command]')).map((entry) => entry.dataset.command)).toEqual(['moveRight', 'moveUp']);
+    click('text-mode'); expect(text().value).toBe('glutling.moveRight();');
+    const session = new LessonSession(lesson, lesson.allowed);
+    gameEvents.emit('battle-updated', session.snapshot, 'Bereit');
+    expect(document.getElementById('enemy-health-status')!.hidden).toBe(true);
+    expect(document.getElementById('battle-status')!.classList.contains('puzzle-status')).toBe(true);
+    click('lesson-hint-button'); expect(document.getElementById('lesson-hint')!.textContent).toBe(lesson.hints[0]);
+    click('lesson-hint-button'); expect(document.getElementById('lesson-hint')!.textContent).toBe(lesson.hints[1]);
+  });
+
+  it('hält neue Lernprogramme getrennt von alten Arena-Entwürfen desselben Arkanas', () => {
+    gameEvents.emit('battle-opened', missionPrograms(1, ['glutling']), 1);
+    click('text-mode'); type('glutling.attack();');
+    const lesson = getLesson('q01-glutspur');
+    gameEvents.emit('battle-opened', { glutling: lesson.starter }, lesson.id, { glutling: lesson.allowed });
+    expect(text().value).toBe(lesson.starter); type('glutling.moveUp();');
+    gameEvents.emit('battle-opened', missionPrograms(1, ['glutling']), 1); expect(text().value).toBe('glutling.attack();');
+    gameEvents.emit('battle-opened', { glutling: lesson.starter }, lesson.id, { glutling: lesson.allowed });
+    expect(text().value).toBe('glutling.moveUp();');
+  });
   it('programmiert ein gewähltes Glutling-Soloteam mit dessen tatsächlich erlernten Befehlen', () => {
     const programs = missionPrograms(2, ['glutling']);
     gameEvents.emit('battle-opened', programs, 2, { glutling: ['moveForward', 'attack', 'repeat', 'enemyAdjacent'] });

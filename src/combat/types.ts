@@ -1,5 +1,5 @@
-export type CombatAction = 'ATTACK' | 'MOVE_TOWARD';
-export type BattleOutcome = 'ongoing' | 'victory' | 'defeat';
+export type CombatAction = 'ATTACK' | 'MOVE_TOWARD' | 'MOVE_RIGHT' | 'MOVE_LEFT' | 'MOVE_UP' | 'MOVE_DOWN';
+export type BattleOutcome = 'ongoing' | 'victory' | 'defeat' | 'incomplete';
 export type ArkanId = 'moosling' | 'glutling';
 export type ProgramSources = Partial<Record<ArkanId, string>>;
 export type ProgramNode =
@@ -65,10 +65,18 @@ export interface ExecutionTrace {
   loops: LoopTrace[];
   conditions: { path: string; value: boolean }[];
 }
-export interface ActionFrame {
+export interface PuzzleState extends Omit<BattleState, 'enemy' | 'companion'> {
+  enemy?: undefined;
+  companion?: undefined;
+  goal: GridPosition;
+  walls: GridPosition[];
+}
+export type EncounterState = BattleState | PuzzleState;
+
+export interface ActionFrame<State extends EncounterState = BattleState> {
   actor: Combatant['id'];
   action: CombatAction;
-  before: BattleState;
-  after: BattleState;
+  before: State;
+  after: State;
   trace?: ExecutionTrace;
 }

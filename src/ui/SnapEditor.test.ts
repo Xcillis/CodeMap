@@ -4,8 +4,19 @@ import { describe, expect, it } from 'vitest';
 import { blockAtPath, loadNodes, workspaceNodes, snapToolbox, restoreWorkspaceState } from './SnapEditor';
 import { compileActionPlan, nodesToSource } from '../combat/DecisionProgram';
 import { BattleSession } from '../combat/BattleSession';
+import { getLesson } from '../gameplay/WorldQuests';
 
 describe('Echte Blockly-Verbindungen', () => {
+  it('bietet den Startblock ohne Schleifenfreigabe an und serialisiert gerichtete Bewegungen', () => {
+    const lesson = getLesson('q01-glutspur');
+    const toolbox = JSON.stringify(snapToolbox('glutling', 0, lesson.allowed));
+    expect(toolbox).toContain('cm_start'); expect(toolbox).toContain('cm_move_right'); expect(toolbox).toContain('cm_move_up');
+    expect(toolbox).not.toContain('cm_repeat'); expect(toolbox).not.toContain('cm_attack'); expect(toolbox).not.toContain('cm_if');
+    const nodes = compileActionPlan('glutling.moveRight(); glutling.moveRight(); glutling.moveUp();', 'glutling').nodes!;
+    const workspace = new Blockly.Workspace();
+    try { loadNodes(workspace, nodes, 'glutling'); expect(workspaceNodes(workspace)).toEqual(nodes); }
+    finally { workspace.dispose(); }
+  });
   it('findet den aktiven Block über verschachtelte Zweige und ignoriert deaktivierte Geschwister', () => {
     const workspace = new Blockly.Workspace();
     try {

@@ -102,6 +102,20 @@ Für den Spielumbau werden Aufgabenart, Startzustand, Weltziel, Einführungsfrei
 
 Neue Aufgaben erhalten stabile IDs mit einer eigenen Fortschrittsversion. Die vorhandenen numerischen Missionen und ihre gespeicherten Programme dürfen nicht durch Umbenennen zu anderen Aufgaben werden. Sammlung und Entwürfe bleiben bei der späteren Migration erhalten. ADR 013 dokumentiert den Plan; die aktuelle Laufzeit entspricht bis zu diesem Umbau weiterhin ADR 012.
 
+## ADR 014 – Gemeinsame Programmsprache für Lernrätsel und freies Training
+
+`ActionCatalog` ordnet jede ausführbare Aktion ihrem Textbefehl, Blocktyp und ihrer Beschriftung zu. Parser, Serialisierung, Blockly und Trace verwenden diese Zuordnung auch für gerichtete Bewegungen. Der bisherige `moveForward()`-Befehl behält im freien Training seine Bedeutung als Bewegung zum Gegner. Die Einführung verwendet gerichtete Schritte ohne automatische Wegsuche.
+
+`WorldQuests` enthält neue stabile Lernquest-IDs, Aufgabenart, Rasterstart, Ziel, Hindernisse, Einführungsfreigaben, erlaubte Befehle, unvollständiges Startprogramm und gestufte Hinweise. `LessonSession` verbindet den vorhandenen Parser und `ProgramRunner` mit einer Rätsel- oder Kampfengine. `PuzzleEngine` benötigt keinen Gegner; `EncounterState` beschreibt beide Zustandsarten ausdrücklich. Die Szene zeichnet bei Rätseln Rune und Steine und blendet Gegner samt LP-Anzeige aus. Die vorhandene Wiedergabe spielt beide Aufgabenarten mit denselben Pausen-, Tempo- und Trace-Funktionen ab.
+
+Die erste Aufgabe verlangt eine kurze Bewegungssequenz, die zweite kombiniert Bewegung und Basisangriff, die dritte führt Wiederholungen ein. Der Schleifennachweis berücksichtigt erfolgreiche Bewegungen aus mindestens zwei unterschiedlichen Durchläufen desselben Schleifenpfads. Ein bloß erreichter Zielpunkt ohne diesen Nachweis erhält den Zustand `incomplete` und vergibt keinen Questabschluss. Palette und Textbibliothek verwenden die effektiven Freigaben; die Session prüft diese unabhängig von der Oberfläche erneut gegen die Aufgabenliste. Der Startblock bleibt auch ohne Wiederholungsfähigkeit verfügbar.
+
+`Campaign.beginMission` stellt bei Annahme einer zulässigen Einführung die neuen allgemeinen Befehle bereit. Fortschritt öffnet erst die nächste Einführung. `beginTraining` prüft stattdessen eine separat gewählte, besessene Solo- oder Duo-Besetzung und liefert sämtliche unterstützten Befehle. Ein expliziter Begegnungstyp trennt Trainingsläufe von Lernquests; nur sichtbar abgeschlossene Lernquest-Siege können Weltbelohnungen auslösen.
+
+Kampagnenversion 2 archiviert die numerischen Abschlüsse und Fundorte des bisherigen Prototyps unter `legacyProgress`. Gesammelte Instanzen, erlernte Fähigkeiten und bisherige Teams bleiben erhalten. Neue Lernquest-IDs erhalten eigene Entwurfsplätze; numerische Programmplätze 1–3 werden unverändert in der freien Trainingsarena weiterverwendet. Frühere Fähigkeiten umgehen die Aufgabenfreigaben nicht. Der bestehende übergeordnete Speicher- und Programmschlüssel bleibt kompatibel. Ein manueller Reset ist nicht nötig.
+
+Automatisierte Tests decken die drei Aufgaben in Einzel- und Gesamtausführung, Hindernisse und Grenzen, unzulässige Befehle, wirksame Wiederholungen, separate Trainingssiege, Freigaben, Migration und beide Editoransichten ab. Die Einführung von Bedingungen, weiteren Grundlagenquests und eines zweiten regulären Weltteamplatzes folgt später. Bereits bestehende Zweierteams und freies Duo-Training bleiben verwendbar. ADR 014 ersetzt den in ADR 013 beschriebenen Planungsstand für Q01 bis Q03.
+
 ## Noch nicht enthalten
 
 Dreier-Formation, Variablen und Funktionen in der Programmiersprache, freie JavaScript-Runtime, Online-Speicherung, Login, Backend, NOVA und Kompetenzengine bleiben spätere Erweiterungen. Frühere ADRs beschreiben die Entwicklungsschritte; ADR 010 bis ADR 012 beschreiben den aktuellen Stand von Editor, Wiedergabe und Weltquests.
