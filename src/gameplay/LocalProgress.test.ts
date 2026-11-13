@@ -7,6 +7,21 @@ const key = 'codemap-m2-progress';
 beforeEach(() => { vi.restoreAllMocks(); vi.resetModules(); localStorage.clear(); });
 
 describe('Lokaler Weltfortschritt', () => {
+  it('erhält einen Q06-Stand und speichert die angenommene Teamfreigabe mit getrennten Objektentwürfen', async () => {
+    const programs = { 'q06-waechter:glutling': 'repeat(5, () => { glutling.attack(); });' };
+    localStorage.setItem(key, JSON.stringify({ programVersion: 3, campaign: { version: 2, introduced: true, completed: LESSON_IDS.slice(0, 6), owned: [{ speciesId: 'glutling' }, { speciesId: 'moosling' }], team: [instanceId('glutling')] }, programs }));
+    const storage = await import('./LocalProgress'); const campaign = new Campaign(storage.loadProgress().campaign);
+    expect(campaign.interact('arkanist-eldren').actionLabel).toBe('Moosling wählen & Quest starten');
+    campaign.prepareMission('q07-moosling'); campaign.finishMission('q07-moosling'); campaign.leaveMission();
+    campaign.interact('arkanist-eldren'); campaign.prepareMission('q08-team');
+    storage.saveProgress({ campaign: campaign.snapshot });
+    storage.saveProgramDraft('q08-team', 'moosling', 'moosling.moveRight();'); storage.saveProgramDraft('q08-team', 'glutling', 'glutling.');
+    vi.resetModules(); const loaded = (await import('./LocalProgress')).loadProgress(); const restored = new Campaign(loaded.campaign);
+    expect(restored.teamLimit).toBe(2); expect(restored.activeTeam.map((item) => item.speciesId)).toEqual(['moosling', 'glutling']);
+    expect(loaded.campaign.completed).toEqual([...LESSON_IDS.slice(0, 7)]);
+    expect(loaded.programs).toEqual({ ...programs, 'q08-team:moosling': 'moosling.moveRight();', 'q08-team:glutling': 'glutling.' });
+    expect(restored.snapshot.owned).toHaveLength(2); expect(restored.availableEncounters).toEqual([]);
+  });
   it('führt einen Q05-Spielstand ohne Reset zu Q06 und speichert den neuen Entwurf unabhängig', async () => {
     const programs = { 'q05-aufmerksam:glutling': 'if (glutling.enemyAdjacent) { glutling.attack(); } else { glutling.moveForward(); }', '2:glutling': 'glutling.' };
     const blockWorkspaces = { 'q05-aufmerksam:glutling': '{"draft":true}' };

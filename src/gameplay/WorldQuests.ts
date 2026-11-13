@@ -1,7 +1,7 @@
-import type { GridPosition } from '../combat/types';
+import type { ArkanId, GridPosition, ProgramSources } from '../combat/types';
 import type { SkillId } from './ArkanaCatalog';
 
-export const LESSON_IDS = ['q01-glutspur', 'q02-basisangriff', 'q03-wiederkehr', 'q04-musterpfad', 'q05-aufmerksam', 'q06-waechter'] as const;
+export const LESSON_IDS = ['q01-glutspur', 'q02-basisangriff', 'q03-wiederkehr', 'q04-musterpfad', 'q05-aufmerksam', 'q06-waechter', 'q07-moosling', 'q08-team'] as const;
 export type LessonId = typeof LESSON_IDS[number];
 export const isLessonId = (value: unknown): value is LessonId => LESSON_IDS.some((id) => value === id);
 export type RepeatGoal = 'none' | 'movement' | 'movement-sequence';
@@ -23,12 +23,14 @@ interface QuestBase {
   introduces: readonly SkillId[];
   allowed: readonly SkillId[];
   starter: string;
+  team?: readonly ArkanId[];
+  starters?: ProgramSources;
   start: GridPosition;
   hints: readonly string[];
 }
 export type WorldQuest = QuestBase & (
   | { kind: 'puzzle'; goal: GridPosition; walls: readonly GridPosition[]; repeatGoal: RepeatGoal }
-  | { kind: 'combat'; enemy: GridPosition; enemyHp: number; decisionTrials?: readonly DecisionTrial[]; adaptiveTrials?: readonly DecisionTrial[] }
+  | { kind: 'combat'; enemy: GridPosition; enemyHp: number; decisionTrials?: readonly DecisionTrial[]; adaptiveTrials?: readonly DecisionTrial[]; companion?: GridPosition }
 );
 
 export const WORLD_QUESTS: readonly WorldQuest[] = [
@@ -82,10 +84,26 @@ export const WORLD_QUESTS: readonly WorldQuest[] = [
     objective: 'Schalte den aktiven Wächter in beiden Situationen mit demselben Programm aus. Entscheide innerhalb einer Schleife bei jedem Durchlauf neu: daneben angreifen, sonst näher gehen. In jeder Situation müssen beide Antworten mit passenden Aktionen in verschiedenen Durchläufen vorkommen.',
     introduces: [], allowed: ['moveRight', 'moveUp', 'moveForward', 'attack', 'enemyAdjacent', 'repeat'],
     starter: 'repeat(1, () => {\n  if (glutling.enemyAdjacent) {\n    glutling.attack();\n  }\n});',
-    reward: 'Beide Wächter sind ausgeschaltet! Die Bedingung stand im Schleifenrumpf und wurde in jedem Durchlauf neu geprüft. Zuerst führte die Antwort nein zum Nähergehen, später führte ja zum Angriff. Dein Programm hat auf die veränderte Entfernung reagiert. Im Charakterfenster findest du ein neues Beispiel zur Verbindung von Schleife und Verzweigung. Falls du Moosling noch nicht gesammelt hast, wartet es im südöstlichen Hain. Die gemeinsame Koordination mehrerer Arkana folgt später; bis dahin kannst du bekannte Quests wiederholen oder frei trainieren.',
+    reward: 'Beide Wächter sind ausgeschaltet! Die Bedingung stand im Schleifenrumpf und wurde in jedem Durchlauf neu geprüft. Zuerst führte die Antwort nein zum Nähergehen, später führte ja zum Angriff. Dein Programm hat auf die veränderte Entfernung reagiert. Im Charakterfenster findest du ein neues Beispiel zur Verbindung von Schleife und Verzweigung. Falls du Moosling noch nicht gesammelt hast, wartet es im südöstlichen Hain. Am Hain-Prüfstein lernst du als Nächstes Mooslings eigenes Programm kennen. Danach führt dich der Teamstein am Westweg zur gemeinsamen Koordination beider Arkana.',
     hints: ['Beobachte nach Glutlings Bewegung auch den Wächter: Beide können die Entfernung verändern. Ein zuvor passender Bewegungsbefehl ist später vielleicht ein Angriff.', 'Lege den falls/sonst-Block vollständig in den Wiederholungsblock. Bei ja gehört der Angriff hinein, bei nein ein Schritt zum nächsten Gegner. Außerhalb der Schleife würde die Frage nicht bei jedem Durchlauf erneut gestellt.', 'Der weiter entfernte Wächter braucht zwei Annäherungen von Glutling, danach drei erfolgreiche Angriffe. Wähle eine Wiederholungszahl, die dafür ausreicht. In der näheren Situation endet die Begegnung schon früher, sobald der Wächter ausgeschaltet ist.'] },
+  { id: 'q07-moosling', title: 'Mooslings eigener Weg', target: 'Hain-Prüfstein', x: 1260, y: 970,
+    kind: 'combat', team: ['moosling'], start: { x: 1, y: 3 }, enemy: { x: 4, y: 3 }, enemyHp: 3,
+    introduction: 'Finde Moosling im südöstlichen Hain und nimm es in deine Sammlung auf. Für diese Aufgabe wählst du Moosling allein als aktives Arkana. Die bekannten Bewegungsbefehle, Angriffe und Wiederholungen kannst du auch mit ihm verwenden.\n\nMoosling gehört zum Natur-Typ. Es hält mit 5 Lebenspunkten mehr aus als Glutling, sein Basisangriff verursacht aber nur 1 Schaden statt 2. Das sind unterschiedliche Stärken und Schwächen. Heilung und Ranken sind spätere Fähigkeiten und hier noch keine Befehle. Das Konstrukt mit 3 LP bleibt passiv.\n\nWähle Moosling im Editor. Du bearbeitest sein eigenes Programm. Im Blockmodus heißt der Befehl weiterhin „angreifen“; die ausgewählte Figur legt fest, wer ihn ausführt. Im Text lautet er moosling.attack(). Moosling ist hier das Objekt, dem du eine Anweisung gibst. Glutlings Programme bleiben gespeichert.\n\nBringe Moosling neben das Konstrukt und bestimme anhand des Schadens, wie viele Angriffe es braucht. Du kannst eine Sequenz oder bereits gelernte Schleifen benutzen.',
+    objective: 'Schalte mit Moosling allein das passive Konstrukt mit 3 LP aus. Mooslings Angriff verursacht 1 Schaden. Bearbeite dabei sein eigenes Programm.',
+    introduces: [], allowed: ['moveRight', 'moveUp', 'attack', 'repeat'], starter: 'moosling.moveRight();',
+    reward: 'Moosling hat sein eigenes Programm ausgeführt! Gleiche Befehle können verschiedenen Objekten gehören. Im Text zeigt der Name vor dem Punkt, welches Arkana handelt; im Blockmodus bestimmt das die ausgewählte Figur. Moosling brauchte wegen seines geringeren Schadens mehr Treffer. Am Teamstein am Westweg führt Eldren nun den zweiten Teamplatz und zwei getrennte Programme ein.',
+    hints: ['Prüfe die ausgewählte Figur: Hier programmierst du Moosling. Ein Angriff außerhalb der direkten Nachbarschaft trifft nicht.', 'Zwei Schritte nach rechts bringen Moosling neben das Konstrukt. Danach bleibt es stehen und kann angreifen.', 'Das Konstrukt hat 3 LP, Mooslings Angriff zieht 1 LP ab. Vergleiche die nötige Anzahl mit Glutlings Angriff und ergänze dein Programm.'] },
+  { id: 'q08-team', title: 'Zwei Programme, ein Ziel', target: 'Teamstein am Westweg', x: 610, y: 530,
+    kind: 'combat', team: ['moosling', 'glutling'], start: { x: 1, y: 3 }, companion: { x: 1, y: 2 }, enemy: { x: 4, y: 3 }, enemyHp: 6,
+    introduction: 'Jetzt arbeiten zwei deiner gesammelten Arkana zusammen. Mit dieser Einführung erhältst du einen zweiten Teamplatz. Für die Aufgabe werden Moosling zuerst und Glutling danach ins aktive Team gesetzt. Beide müssen zuvor gesammelt sein.\n\nWähle im Editor jeweils die Figur aus, deren Programm du bearbeiten möchtest. Moosling und Glutling haben getrennte Programme. Beim Ausführen handelt zuerst Moosling mit seiner nächsten Anweisung, danach Glutling mit seiner nächsten Anweisung. Diese feste Reihenfolge heißt Ausführungsreihenfolge. Ein beendetes Programm wartet, während das andere weiterläuft.\n\nBeide starten auf verschiedenen Zeilen. Das Konstrukt hat 6 LP und greift nicht zurück. Mooslings Angriff verursacht 1 Schaden, Glutlings 2. Beide Arkana müssen mindestens einmal wirksam treffen. Du planst also ihre Wege und Angriffe aufeinander abgestimmt. Das heißt Koordination. Ein Sieg mit nur einem der beiden Programme erfüllt diese Teamaufgabe noch nicht.\n\nZwei Figuren können niemals auf demselben Feld stehen. Ein besetztes Feld blockiert die Bewegung. Nutze die getrennten Wege: Moosling startet auf der Zeile des Konstrukts, Glutling eine Zeile darüber. Mit „Nächsten Schritt ausführen“ siehst du die nächste Anweisung beider Programme. „Programm ausführen“ spielt den ganzen gemeinsamen Ablauf ab. Bei Pause kannst du jede einzelne Aktion prüfen.',
+    objective: 'Besiege das passive Konstrukt mit beiden Arkana. Moosling und Glutling müssen jeweils mindestens einen Treffer verursachen. Schreibe für jedes ein eigenes Programm; Moosling handelt immer zuerst.',
+    introduces: [], allowed: ['moveRight', 'moveUp', 'attack', 'repeat'], starter: '', starters: { moosling: 'moosling.moveRight();', glutling: '' },
+    reward: 'Ihr habt das Konstrukt gemeinsam ausgeschaltet! Beide Objekte besaßen ein eigenes Programm und haben wirksam getroffen. Die Ausführungsreihenfolge blieb Moosling vor Glutling; ein fertiges Programm wartete auf das andere. Du hast ihre Bewegungen und Angriffe koordiniert. Dein zweiter Teamplatz bleibt verfügbar. Im Nachschlagebuch findest du Objekt, Ausführungsreihenfolge und Koordination mit Beispielen. Weitere Spezialfähigkeiten erhalten später eigene Einführungen; du kannst jetzt Quests wiederholen und mit deinem Team frei trainieren.',
+    hints: ['Wähle nacheinander beide Figuren im Editor und ergänze ihre eigenen Programme. Nur das gerade sichtbare Programm zu schreiben reicht für die Teamaufgabe nicht.', 'Moosling braucht zwei Schritte nach rechts bis neben das Konstrukt. Glutling startet eine Zeile darüber: Mit drei Schritten nach rechts steht es direkt oberhalb des Konstrukts. Die getrennten Zeilen vermeiden belegte Felder.', 'Zum Beispiel können zwei Treffer von Moosling insgesamt 2 LP abziehen. Zwei Treffer von Glutling ziehen zusammen weitere 4 LP ab. Achte darauf, dass jedes erst nach seinem eigenen Weg angreift.'] },
 ];
 export const getLesson = (id: LessonId): WorldQuest => WORLD_QUESTS.find((quest) => quest.id === id)!;
+export const lessonActors = (quest: WorldQuest): readonly ArkanId[] => quest.team ?? ['glutling'];
+export const lessonPrograms = (quest: WorldQuest): ProgramSources => quest.starters ? { ...quest.starters } : { [lessonActors(quest)[0]]: quest.starter };
 
 export interface EncounterPresentation { title: string; instructions: string; objective: string; hints: readonly string[]; mode: 'lesson' | 'training' }
 export interface QuestCompletion { lesson: LessonId; title: string; text: string; nextObjective: string; repeated: boolean }

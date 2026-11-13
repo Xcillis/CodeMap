@@ -1,7 +1,8 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { Campaign, normalizeCampaign } from './Campaign';
 import { ARKANA_SPECIES, instanceId } from './ArkanaCatalog';
-import { LESSON_IDS, getLesson, type LessonId } from './WorldQuests';
+import { LESSON_IDS, getLesson, lessonActors, type LessonId } from './WorldQuests';
+import type { ProgramSources } from '../combat/types';
 import { LessonSession } from '../combat/LessonSession';
 import { BattleSession, missionPrograms } from '../combat/BattleSession';
 import { Playback } from '../combat/Playback';
@@ -13,22 +14,60 @@ const solutions: Record<LessonId, string> = {
   'q04-musterpfad': 'repeat(3, () => { glutling.moveRight(); glutling.moveUp(); });',
   'q05-aufmerksam': 'if (glutling.enemyAdjacent) { glutling.attack(); } else { glutling.moveForward(); }',
   'q06-waechter': 'repeat(5, () => { if (glutling.enemyAdjacent) { glutling.attack(); } else { glutling.moveForward(); } });',
+  'q07-moosling': 'repeat(2, () => { moosling.moveRight(); }); repeat(3, () => { moosling.attack(); });',
+  'q08-team': '',
 };
+const programsFor = (id: LessonId): ProgramSources => id === 'q08-team' ? { moosling: 'repeat(2, () => { moosling.moveRight(); }); repeat(2, () => { moosling.attack(); });', glutling: 'repeat(3, () => { glutling.moveRight(); }); repeat(2, () => { glutling.attack(); });' } : { [lessonActors(getLesson(id))[0]]: solutions[id] };
 function introduced(): Campaign {
   const campaign = new Campaign(); campaign.apply('meet-eldren'); campaign.apply('recruit-glutling'); return campaign;
 }
 function begin(campaign: Campaign, id: LessonId): LessonSession {
-  campaign.interact(`lesson:${id}`); const encounter = campaign.beginMission(id);
+  campaign.interact(`lesson:${id}`); const encounter = campaign.prepareMission(id);
   if (typeof encounter === 'string') throw new Error(encounter);
-  return new LessonSession(getLesson(id), encounter.skills.glutling ?? []);
+  return new LessonSession(getLesson(id), encounter.skills);
 }
 function win(campaign: Campaign, id: LessonId): void {
-  const session = begin(campaign, id); session.execute({ glutling: solutions[id] }, true);
+  const session = begin(campaign, id); session.execute(programsFor(id), true);
   expect(session.snapshot.outcome).toBe('victory'); expect(campaign.completeMission(id)).toBeDefined(); campaign.leaveMission();
 }
 afterEach(() => vi.useRealTimers());
 
 describe('Gestufte Lernquests und freie Trainingsarena', () => {
+  it('verlangt Mooslings Aufnahme vor Q07 und öffnet den zweiten Teamplatz erst mit der Q08-Einführung', () => {
+    const campaign = introduced(); for (const id of LESSON_IDS.slice(0, 6)) win(campaign, id);
+    const owned = campaign.snapshot.owned;
+    expect(campaign.objective).toContain('Moosling');
+    const offer = campaign.interact('arkanist-eldren'); expect(offer.action).toBeUndefined(); expect(offer.actionLabel).toContain('Moosling suchen');
+    expect(campaign.prepareMission('q07-moosling')).toContain('Finde zuerst Moosling');
+    expect(campaign.snapshot.owned).toEqual(owned); expect(campaign.teamLimit).toBe(1);
+    campaign.apply('recruit-moosling'); expect(campaign.availableEncounters).toEqual([]);
+    expect(campaign.interact('arkanist-eldren').actionLabel).toBe('Moosling wählen & Quest starten');
+    const encounter = campaign.prepareMission('q07-moosling');
+    expect(encounter).toMatchObject({ kind: 'lesson', team: ['moosling'] }); expect(campaign.teamLimit).toBe(1);
+    const session = new LessonSession(getLesson('q07-moosling'), getLesson('q07-moosling').allowed);
+    session.execute(programsFor('q07-moosling'), true); expect(session.snapshot.outcome).toBe('victory');
+    campaign.finishMission('q07-moosling'); campaign.leaveMission();
+    expect(campaign.objective).toContain('Teamstein'); expect(campaign.teamLimit).toBe(1);
+    expect(campaign.interact('arkanist-eldren').actionLabel).toBe('Team wählen & Quest starten'); expect(campaign.teamLimit).toBe(1);
+    expect(campaign.snapshot.introductions).not.toContain('q08-team');
+    const team = campaign.prepareMission('q08-team'); expect(team).toMatchObject({ team: ['moosling', 'glutling'] });
+    expect(campaign.teamLimit).toBe(2); expect(campaign.activeTeam.map((item) => item.speciesId)).toEqual(['moosling', 'glutling']);
+    expect(campaign.toggleTeam(instanceId('glutling'))).toContain('während');
+    campaign.leaveMission();
+    const loaded = new Campaign(JSON.parse(JSON.stringify(campaign.snapshot)));
+    expect(loaded.teamLimit).toBe(2); expect(loaded.activeTeam.map((item) => item.speciesId)).toEqual(['moosling', 'glutling']);
+    expect(loaded.snapshot.completed).not.toContain('q08-team'); win(loaded, 'q08-team');
+    expect(loaded.snapshot.completed).toEqual([...LESSON_IDS]); expect(loaded.snapshot.owned).toHaveLength(2);
+    loaded.interact('lesson:q01-glutspur'); loaded.prepareMission('q01-glutspur'); loaded.leaveMission();
+    expect(loaded.teamLimit).toBe(2); expect(loaded.activeTeam.map((item) => item.speciesId)).toEqual(['glutling']);
+    expect(loaded.toggleTeam(instanceId('moosling'))).toContain('aktualisiert'); expect(loaded.activeTeam).toHaveLength(2);
+  });
+  it('schaltet durch vorzeitige Dialoge und beschädigte Einführungen keinen zweiten Teamplatz frei', () => {
+    const campaign = introduced(); expect(campaign.interact('lesson:q08-team').actionLabel).toBe('Zur Spielwelt'); const before = campaign.snapshot;
+    expect(campaign.prepareMission('q08-team')).toContain('vorherige'); expect(campaign.snapshot).toEqual(before); expect(campaign.teamLimit).toBe(1);
+    const loaded = new Campaign({ version: 2, introduced: true, completed: LESSON_IDS.slice(0, 6), introductions: ['q08-team'], owned: [{ speciesId: 'moosling' }, { speciesId: 'glutling' }], team: [instanceId('moosling'), instanceId('glutling')] });
+    expect(loaded.teamLimit).toBe(1); expect(loaded.activeTeam).toHaveLength(1);
+  });
   it('startet ohne Arkana, erlaubt zuerst nur Glutling und schaltet Mooslings Begegnung erst nach Q05 frei', () => {
     const campaign = new Campaign();
     expect(campaign.snapshot.owned).toEqual([]); expect(campaign.activeTeam).toEqual([]);
@@ -77,7 +116,7 @@ describe('Gestufte Lernquests und freie Trainingsarena', () => {
     const session = begin(loaded, 'q06-waechter'); session.execute({ glutling: solutions['q06-waechter'] });
     expect(session.snapshot.outcome).toBe('ongoing'); expect(loaded.snapshot.completed).not.toContain('q06-waechter');
     loaded.leaveMission(); expect(loaded.snapshot.completed).not.toContain('q06-waechter');
-    win(loaded, 'q06-waechter'); expect(loaded.snapshot.completed).toEqual([...LESSON_IDS]);
+    win(loaded, 'q06-waechter'); expect(loaded.snapshot.completed).toEqual([...LESSON_IDS.slice(0, 6)]);
     expect(loaded.teamLimit).toBe(1); expect(loaded.snapshot.owned.map((item) => item.speciesId)).toEqual(['glutling']);
     expect(loaded.availableEncounters.map((item) => item.id)).toEqual(['moosling']);
   });

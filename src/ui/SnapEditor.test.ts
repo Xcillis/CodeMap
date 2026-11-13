@@ -8,6 +8,21 @@ import { getLesson } from '../gameplay/WorldQuests';
 import { LessonSession } from '../combat/LessonSession';
 
 describe('Echte Blockly-Verbindungen', () => {
+  it('erhält getrennte Blockprogramme von Moosling und Glutling für Q08', () => {
+    const lesson = getLesson('q08-team'); const moosling = new Blockly.Workspace(); const glutling = new Blockly.Workspace();
+    try {
+      loadNodes(moosling, [{ kind: 'repeat', count: 2, body: [{ kind: 'action', action: 'MOVE_RIGHT' }] }, { kind: 'repeat', count: 2, body: [{ kind: 'action', action: 'ATTACK' }] }], 'moosling');
+      loadNodes(glutling, [{ kind: 'repeat', count: 3, body: [{ kind: 'action', action: 'MOVE_RIGHT' }] }, { kind: 'repeat', count: 2, body: [{ kind: 'action', action: 'ATTACK' }] }], 'glutling');
+      const programs = { moosling: nodesToSource(workspaceNodes(moosling), 'moosling'), glutling: nodesToSource(workspaceNodes(glutling), 'glutling') };
+      const session = new LessonSession(lesson, { moosling: lesson.allowed, glutling: lesson.allowed });
+      session.execute(programs, true); expect(session.snapshot.outcome).toBe('victory');
+      expect(programs.moosling).not.toContain('glutling'); expect(programs.glutling).not.toContain('moosling');
+      for (const actor of ['moosling', 'glutling'] as const) {
+        const toolbox = JSON.stringify(snapToolbox(actor, 0, lesson.allowed));
+        expect(toolbox).toContain('cm_repeat'); expect(toolbox).toContain('cm_attack'); expect(toolbox).not.toContain('cm_if');
+      }
+    } finally { moosling.dispose(); glutling.dispose(); }
+  });
   it('löst Q06 mit einer Verzweigung im Schleifenrumpf und erhält Anschlüsse beim Textwechsel', () => {
     const lesson = getLesson('q06-waechter'); const workspace = new Blockly.Workspace();
     try {

@@ -82,7 +82,7 @@ export class WorldUi {
     const character = isCharacterTab(this.tab);
     this.el('world-panel-title').textContent = character ? 'Charakter' : this.tab === 'journal' ? 'Questjournal' : 'Freie Trainingsarena';
     const intro = this.tab === 'collection' ? `${state.owned.length} von ${Object.keys(ARKANA_SPECIES).length} Arkana-Arten gesammelt. Hier findest du ihre Eigenschaften und gelernten Fähigkeiten.`
-      : this.tab === 'team' ? `${team.length} von ${this.campaign.teamLimit} Teamplätzen belegt. Die ersten Lernquests werden mit Glutling allein gelöst. Im freien Training sind bereits Solo und Duo möglich.`
+      : this.tab === 'team' ? `${team.length} von ${this.campaign.teamLimit} Teamplätzen belegt. Die Einführung jeder Lernquest nennt das benötigte Team. Im freien Training sind bereits Solo und Duo möglich.`
       : this.tab === 'glossary' ? `${learnedTerms(state.completed).length} Fachbegriffe gelernt. Lies Erklärungen und probiere die Beispiele mit den bereits gelernten Befehlen aus.`
       : this.tab === 'journal' ? this.campaign.objective : 'Alle implementierten Befehle sind hier verfügbar. Das Training verändert weder Lernfreigaben noch Questabschlüsse. Alte Arena-Entwürfe bleiben in den entsprechenden Trainingsaufgaben erhalten.';
     setLearningText(this.el('world-panel-intro'), intro);
@@ -115,7 +115,7 @@ export class WorldUi {
       if (discovered && (index === 0 || state.completed.includes(WORLD_QUESTS[index - 1].id))) card.append(this.paragraph(quest.introduction));
       if (error) card.append(this.paragraph(error));
       const button = document.createElement('button'); button.type = 'button'; button.id = `journal-quest-${quest.id}`;
-      button.textContent = offer.action?.startsWith('prepare-lesson:') ? 'Glutling wählen & starten' : completed ? 'Erneut spielen' : 'Quest starten'; button.disabled = !offer.action;
+      button.textContent = offer.action?.startsWith('prepare-lesson:') ? offer.actionLabel?.replace('Quest starten', 'starten') ?? 'Team wählen & starten' : completed ? 'Erneut spielen' : 'Quest starten'; button.disabled = !offer.action;
       button.addEventListener('click', () => { if (offer.action) { this.close(); gameEvents.emit('campaign-action', offer.action); } });
       card.append(button); content.append(card);
     }

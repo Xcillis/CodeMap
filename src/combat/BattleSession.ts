@@ -1,11 +1,12 @@
 import { BattleEngine } from './BattleEngine';
 import { nodesToSource, programCost, compileActionPlan, CONDITION_PROGRAM, DEFAULT_PROGRAM, FORMATION_PROGRAM } from './DecisionProgram';
-import type { ActionFrame, ArkanId, ProgramSources, ProgramStep } from './types';
+import type { ActionFrame, ArkanId, GridPosition, ProgramSources, ProgramStep } from './types';
 import { nodesCapabilityError } from './CommandCatalog';
 import { ProgramRunner } from './ProgramRunner';
 import type { SkillId } from '../gameplay/ArkanaCatalog';
 
 export type MissionId = 1 | 2 | 3;
+export interface BattleConfiguration { spawns?: Partial<Record<ArkanId | 'konstrukt', GridPosition>>; enemyHp?: number; enemyActive?: boolean }
 
 export function missionPrograms(mission: MissionId, team?: readonly ArkanId[]): ProgramSources {
   if (team) {
@@ -19,7 +20,7 @@ export function missionPrograms(mission: MissionId, team?: readonly ArkanId[]): 
 
 /** Owns execution independently of Phaser and editor selection. */
 export class BattleSession {
-  private readonly engine = new BattleEngine();
+  private readonly engine: BattleEngine;
   private plans: Partial<Record<ArkanId, ProgramRunner>> = {};
   private signature = '';
   private cursor = 0;
@@ -28,13 +29,15 @@ export class BattleSession {
   get frames(): readonly ActionFrame[] { return this.actionFrames; }
   get done(): boolean { return this.snapshot.outcome !== 'ongoing' || this.length === 0 || this.actors.every((actor) => this.plans[actor]?.done); }
 
-  constructor(readonly mission: MissionId, private readonly team?: readonly ArkanId[], private readonly skills?: Partial<Record<ArkanId, readonly SkillId[]>>) { this.reset(); }
+  constructor(readonly mission: MissionId, private readonly team?: readonly ArkanId[], private readonly skills?: Partial<Record<ArkanId, readonly SkillId[]>>, private readonly configuration?: BattleConfiguration) {
+    this.engine = new BattleEngine(configuration?.spawns); this.reset();
+  }
 
   get snapshot() { return this.engine.snapshot; }
   get actors(): ArkanId[] { return this.team ? [...this.team] : this.mission === 3 ? ['moosling', 'glutling'] : ['moosling']; }
 
   reset(): void {
-    this.engine.reset(this.mission === 3, this.mission === 3 ? 5 : 3, this.team);
+    this.engine.reset(this.mission === 3, this.configuration?.enemyHp ?? (this.mission === 3 ? 5 : 3), this.team);
     this.cursor = 0;
     this.signature = '';
     this.actionFrames = [];
@@ -68,7 +71,7 @@ export class BattleSession {
     do {
       const steps: Partial<Record<ArkanId, (adjacent: boolean) => ProgramStep | undefined>> = {};
       for (const actor of this.actors) steps[actor] = (adjacent) => this.plans[actor]?.next(adjacent);
-      this.engine.runTick(steps, this.mission === 2, (frame) => {
+      this.engine.runTick(steps, this.configuration?.enemyActive ?? (this.mission === 2), (frame) => {
         const trace = frame.actor !== 'konstrukt' ? this.plans[frame.actor]?.lastTrace : undefined;
         this.actionFrames.push({ ...frame, trace: trace ? structuredClone({ ...trace, line: lines[frame.actor as ArkanId]?.[trace.path] }) : undefined });
       });

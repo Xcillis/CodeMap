@@ -31,6 +31,26 @@ beforeEach(() => {
 afterEach(() => { for (const [name, callback] of domListeners) document.removeEventListener(name, callback); vi.restoreAllMocks(); });
 
 describe('Sammlung und Questjournal', () => {
+  it('führt vom Moosling-Fund über den Solo-Start zur bestätigten Team-Einführung', () => {
+    campaign = new Campaign({ version: 2, introduced: true, completed: LESSON_IDS.slice(0, 6), owned: [{ speciesId: 'glutling' }], team: [instanceId('glutling')] });
+    campaign.interact('arkanist-eldren'); gameEvents.emit('campaign-updated', campaign.snapshot); click('open-journal');
+    expect((el('journal-quest-q07-moosling') as HTMLButtonElement).disabled).toBe(true);
+    expect(el('world-panel-content').textContent).toContain('Finde zuerst Moosling');
+    campaign.apply('recruit-moosling'); gameEvents.emit('campaign-updated', campaign.snapshot);
+    expect(el('journal-quest-q07-moosling').textContent).toBe('Moosling wählen & starten');
+    let action = ''; gameEvents.on('campaign-action', (value: string) => { action = value; });
+    click('journal-quest-q07-moosling'); expect(action).toBe('prepare-lesson:q07-moosling');
+    campaign.prepareMission('q07-moosling'); campaign.finishMission('q07-moosling'); campaign.leaveMission();
+    campaign.interact('arkanist-eldren'); gameEvents.emit('campaign-updated', campaign.snapshot); click('open-journal');
+    expect(el('journal-quest-q08-team').textContent).toBe('Team wählen & starten'); expect(campaign.teamLimit).toBe(1);
+    click('world-panel-close'); click('open-collection'); click('character-tab-team'); expect(el('world-panel-intro').textContent).toContain('1 Teamplätzen');
+    click('world-panel-close'); campaign.prepareMission('q08-team'); gameEvents.emit('campaign-updated', campaign.snapshot); click('open-collection'); click('character-tab-team');
+    expect(el('team-active-members').textContent).toContain('Platz 1: Moosling'); expect(el('team-active-members').textContent).toContain('Platz 2: Glutling');
+    click('character-tab-glossary'); expect(document.querySelector('.glossary-card[data-term="object"]')).not.toBeNull();
+    expect(document.querySelector('.glossary-card[data-term="coordination"]')).toBeNull();
+    campaign.finishMission('q08-team'); gameEvents.emit('campaign-updated', campaign.snapshot);
+    expect(document.querySelector('.glossary-card[data-term="coordination"] pre')?.textContent).toContain('moosling');
+  });
   it('bietet Q06 nach Q05 an und zeigt das kombinierte Beispiel erst nach dessen Abschluss', () => {
     campaign = new Campaign({ version: 2, introduced: true, completed: LESSON_IDS.slice(0, 5), owned: [{ speciesId: 'glutling' }], team: [instanceId('glutling')] });
     campaign.interact('arkanist-eldren'); gameEvents.emit('campaign-updated', campaign.snapshot); click('open-journal');

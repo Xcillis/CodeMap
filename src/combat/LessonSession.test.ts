@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { getLesson, LESSON_IDS } from '../gameplay/WorldQuests';
+import { getLesson, lessonActors, LESSON_IDS } from '../gameplay/WorldQuests';
+import type { ProgramSources } from './types';
 import { ARKANA_SPECIES } from '../gameplay/ArkanaCatalog';
 import { LessonSession } from './LessonSession';
 import { PuzzleEngine } from './PuzzleEngine';
@@ -12,13 +13,16 @@ const solutions = [
   'repeat(3, () => { glutling.moveRight(); glutling.moveUp(); });',
   'if (glutling.enemyAdjacent) { glutling.attack(); } else { glutling.moveForward(); }',
   'repeat(5, () => { if (glutling.enemyAdjacent) { glutling.attack(); } else { glutling.moveForward(); } });',
+  'repeat(2, () => { moosling.moveRight(); }); repeat(3, () => { moosling.attack(); });',
+  '',
 ];
 describe('Lernaufgaben mit eigenen Freigaben und Zielen', () => {
   for (const [index, id] of LESSON_IDS.entries()) it(`${id}: liefert schrittweise und vollständig dieselben Zustände und Traces`, () => {
     const lesson = getLesson(id); const full = new LessonSession(lesson, lesson.allowed); const steps = new LessonSession(lesson, lesson.allowed);
-    full.execute({ glutling: solutions[index] }, true);
+    const programs: ProgramSources = id === 'q08-team' ? { moosling: 'repeat(2, () => { moosling.moveRight(); }); repeat(2, () => { moosling.attack(); });', glutling: 'repeat(3, () => { glutling.moveRight(); }); repeat(2, () => { glutling.attack(); });' } : { [lessonActors(lesson)[0]]: solutions[index] };
+    full.execute(programs, true);
     const frames = [];
-    for (let count = 0; count < 12 && steps.snapshot.outcome === 'ongoing'; count++) { steps.execute({ glutling: solutions[index] }); frames.push(...steps.frames); }
+    for (let count = 0; count < 12 && steps.snapshot.outcome === 'ongoing'; count++) { steps.execute(programs); frames.push(...steps.frames); }
     expect(steps.snapshot).toEqual(full.snapshot); expect(frames).toEqual(full.frames); expect(full.snapshot.outcome).toBe('victory');
     expect(Boolean(full.snapshot.enemy)).toBe(lesson.kind === 'combat');
     full.reset(); expect(full.snapshot.tick).toBe(0);

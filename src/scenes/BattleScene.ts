@@ -5,7 +5,7 @@ import type { ActionFrame, EncounterState, Combatant, ProgramSources } from '../
 import { Playback } from '../combat/Playback';
 import { gameEvents } from '../game/events';
 import type { WorldEncounter } from '../gameplay/Campaign';
-import { getLesson, type EncounterPresentation } from '../gameplay/WorldQuests';
+import { getLesson, lessonPrograms, type EncounterPresentation } from '../gameplay/WorldQuests';
 import { ARKANA_SPECIES } from '../gameplay/ArkanaCatalog';
 import { ACTIONS } from '../combat/ActionCatalog';
 
@@ -76,10 +76,10 @@ export class BattleScene extends Phaser.Scene {
     let presentation: EncounterPresentation;
     if (encounter.kind === 'lesson') {
       const lesson = getLesson(encounter.lesson);
-      this.session = new LessonSession(lesson, encounter.skills.glutling ?? []);
-      programs = { glutling: lesson.starter }; key = lesson.id;
+      this.session = new LessonSession(lesson, encounter.skills);
+      programs = lessonPrograms(lesson); key = lesson.id;
       presentation = { title: lesson.title, instructions: lesson.introduction, objective: lesson.objective, hints: lesson.hints, mode: 'lesson' };
-      this.subtitle.setText(lesson.kind === 'puzzle' ? 'Goldene Rune: Ziel · Graue Steine: Hindernisse' : lesson.adaptiveTrials ? 'Aktiver Wächter: handelt nach jeder Aktion von Glutling.' : 'Das Konstrukt bleibt passiv. Plane Bewegung und Angriff.');
+      this.subtitle.setText(encounter.team.length === 2 ? 'Reihenfolge: Moosling → Glutling · Beide Programme tragen bei.' : lesson.kind === 'puzzle' ? 'Goldene Rune: Ziel · Graue Steine: Hindernisse' : lesson.adaptiveTrials ? 'Aktiver Wächter: handelt nach jeder Aktion von Glutling.' : 'Das Konstrukt bleibt passiv. Plane Bewegung und Angriff.');
     } else {
       this.session = new BattleSession(encounter.mission, encounter.team, encounter.skills);
       programs = missionPrograms(encounter.mission, encounter.team); key = encounter.mission;

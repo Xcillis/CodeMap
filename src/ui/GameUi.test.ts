@@ -1,12 +1,12 @@
 // @vitest-environment jsdom
 import { readFileSync } from 'node:fs';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { nodesToSource } from '../combat/DecisionProgram';
+import { compileActionPlan, nodesToSource } from '../combat/DecisionProgram';
 import type { ArkanId, ProgramNode } from '../combat/types';
 import { GameUi } from './GameUi';
 import { gameEvents } from '../game/events';
 import { BattleSession, missionPrograms } from '../combat/BattleSession';
-import { getLesson, LESSON_IDS, WORLD_QUESTS } from '../gameplay/WorldQuests';
+import { getLesson, lessonActors, lessonPrograms, LESSON_IDS, WORLD_QUESTS } from '../gameplay/WorldQuests';
 import { LessonSession } from '../combat/LessonSession';
 import { Campaign } from '../gameplay/Campaign';
 import { instanceId } from '../gameplay/ArkanaCatalog';
@@ -54,7 +54,7 @@ describe('Platz für das Programm bei allen Aufgaben', () => {
   const details = (id: string) => document.getElementById(id) as HTMLDetailsElement;
   const openLesson = (index: number) => {
     const lesson = WORLD_QUESTS[index];
-    gameEvents.emit('battle-opened', { glutling: lesson.starter }, lesson.id, { glutling: lesson.allowed }, {
+    gameEvents.emit('battle-opened', lessonPrograms(lesson), lesson.id, Object.fromEntries(lessonActors(lesson).map((actor) => [actor, lesson.allowed])), {
       title: lesson.title, mode: 'lesson', instructions: lesson.introduction, objective: lesson.objective, hints: lesson.hints,
     });
     return lesson;
@@ -128,6 +128,31 @@ describe('Platz für das Programm bei allen Aufgaben', () => {
 });
 
 describe('Editorzustand und Arkan-Zuordnung', () => {
+  it('führt Q07 mit Moosling allein und Q08 mit zwei getrennten Entwürfen und sichtbarem Abschluss aus', () => {
+    vi.useFakeTimers(); const solo = getLesson('q07-moosling'); const duo = getLesson('q08-team');
+    gameEvents.emit('battle-opened', lessonPrograms(solo), solo.id, { moosling: solo.allowed }, { title: solo.title, mode: 'lesson', instructions: solo.introduction, objective: solo.objective, hints: solo.hints });
+    expect(button('select-glutling').hidden).toBe(true); expect(button('select-moosling').hidden).toBe(false);
+    expect(document.getElementById('program-owner')!.textContent).toContain('Moosling');
+    click('text-mode'); type('moosling.'); gameEvents.emit('battle-closed');
+    const campaign = new Campaign({ version: 2, introduced: true, completed: LESSON_IDS.slice(0, 7), owned: [{ speciesId: 'moosling' }, { speciesId: 'glutling' }], team: [instanceId('moosling')] });
+    campaign.interact('arkanist-eldren'); const encounter = campaign.prepareMission(duo.id);
+    if (typeof encounter === 'string') throw new Error(encounter);
+    const programs = { moosling: 'repeat(2, () => { moosling.moveRight(); }); repeat(2, () => { moosling.attack(); });', glutling: 'repeat(3, () => { glutling.moveRight(); }); repeat(2, () => { glutling.attack(); });' };
+    gameEvents.emit('battle-opened', lessonPrograms(duo), duo.id, encounter.skills, { title: duo.title, mode: 'lesson', instructions: duo.introduction, objective: duo.objective, hints: duo.hints });
+    click('text-mode'); type(programs.moosling); click('select-glutling'); type(programs.glutling); click('blocks-mode'); click('select-moosling'); click('text-mode');
+    expect(compileActionPlan(text().value, 'moosling').nodes).toEqual(compileActionPlan(programs.moosling, 'moosling').nodes); expect(button('select-glutling').hidden).toBe(false);
+    const session = new LessonSession(duo, encounter.skills); session.execute(programs, true);
+    const playback = new Playback<typeof session.frames[number]>((frame) => { gameEvents.emit('battle-frame', frame); gameEvents.emit('battle-updated', frame.after, 'Teamaktion'); }, (state) => gameEvents.emit('battle-playback', state));
+    playback.play(session.frames, () => gameEvents.emit('quest-completed', campaign.finishMission(duo.id)));
+    expect(document.getElementById('program-owner')!.textContent).toContain('Moosling'); vi.advanceTimersByTime(850);
+    expect(document.getElementById('program-owner')!.textContent).toContain('Glutling');
+    vi.advanceTimersByTime((session.frames.length - 2) * 850);
+    expect(document.getElementById('quest-completion')!.hidden).toBe(true);
+    vi.advanceTimersByTime(850); expect(document.getElementById('quest-completion')!.hidden).toBe(false);
+    expect(document.getElementById('quest-completion-text')!.textContent).toBe(duo.reward);
+    gameEvents.emit('battle-closed'); gameEvents.emit('battle-opened', lessonPrograms(solo), solo.id, { moosling: solo.allowed });
+    expect(text().value).toBe('moosling.'); expect(button('select-glutling').hidden).toBe(true);
+  });
   it('spielt Q06 mit getrennten Wächteraktionen ab und bestätigt erst den sichtbaren zweiten Sieg', () => {
     vi.useFakeTimers(); const lesson = getLesson('q06-waechter');
     const campaign = new Campaign({ version: 2, introduced: true, completed: LESSON_IDS.slice(0, 5), owned: [{ speciesId: 'glutling' }], team: [instanceId('glutling')] });
@@ -180,10 +205,10 @@ describe('Editorzustand und Arkan-Zuordnung', () => {
     expect(document.getElementById('lesson-trial')!.hidden).toBe(true);
   });
   for (const [index, lesson] of WORLD_QUESTS.entries()) it(`${lesson.id}: zeigt den bestätigten Abschluss in der Arena und kehrt ohne Welt-Abschlussdialog zurück`, () => {
-    const campaign = new Campaign({ version: 2, introduced: true, completed: LESSON_IDS.slice(0, index), owned: [{ speciesId: 'glutling' }], team: [instanceId('glutling')] });
-    campaign.interact(`lesson:${lesson.id}`); campaign.beginMission(lesson.id);
+    const campaign = new Campaign({ version: 2, introduced: true, completed: LESSON_IDS.slice(0, index), owned: [{ speciesId: 'glutling' }, { speciesId: 'moosling' }], team: [] });
+    campaign.interact(`lesson:${lesson.id}`); campaign.prepareMission(lesson.id);
     const presentation = { title: lesson.title, mode: 'lesson', instructions: lesson.introduction, objective: lesson.objective, hints: lesson.hints };
-    gameEvents.emit('battle-opened', { glutling: lesson.starter }, lesson.id, { glutling: lesson.allowed }, presentation);
+    gameEvents.emit('battle-opened', lessonPrograms(lesson), lesson.id, Object.fromEntries(lessonActors(lesson).map((actor) => [actor, lesson.allowed])), presentation);
     gameEvents.emit('quest-completed', campaign.finishMission(lesson.id));
     const dialog = document.getElementById('quest-completion')!;
     expect(dialog.hidden).toBe(false); expect(dialog.closest('#battle-panel')).not.toBeNull();

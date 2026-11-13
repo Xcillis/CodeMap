@@ -6,13 +6,13 @@ Dieser Plan ordnet die Programmiergrundlagen in eine verständliche Lernfolge in
 
 **Festgelegt durch die Nutzerkorrektur:** Anweisungen und Sequenzen kommen zuerst, der Basisangriff folgt in einer eigenen Quest, Schleifen werden anschließend gelernt. Arkana werden weiterhin in der Welt gefunden und in Sammlung und Team verwaltet. Programmierkonzepte sind typübergreifend lernbar.
 
-**Umsetzungsstand:** Q01 bis Q06 sind mit Glutlings garantierter Fundbegegnung, gerichteter Bewegung, Rätselzielen, Angriffsaufgabe, Schleifen- und Musterkriterium, zwei geprüften Entscheidungssituationen sowie der Verbindung von Schleife und Bedingung gegen einen aktiven Wächter implementiert. Spätere Kapitel bleiben Ausbauplanung. Die bisherigen drei Arena-Aufgaben sind als freie Trainingsaufgaben verfügbar.
+**Umsetzungsstand:** Q01 bis Q08 sind spielbar. Nach den sechs Grundlagenquests mit Glutling folgen Mooslings eigenes Programm und zwei koordinierte Programme mit dem zweiten Teamplatz. Spezielle Natur- und Feuerfähigkeiten sowie spätere Sprachkonzepte bleiben Ausbauplanung. Die bisherigen drei Arena-Aufgaben sind als freie Trainingsaufgaben verfügbar.
 
 ## Regeln für jede Lernquest
 
 - Eine Einführungsquest konzentriert sich auf ein neues Konzept. Vorwissen wird angewendet, spätere Konzepte bleiben ausgeblendet.
 - Lerntexte setzen kein Programmierwissen voraus. Sie beschreiben zuerst eine konkrete Handlung und nennen danach den Fachbegriff: Glutling führt Befehle von oben nach unten nacheinander aus; eine solche geordnete Befehlsfolge heißt Sequenz. Ziele und Hilfen verwenden verständliche Handlungsbeschreibungen. Das gilt ebenso für Lebenspunkte, Angriffsreichweite und Schleifen; ein neuer Begriff wird nicht durch weitere unerklärte Begriffe erläutert.
-- Der Held bewegt sich in der offenen Welt direkt. Innerhalb der Aufgabe wird Glutling ausschließlich durch sein Programm bewegt.
+- Der Held bewegt sich in der offenen Welt direkt. Innerhalb der Aufgabe werden die aktiven Arkana ausschließlich durch ihre eigenen Programme bewegt.
 - Ein Weltort oder NPC führt die Aufgabe ein. Der Dialog erklärt Ziel, neue Befehle und deren Wirkung. Danach folgt ein kleiner, übersichtlicher Aufgabenraum.
 - Neue Befehle werden nach Annahme der zugehörigen Einführung für die Aufgabe freigeschaltet. Ein Sieg bestätigt den Abschluss und öffnet die nächste Einführung. Ein Fehlversuch entzieht bereits gelernte Befehle nicht.
 - Eine kurze Demonstration oder eine erste Anweisung darf vorgegeben sein. Das Startprogramm enthält nicht die vollständige Lösung.
@@ -23,7 +23,7 @@ Dieser Plan ordnet die Programmiergrundlagen in eine verständliche Lernfolge in
 
 ## Erstes Kapitel
 
-Die folgende Folge ist der grundlegende Ausbauplan. Q01 bis Q06 sind spielbar.
+Die folgende Folge ist der grundlegende Ausbauplan. Q01 bis Q08 sind spielbar.
 
 | Quest | Aufgabe in der Welt | Neues Lernziel | Verfügbare Befehle und Strukturen | Erfolg |
 | --- | --- | --- | --- | --- |
@@ -33,6 +33,8 @@ Die folgende Folge ist der grundlegende Ausbauplan. Q01 bis Q06 sind spielbar.
 | Q04 Der Musterpfad | Glutling folgt einem wiederkehrenden Treppenmuster. | Einen Rumpf aus mehreren Anweisungen wiederholen | Bereits gelernte Befehle und feste Wiederholung | Das Ziel wird mit der wiederholten Bewegungssequenz erreicht. |
 | Q05 Der aufmerksame Begleiter | Ein Konstrukt steht in zwei Startsituationen unterschiedlich weit weg. | Zustand abfragen und mit `if/else` zwischen zwei Aktionen wählen | Neu Gegnernähe, Bedingung und ein Schritt zum Gegner; bekannter Angriff und gerichtete Bewegung. Schleifen bleiben in dieser Einführung ausgeblendet. | Die erste Aktion wird in beiden Situationen von derselben Verzweigung passend gewählt. |
 | Q06 Der bewegliche Wächter | Ein aktives Konstrukt verändert die Entfernung während der Ausführung. | Schleife und Bedingung verbinden; Zustandsänderungen beobachten | Bisher gelernte Strukturen | Das Programm löst die Begegnung für die vorgesehenen Startzustände. |
+| Q07 Mooslings eigener Weg | Moosling im Hain finden, aufnehmen und allein gegen ein passives Konstrukt einsetzen. | Objektwahl und eigene Programme; unterschiedliche Basiswerte vergleichen | Bekannte Bewegung, Angriff und feste Wiederholung | Moosling schaltet das Konstrukt mit seinem eigenen Programm aus. |
+| Q08 Zwei Programme, ein Ziel | Zwei gesammelte Arkana arbeiten am Teamstein zusammen. | Eigene Programme koordinieren, feste Ausführungsreihenfolge und Feldbelegung beobachten | Bekannte Bewegung, Angriff und feste Wiederholung | Das Konstrukt ist ausgeschaltet; beide Arkana haben mindestens einmal wirksam getroffen. |
 
 ### Q01 Glutlings erste Schritte
 
@@ -97,7 +99,21 @@ Das transparente Lernkriterium verlangt in **jeder** Begegnung eine Bedingung in
 
 Der Einzelschritt führt Glutlings nächste Aktion und die zugehörige Wächterantwort aus; die sichtbare Wiedergabe zeigt beide getrennt. Bei pausierter Gesamtausführung lässt sich jede einzelne Aktion prüfen. Ein nächster Aufruf nach dem ersten Sieg beginnt die zweite Situation mit demselben Programm. Format- und Darstellungswechsel erhalten den Fortschritt; eine semantische Änderung und ein Neustart löschen beide Fallnachweise. Der bestätigte Questabschluss erscheint erst nach der letzten Animation des zweiten Erfolgs in der Arena. Das Nachschlagebuch erweitert danach Schleife und Verzweigung um ein Beispiel mit erneuter Prüfung im Schleifenrumpf.
 
-Bestehende Q05-Spielstände öffnen Q06 ohne Reset. Moosling bleibt wie bisher nach Q05 auffindbar, wird nicht automatisch aufgenommen und ist für Q06 nicht nötig. Alle sechs Grundlagenquests verwenden Glutling allein. Teamkoordination und ein zweiter regulärer Teamplatz erhalten später eine eigene Einführung.
+Bestehende Q05-Spielstände öffnen Q06 ohne Reset. Moosling bleibt wie bisher nach Q05 auffindbar, wird nicht automatisch aufgenommen und ist für Q06 nicht nötig. Die ersten sechs Grundlagenquests verwenden Glutling allein. Q07 führt Mooslings eigenes Programm ein, Q08 die Teamkoordination und den zweiten regulären Teamplatz.
+
+### Q07 Mooslings eigener Weg
+
+Nach Q06 ist zunächst Moosling im südöstlichen Hain zu finden und ausdrücklich aufzunehmen, falls es noch fehlt. Ohne Besitz öffnet sich kein Programmierraum; Dialog und Weltziel nennen den Fundort. Am Hain-Prüfstein oder bei Eldren kann anschließend Moosling als einziges aktives Arkana gewählt und die Quest gestartet werden. Glutling bleibt in der Sammlung. Der reguläre Teamumfang bleibt ein Platz.
+
+Moosling startet bei `(1, 3)`, das passive Konstrukt mit 3 LP bei `(4, 3)`. Die Einführung vergleicht zuerst konkrete Werte: Moosling hat 5 LP und verursacht 1 Schaden, Glutling 4 LP und 2 Schaden. Die bereits gelernten Befehle werden mit der neuen Figur verwendet. Erst nach der Objektwahl und einem Beispiel wird Moosling als **Objekt** benannt. Im Blockmodus bleiben die Beschriftungen kurz; im Text müssen `moosling.moveRight()` beziehungsweise `moosling.attack()` stehen. Eine erste Bewegung ist vorbereitet. Eine Sequenz und eine Lösung mit bekannten Schleifen sind beide gültig. Heilung und Ranken werden hier ausdrücklich noch nicht als ausführbare Fähigkeiten eingeführt.
+
+### Q08 Zwei Programme, ein Ziel
+
+Nach Q07 bietet der Teamstein am Westweg oder Eldren die eigene Einführung zum zweiten Teamplatz an. Ein Dialogbesuch schaltet nichts frei. Erst „Team wählen & Quest starten“ nimmt die Einführung an und setzt die bereits gesammelten Arkana in der Reihenfolge Moosling, Glutling aktiv. Der zweite Platz bleibt danach bei Fehlversuchen und beim Laden erhalten. Frühe oder beschädigte Einführungsdaten ohne den vorausgehenden Q07-Abschluss öffnen ihn nicht; bereits aus alten Testständen freigeschaltete Zweierteams bleiben erhalten.
+
+Moosling startet bei `(1, 3)`, Glutling bei `(1, 2)`, das passive Konstrukt mit 6 LP bei `(4, 3)`. Es werden zwei eigene Programme bearbeitet und gespeichert. In jedem gemeinsamen Schritt handelt zuerst Moosling und danach Glutling mit jeweils der nächsten Anweisung. Ein beendetes Programm wartet. Erst nach dieser konkreten Beschreibung werden **Ausführungsreihenfolge** und **Koordination** benannt. Getrennte Wege führen neben beziehungsweise über das Konstrukt. Ein besetztes Feld bleibt blockiert; es gibt keine automatische Umgehung.
+
+Erfolg erfordert ein ausgeschaltetes Konstrukt und mindestens einen wirksamen Treffer aus jedem Objektprogramm. Ein Sieg durch ein einzelnes Arkana bleibt eine offene Teamübung; bloße Programmtexte oder erfolglose Angriffe zählen nicht. Leerentwürfe bleiben erlaubt. Varianten mit Einzelbefehlen oder Schleifen sind gültig. Die Einzelschritt- und Gesamtausführung verwenden dieselbe feste Reihenfolge, Traces und Trefferwerte. Wie bei allen Quests erscheint der Abschluss nach der letzten Animation im Arenafenster. Objekt, Ausführungsreihenfolge und Koordination erhalten passende Beispiele im Nachschlagebuch, mit ausdrücklich getrennten Programmen.
 
 ## Sammlung und spätere Teamaufgaben
 
@@ -105,12 +121,13 @@ Die Sammlung ist nach Glutlings Fund zugänglich. Sie trennt Artenprofil, gesamm
 
 Ein neuer Spielstand beginnt ohne Arkana. Nach Eldrens Einführung wird zuerst Glutling gefunden und ausdrücklich aufgenommen. Die sechs spielbaren Grundlagenquests verwenden diesen einen Begleiter. Bereits nach Q05 erscheint Moosling im südöstlichen Hain und kann dort durch eine eigene Begegnung gesammelt werden; Q06 verlangt weiterhin Glutling allein. Ein Questabschluss gewährt keinen automatischen Besitz. Vor der Fundfreigabe gibt es weder die Weltfigur noch eine unsichtbare Interaktion an ihrem Fundort. Gesammelte Arkana verschwinden dauerhaft aus der Welt, auch wenn sie aus dem Team genommen werden.
 
-Weitere Arkana können beim Erkunden entdeckt werden. Ein für eine Pflichtaufgabe benötigtes Arkana wird garantiert rechtzeitig verfügbar. Ein zweiter Teamplatz folgt nach den Grundlagen von Q01 bis Q06 und einer eigenen Einführung in die Koordination. Bestehende Sammlungen aus Testständen bleiben erhalten; für den neuen Einstieg gibt es einen ausdrücklich bestätigten Neustart mit wiederherstellbarer Sicherung.
+Weitere Arkana können beim Erkunden entdeckt werden. Ein für eine Pflichtaufgabe benötigtes Arkana wird garantiert rechtzeitig verfügbar. Nach Q01 bis Q06 und Mooslings Soloquest Q07 öffnet die eigene Koordinationseinführung Q08 den zweiten Teamplatz. Bestehende Sammlungen aus Testständen bleiben erhalten; für den neuen Einstieg gibt es einen ausdrücklich bestätigten Neustart mit wiederherstellbarer Sicherung.
 
 | Ausbauabschnitt | Aufgabe und Zweck |
 | --- | --- |
-| Zweite Art kennenlernen | Moosling entdecken, Stärken und Schwächen vergleichen und bekannte Sequenzen mit einem anderen Arkana anwenden. Eine erste Spezialfähigkeit erhält ihre eigene Einführung. |
-| Zwei Programme koordinieren | Zwei aktive Arkana lösen eine übersichtliche Aufgabe. Jedes besitzt sein eigenes Programm; Feldbelegung und die feste Ausführungsreihenfolge sind sichtbar. |
+| Zweite Art kennenlernen – Q07 umgesetzt | Moosling entdecken, Stärken und Schwächen vergleichen und bekannte Sequenzen mit einem anderen Arkana anwenden. |
+| Zwei Programme koordinieren – Q08 umgesetzt | Zwei aktive Arkana lösen eine übersichtliche Aufgabe. Jedes besitzt sein eigenes Programm; Feldbelegung und die feste Ausführungsreihenfolge sind sichtbar. |
+| Erste Spezialfähigkeit – geplant | Eine artspezifische Rätselaktion aus der Arkana-Übersicht erhält eine eigene Handlungseinführung, bevor sie in Bibliothek und Programm verfügbar wird. |
 | Zustandswerte und Variablen | Werte lesen, speichern und verändern, etwa für Zähler oder wiederkehrende Entscheidungen. |
 | Funktionen | Bekannte Sequenzen als benannte Teilprogramme zusammenfassen und mehrfach verwenden. |
 | Ereignisse und Signale | Zwei Arkana stimmen ihre Programme für Schalter- oder Druckplattenrätsel ab, wie in der Arkana-Übersicht beschrieben. |
@@ -144,7 +161,7 @@ Ein älterer Spielstand mit Moosling erhält einen nachvollziehbaren Einstieg zu
 
 ## Abnahme des ersten Umsetzungsschritts
 
-Der erste Spielumbau umfasst Q01 bis Q03 mit Glutlings Fund, Bewegungsrätsel, Angriffsaufgabe und anschließender Schleifeneinführung. Q04 ergänzt das Wiederholen einer ganzen Bewegungssequenz, Q05 eine einzelne geprüfte Entscheidung in zwei Startsituationen. Q06 verbindet die Entscheidung mit einer Schleife in zwei vollständigen aktiven Begegnungen. Spätere Inhalte folgen darauf. Die freie Trainingsarena verwendet sämtliche implementierten Befehle unabhängig vom Lernfortschritt und erzeugt keine Questbelohnungen.
+Der erste Spielumbau umfasst Q01 bis Q03 mit Glutlings Fund, Bewegungsrätsel, Angriffsaufgabe und anschließender Schleifeneinführung. Q04 ergänzt das Wiederholen einer ganzen Bewegungssequenz, Q05 eine einzelne geprüfte Entscheidung in zwei Startsituationen. Q06 verbindet die Entscheidung mit einer Schleife in zwei vollständigen aktiven Begegnungen. Q07 überträgt bekannte Befehle auf Moosling, Q08 führt zwei koordinierte Programme ein. Spätere Spezialfähigkeiten folgen darauf. Die freie Trainingsarena verwendet sämtliche implementierten Befehle unabhängig vom Lernfortschritt und erzeugt keine Questbelohnungen.
 
 - Ein neuer Spielstand findet Glutling und zeigt in Q01 ausschließlich die eingeführten Bewegungsbefehle.
 - Eine einzelne Anweisung und eine selbst gebaute Sequenz erreichen die jeweiligen Ziele ohne Gegner.
@@ -153,6 +170,7 @@ Der erste Spielumbau umfasst Q01 bis Q03 mit Glutlings Fund, Bewegungsrätsel, A
 - Q04 verlangt mehrere gemeinsam wiederholte Bewegungsanweisungen; Zielerreichung ohne diesen Nachweis bleibt eine offene Lernübung. Ein vorhandener Q03-Spielstand kann Q04 ohne Reset beginnen.
 - Q05 wertet dieselbe Verzweigung in beiden Startsituationen aus und prüft ihre tatsächlichen Aktionen. Ein erster passender Fall allein ist kein Questabschluss. Vorhandene Q04-Spielstände öffnen die nächste Einführung ohne Reset.
 - Q06 prüft den Schleifen- und Bedingungsnachweis je aktiver Begegnung neu. Einzelschritte, Gesamtausführung und Blockly liefern dieselben Ergebnisse. Ein Q05-Spielstand kann ohne Reset fortsetzen; Abbruch oder nur eine bestandene Situation vergeben keinen Abschluss.
+- Q07 verlangt Mooslings Aufnahme, verwendet seine realen Basiswerte und lässt nur sein eigenes Programm ausführen. Q08 schaltet den zweiten Platz erst bei Annahme der Einführung frei und verlangt Treffer aus beiden getrennten Programmen. Frühere Abschlüsse, Sammlung und Entwürfe bleiben erhalten.
 - Block- und Textmodus erlauben dieselben Lösungen und lehnen dieselben noch nicht erlaubten Strukturen ab.
 - Erfolg, Fehlversuch und Abbruch führen korrekt zur Welt zurück. Ein Neuversuch behält den bearbeiteten Entwurf.
 - Alte Sammlungen und Programme bleiben nach der Fortschrittsmigration erhalten.

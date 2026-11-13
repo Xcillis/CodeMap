@@ -1,4 +1,4 @@
-import type { WorldQuest } from '../gameplay/WorldQuests';
+import { lessonActors, type WorldQuest } from '../gameplay/WorldQuests';
 import type { SkillId } from '../gameplay/ArkanaCatalog';
 import { BattleEngine } from './BattleEngine';
 import { PuzzleEngine } from './PuzzleEngine';
@@ -8,11 +8,15 @@ import { ProgramRunner } from './ProgramRunner';
 import { RepeatProgress } from './RepeatProgress';
 import { DecisionProgress, enemyAdjacent } from './DecisionProgress';
 import { AdaptiveCombatSession } from './AdaptiveCombatSession';
+import { TeamLessonSession } from './TeamLessonSession';
 import type { ActionFrame, ArkanId, EncounterState, ProgramSources } from './types';
 
-/** Executes one introductory program, with the same parser and runner as free training. */
+/** Shared quest entry point; solo rules and delegated active/team encounters use the same parser and runner. */
 export class LessonSession {
   private readonly adaptive?: AdaptiveCombatSession;
+  private readonly cooperative?: TeamLessonSession;
+  private readonly skills: readonly SkillId[];
+  private readonly actor: ArkanId;
   private engine: BattleEngine | PuzzleEngine;
   private runner?: ProgramRunner;
   private signature = '';
@@ -23,14 +27,19 @@ export class LessonSession {
   private passedTrials = 0;
   private nextTrial = false;
   private decisionFailure?: string;
-  readonly actors: ArkanId[] = ['glutling'];
-  constructor(readonly lesson: WorldQuest, private readonly skills: readonly SkillId[]) {
-    this.engine = lesson.kind === 'puzzle' ? new PuzzleEngine(lesson) : new BattleEngine({ glutling: lesson.start, konstrukt: lesson.enemy });
-    if (lesson.kind === 'combat' && lesson.adaptiveTrials?.length) this.adaptive = new AdaptiveCombatSession(lesson, skills);
+  readonly actors: readonly ArkanId[];
+  constructor(readonly lesson: WorldQuest, skills: readonly SkillId[] | Partial<Record<ArkanId, readonly SkillId[]>>) {
+    this.actors = lessonActors(lesson); this.actor = this.actors[0];
+    const skillMap: Partial<Record<ArkanId, readonly SkillId[]>> = Array.isArray(skills) ? Object.fromEntries(this.actors.map((actor) => [actor, skills])) : skills as Partial<Record<ArkanId, readonly SkillId[]>>;
+    this.skills = skillMap[this.actor] ?? [];
+    this.engine = lesson.kind === 'puzzle' ? new PuzzleEngine(lesson) : new BattleEngine({ [this.actor]: lesson.start, konstrukt: lesson.enemy });
+    if (lesson.kind === 'combat' && lesson.adaptiveTrials?.length) this.adaptive = new AdaptiveCombatSession(lesson, this.skills);
+    if (lesson.kind === 'combat' && this.actors.length === 2) this.cooperative = new TeamLessonSession(lesson, skillMap);
     this.reset();
   }
-  get frames(): readonly ActionFrame<EncounterState>[] { return this.adaptive?.frames ?? this.actionFrames; }
+  get frames(): readonly ActionFrame<EncounterState>[] { return this.cooperative?.frames ?? this.adaptive?.frames ?? this.actionFrames; }
   get snapshot(): EncounterState {
+    if (this.cooperative) return this.cooperative.snapshot;
     if (this.adaptive) return this.adaptive.snapshot;
     const state: EncounterState = this.engine.snapshot;
     if (state.outcome === 'victory' && this.lesson.kind === 'puzzle' && !this.repeatProgress.satisfies(this.lesson.repeatGoal)) state.outcome = 'incomplete';
@@ -43,6 +52,7 @@ export class LessonSession {
     return state;
   }
   reset(): void {
+    if (this.cooperative) { this.cooperative.reset(); return; }
     if (this.adaptive) { this.adaptive.reset(); return; }
     this.trialIndex = 0; this.passedTrials = 0; this.nextTrial = false; this.decisionFailure = undefined; this.decisions.clear();
     if (this.engine instanceof PuzzleEngine) this.engine.reset();
@@ -50,14 +60,15 @@ export class LessonSession {
     this.runner = undefined; this.signature = ''; this.actionFrames = []; this.repeatProgress.clear();
   }
   execute(sources: ProgramSources, full = false): string {
+    if (this.cooperative) return this.cooperative.execute(sources, full);
     if (this.adaptive) return this.adaptive.execute(sources, full);
     this.actionFrames = [];
-    const parsed = compileActionPlan(sources.glutling ?? '', 'glutling');
+    const parsed = compileActionPlan(sources[this.actor] ?? '', this.actor);
     if (parsed.error || !parsed.nodes) return parsed.error ?? 'Ungültiges Programm.';
     const allowed = this.skills.filter((skill) => this.lesson.allowed.includes(skill));
-    const error = nodesCapabilityError(parsed.nodes, 'glutling', 0, allowed);
+    const error = nodesCapabilityError(parsed.nodes, this.actor, 0, allowed);
     if (error) return error;
-    const signature = nodesToSource(parsed.nodes, 'glutling');
+    const signature = nodesToSource(parsed.nodes, this.actor);
     if (full || signature !== this.signature) { this.reset(); this.runner = new ProgramRunner(parsed.nodes); this.signature = signature; }
     if (!programCost(parsed.nodes)) return 'Dein Programm ist leer. Ziehe eine Anweisung unter den Startblock.';
     if (this.snapshot.outcome !== 'ongoing') return this.result();
@@ -81,15 +92,15 @@ export class LessonSession {
         }
       }
       this.repeatProgress.record(step.action, before.player.x !== raw.player.x || before.player.y !== raw.player.y, trace);
-      this.actionFrames.push({ actor: 'glutling', action: step.action, before, after: this.snapshot, trace: trace ? structuredClone({ ...trace, line: parsed.sourceMap?.[trace.path] }) : undefined });
+      this.actionFrames.push({ actor: this.actor, action: step.action, before, after: this.snapshot, trace: trace ? structuredClone({ ...trace, line: parsed.sourceMap?.[trace.path] }) : undefined });
     } while (full && this.snapshot.outcome === 'ongoing' && (this.nextTrial || !this.runner?.done));
     return this.result();
   }
   private resetCombat(): void {
     if (this.lesson.kind !== 'combat') return;
     const trial = this.lesson.decisionTrials?.[this.trialIndex];
-    this.engine = new BattleEngine({ glutling: trial?.start ?? this.lesson.start, konstrukt: trial?.enemy ?? this.lesson.enemy });
-    this.engine.reset(false, this.lesson.enemyHp, ['glutling']);
+    this.engine = new BattleEngine({ [this.actor]: trial?.start ?? this.lesson.start, konstrukt: trial?.enemy ?? this.lesson.enemy });
+    this.engine.reset(false, this.lesson.enemyHp, [this.actor]);
   }
   private result(): string {
     const state = this.snapshot;

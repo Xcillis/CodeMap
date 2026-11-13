@@ -40,6 +40,16 @@ export const LEARNING_TERMS: readonly LearningTerm[] = [
   { id: 'branch', label: 'Verzweigung', aliases: ['Verzweigung', 'Verzweigungen'], lesson: 'q05-aufmerksam', category: 'Programmieren',
     explanation: 'Glutling wählt je nach Antwort auf eine Frage einen von zwei Wegen. Das heißt Verzweigung: Bei ja führt es den dann-Teil aus, bei nein den sonst-Teil. Im Text heißen sie if und else.',
     example: 'Ist das Konstrukt direkt daneben, greift Glutling an. Sonst geht es einen Schritt näher heran. Nur einer der beiden Wege wird ausgeführt.', code: 'if (glutling.enemyAdjacent) {\n  glutling.attack();\n} else {\n  glutling.moveForward();\n}', furtherExamples: [adaptiveExample] },
+  { id: 'object', label: 'Objekt', aliases: ['Objekt', 'Objekte', 'Objekten'], lesson: 'q07-moosling', category: 'Programmieren',
+    explanation: 'Du wählst Moosling aus und gibst ihm einen Befehl. Moosling ist dabei das Objekt, das den Befehl ausführt. Im Text steht sein Name vor dem Punkt; im Blockmodus legt die ausgewählte Figur fest, wem die Befehle gehören.',
+    example: 'Dieses Programm gehört zu Moosling. Glutling besitzt ein getrenntes Programm und wird dadurch nicht angegriffen oder bewegt.', code: 'moosling.attack();' },
+  { id: 'execution-order', label: 'Ausführungsreihenfolge', aliases: ['Ausführungsreihenfolge'], lesson: 'q08-team', category: 'Programmieren',
+    explanation: 'Zuerst führt Moosling seine nächste Anweisung aus, danach Glutling seine nächste. Diese feste Reihenfolge heißt Ausführungsreihenfolge. Ein beendetes Programm wartet, während das andere weiterläuft.',
+    example: 'Im Programm von Moosling steht ein Schritt nach rechts. Glutlings eigener nächster Befehl folgt danach, falls dort einer verbunden ist.', code: 'moosling.moveRight();' },
+  { id: 'coordination', label: 'Koordination', aliases: ['Koordination', 'koordiniert', 'koordinieren'], lesson: 'q08-team', category: 'Programmieren',
+    explanation: 'Du planst die Wege und Angriffe zweier Arkana so, dass beide zum gemeinsamen Ziel beitragen und keine belegten Felder betreten. Dieses Abstimmen heißt Koordination. Jedes Objekt behält sein eigenes Programm.',
+    example: 'Programm von Moosling: Es geht zweimal nach rechts und greift zweimal an. Seine beiden Treffer ziehen zusammen 2 LP ab.', code: 'repeat(2, () => { moosling.moveRight(); });\nrepeat(2, () => { moosling.attack(); });',
+    furtherExamples: [{ lesson: 'q08-team', title: 'Getrenntes Programm von Glutling', example: 'Glutling startet eine Zeile darüber, geht dreimal nach rechts und greift zweimal an. Seine Treffer ziehen zusammen weitere 4 LP ab. Beide Programme werden gemeinsam ausgeführt.', code: 'repeat(3, () => { glutling.moveRight(); });\nrepeat(2, () => { glutling.attack(); });' }] },
 ];
 
 export function learnedTerms(completed: readonly LessonId[]): readonly LearningTerm[] {

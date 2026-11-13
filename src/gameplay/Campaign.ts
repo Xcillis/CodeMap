@@ -1,7 +1,7 @@
 import type { ArkanId } from '../combat/types';
 import type { MissionId } from '../combat/BattleSession';
 import { ARKANA_SPECIES, instanceId, isArkanId, startingSkills, type OwnedArkana, type SkillId } from './ArkanaCatalog';
-import { LESSON_IDS, getLesson, isLessonId, type LessonId, type CampaignAction, type CampaignDialog, type QuestCompletion } from './WorldQuests';
+import { LESSON_IDS, getLesson, isLessonId, lessonActors, type LessonId, type CampaignAction, type CampaignDialog, type QuestCompletion } from './WorldQuests';
 import { availableArkanaEncounters, encounterUnlocked } from './ArkanaEncounters';
 
 export interface CampaignState {
@@ -22,6 +22,8 @@ export type WorldEncounter = { team: ArkanId[]; skills: Skills } & (
 const record = (value: unknown): Record<string, unknown> => value && typeof value === 'object' && !Array.isArray(value) ? value as Record<string, unknown> : {};
 const legacyIds = (value: unknown): MissionId[] => Array.isArray(value) ? ([1, 2, 3] as const).filter((id) => value.includes(id)) : [];
 const lessonIds = (value: unknown): LessonId[] => Array.isArray(value) ? LESSON_IDS.filter((id) => value.includes(id)) : [];
+const teamCapacity = (completed: readonly LessonId[], introductions: readonly LessonId[], legacy: readonly MissionId[]): number =>
+  legacy.includes(2) || (completed.includes('q07-moosling') && introductions.includes('q08-team')) ? 2 : 1;
 
 /** New quest IDs never reinterpret old victories or overwrite numeric editor slots. */
 export function normalizeCampaign(value: unknown, legacyIntroduction = false): CampaignState {
@@ -40,7 +42,7 @@ export function normalizeCampaign(value: unknown, legacyIntroduction = false): C
     owned.push({ id: instanceId(candidate.speciesId), speciesId: candidate.speciesId, learned: [...new Set([...startingSkills(), ...learned, ...introductions.flatMap((id) => getLesson(id).introduces)])] });
   }
   const legacyProgress = { completed: legacyIds(legacy.completed), discovered: legacyIds(legacy.discovered) };
-  const team = Array.isArray(raw.team) ? [...new Set(raw.team)].filter((id): id is string => typeof id === 'string' && owned.some((item) => item.id === id)).slice(0, legacyProgress.completed.includes(2) ? 2 : 1) : [];
+  const team = Array.isArray(raw.team) ? [...new Set(raw.team)].filter((id): id is string => typeof id === 'string' && owned.some((item) => item.id === id)).slice(0, teamCapacity(completed, introductions, legacyProgress.completed)) : [];
   return { version: 2, introduced: raw.introduced === true || (raw.introduced === undefined && legacyIntroduction), owned, team,
     discovered: [...new Set([...(raw.version === 2 ? lessonIds(raw.discovered) : []), ...completed])], completed, introductions, legacyProgress };
 }
@@ -51,13 +53,17 @@ export class Campaign {
   constructor(saved?: unknown, legacyIntroduction = false) { this.state = normalizeCampaign(saved, legacyIntroduction); }
   get snapshot(): CampaignState { return structuredClone(this.state); }
   get availableEncounters() { return availableArkanaEncounters(this.state); }
-  get teamLimit(): number { return this.state.legacyProgress.completed.includes(2) ? 2 : 1; }
+  get teamLimit(): number { return teamCapacity(this.state.completed, this.state.introductions, this.state.legacyProgress.completed); }
   get activeTeam(): OwnedArkana[] { return this.state.team.map((id) => this.state.owned.find((item) => item.id === id)!).filter(Boolean).map((item) => structuredClone(item)); }
   get objective(): string {
     if (!this.state.introduced) return 'Sprich mit Arkanist Eldren an der Akademie.';
     if (!this.has('glutling')) return 'Finde Glutling am westlichen Akademieweg und nimm es in deine Sammlung auf.';
     const next = LESSON_IDS.find((id) => !this.state.completed.includes(id));
-    if (next && (this.activeTeam.length !== 1 || this.activeTeam[0].speciesId !== 'glutling')) return 'Wähle Glutling als einziges aktives Arkana für die ersten Lernquests.';
+    if (next) {
+      const actors = lessonActors(getLesson(next));
+      if (actors.includes('moosling') && !this.has('moosling')) return 'Finde Moosling im südöstlichen Hain und nimm es in deine Sammlung auf. Danach wartet der Hain-Prüfstein.';
+      if (actors.length === 1 && (this.activeTeam.length !== 1 || this.activeTeam[0].speciesId !== actors[0])) return `Wähle ${ARKANA_SPECIES[actors[0]].name} als einziges aktives Arkana für die nächste Lernquest.`;
+    }
     if (next) return `${getLesson(next).title}: Untersuche ${getLesson(next).target}.`;
     return this.has('moosling') ? 'Die ersten Grundlagen sind abgeschlossen. Wiederhole eine Quest oder experimentiere in der freien Trainingsarena.' : 'Die Grundlagen sind geschafft! Erkunde den südöstlichen Hain, finde Moosling und sprich es an, um es aufzunehmen.';
   }
@@ -78,21 +84,25 @@ export class Campaign {
     if (index > 0 && !this.state.completed.includes(LESSON_IDS[index - 1])) return 'Schließe zuerst die vorherige Lernquest ab.';
     if (!this.state.discovered.includes(id)) return 'Entdecke diesen Questort in der Spielwelt oder sprich mit Eldren.';
     if (!this.has('glutling')) return 'Finde zuerst Glutling am westlichen Akademieweg. Sprich es dort an und wähle „In Sammlung aufnehmen“.';
+    if (lessonActors(getLesson(id)).includes('moosling') && !this.has('moosling')) return 'Finde zuerst Moosling im südöstlichen Hain. Sprich es dort an und wähle „In Sammlung aufnehmen“.';
   }
   missionError(id: LessonId): string | undefined {
     const error = this.lessonPrerequisiteError(id); if (error) return error;
-    const team = this.activeTeam;
-    if (team.length !== 1 || team[0].speciesId !== 'glutling') return 'Wähle Glutling als einziges aktives Arkana unter Charakter → Aktuelles Team.';
+    const team = this.activeTeam; const actors = lessonActors(getLesson(id));
+    if (team.length !== actors.length || actors.some((actor, index) => team[index]?.speciesId !== actor)) return actors.length === 1
+      ? `Wähle ${ARKANA_SPECIES[actors[0]].name} als einziges aktives Arkana unter Charakter → Aktuelles Team.`
+      : 'Diese Aufgabe benötigt Moosling zuerst und Glutling danach. Mit „Team wählen & Quest starten“ nimmst du die Einführung zum zweiten Teamplatz an und setzt beide aktiv.';
   }
   lessonOffer(id: LessonId): Pick<CampaignDialog, 'action' | 'actionLabel'> {
     if (this.active || this.lessonPrerequisiteError(id)) return {};
-    if (this.missionError(id)) return { action: `prepare-lesson:${id}`, actionLabel: 'Glutling wählen & Quest starten' };
+    if (this.missionError(id)) return { action: `prepare-lesson:${id}`, actionLabel: `${this.preparationName(id)} wählen & Quest starten` };
     return { action: `lesson:${id}`, actionLabel: this.state.completed.includes(id) ? 'Quest wiederholen' : 'Einführung annehmen' };
   }
   prepareMission(id: LessonId): WorldEncounter | string {
     if (this.active) return 'Eine Begegnung läuft bereits.';
     const error = this.lessonPrerequisiteError(id); if (error) return error;
-    this.state.team = [instanceId('glutling')];
+    if (id === 'q08-team' && !this.state.introductions.includes(id)) this.state.introductions.push(id);
+    this.state.team = lessonActors(getLesson(id)).map(instanceId);
     return this.beginMission(id);
   }
   beginMission(id: LessonId): WorldEncounter | string {
@@ -101,8 +111,9 @@ export class Campaign {
     const lesson = getLesson(id);
     if (!this.state.introductions.includes(id)) this.state.introductions.push(id);
     for (const owned of this.state.owned) owned.learned = [...new Set([...owned.learned, ...lesson.introduces])];
-    const learned = this.state.owned.find((item) => item.speciesId === 'glutling')!.learned;
-    this.active = { kind: 'lesson', lesson: id, team: ['glutling'], skills: { glutling: learned.filter((skill) => lesson.allowed.includes(skill)) } };
+    const actors = lessonActors(lesson);
+    const skills = Object.fromEntries(actors.map((actor) => [actor, this.state.owned.find((item) => item.speciesId === actor)!.learned.filter((skill) => lesson.allowed.includes(skill))]));
+    this.active = { kind: 'lesson', lesson: id, team: [...actors], skills };
     return structuredClone(this.active);
   }
   beginTraining(mission: MissionId, team: readonly ArkanId[]): WorldEncounter | string {
@@ -165,8 +176,12 @@ export class Campaign {
     const index = LESSON_IDS.indexOf(id);
     const ready = index === 0 || this.state.completed.includes(LESSON_IDS[index - 1]);
     const needsTeam = offer.action?.startsWith('prepare-lesson:');
-    const explanation = needsTeam ? 'Für diese Aufgabe spielt Glutling allein. Mit „Glutling wählen & Quest starten“ wird es dein einziges aktives Arkana und die Aufgabe beginnt. Deine anderen Arkana bleiben in der Sammlung.' : error;
+    const name = this.preparationName(id);
+    const explanation = needsTeam ? lessonActors(quest).length === 1
+      ? `Für diese Aufgabe spielt ${name} allein. Mit „${name} wählen & Quest starten“ wird es dein einziges aktives Arkana und die Aufgabe beginnt. Deine anderen Arkana bleiben in der Sammlung.`
+      : 'Mit „Team wählen & Quest starten“ nimmst du die Einführung zum zweiten Teamplatz an. Moosling wird zuerst, Glutling danach aktiv gesetzt. Beide behalten ihre eigenen Programme.' : error;
     return { speaker: quest.title.toUpperCase(), text: `${ready && this.state.introduced && this.has('glutling') ? quest.introduction : 'Hier wartet eine Lernaufgabe auf dich.'}${explanation ? `\n\n${explanation}` : ''}`,
-      actionLabel: !this.state.introduced ? 'Zur Spielwelt: Eldren aufsuchen' : !this.has('glutling') ? 'Zur Spielwelt: Glutling suchen' : 'Zur Spielwelt', ...offer };
+      actionLabel: !this.state.introduced ? 'Zur Spielwelt: Eldren aufsuchen' : !this.has('glutling') ? 'Zur Spielwelt: Glutling suchen' : ready && lessonActors(quest).includes('moosling') && !this.has('moosling') ? 'Zur Spielwelt: Moosling suchen' : 'Zur Spielwelt', ...offer };
   }
+  private preparationName(id: LessonId): string { const actors = lessonActors(getLesson(id)); return actors.length === 1 ? ARKANA_SPECIES[actors[0]].name : 'Team'; }
 }

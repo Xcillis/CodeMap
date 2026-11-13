@@ -34,7 +34,7 @@ export function renderCharacterView(content: HTMLElement, tab: CharacterTab, cam
     }
   } else if (tab === 'team') {
     const section = document.createElement('section'); section.className = 'team-overview';
-    section.append(heading(`Aktuelles Team · ${state.team.length}/${campaign.teamLimit}`), paragraph('Die Reihenfolge bestimmt, welches Arkana zuerst handelt. Für die ersten Lernquests spielt Glutling allein.'));
+    section.append(heading(`Aktuelles Team · ${state.team.length}/${campaign.teamLimit}`), paragraph('Die Reihenfolge bestimmt, welches Arkana zuerst handelt. Die Einführung jeder Lernquest nennt das benötigte Team.'));
     const active = document.createElement('ol'); active.id = 'team-active-members'; active.className = 'team-members';
     for (const [index, owned] of campaign.activeTeam.entries()) {
       const species = ARKANA_SPECIES[owned.speciesId]; const card = document.createElement('li'); card.className = `team-card type-${species.type}`;
