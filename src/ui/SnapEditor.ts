@@ -141,6 +141,7 @@ export class SnapEditor {
     return top.some((block) => block.type !== 'cm_start') || top.filter((block) => block.type === 'cm_start').length > 1;
   }
   resize(): void { Blockly.svgResize(this.workspace); }
+  closeTransientUi(): void { this.workspace.hideChaff(true); }
   setReadOnly(readOnly: boolean): void { this.workspace.setIsReadOnly(readOnly); }
   highlight(path?: string): void { this.workspace.highlightBlock(path ? blockAtPath(this.workspace, path)?.id ?? null : null); }
 }

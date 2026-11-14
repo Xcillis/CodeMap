@@ -232,6 +232,12 @@ Nach der Talüberarbeitung wurde Ruckeln gemeldet. Die neue Landschaft bestand a
 
 Der Welthinweis wird nur bei verändertem Inhalt veröffentlicht. Die DOM-Ansicht prüft zusätzlich, ob ihr Text wirklich geändert werden muss. Dadurch entstehen beim Laufen neben derselben Person keine identischen Textknotenänderungen pro Frame. Tests prüfen Cachewiederverwendung über mehrere Szeneninstanzen, begrenzte Texturzahl, Aufräumen nach Fehlern und unveränderte DOM-Hinweise. Die bestehenden Laufwegprüfungen gelten weiter. Die neue Low-Poly-Stilpräferenz ist getrennt in `CodeMap_Grafikstil.md` dokumentiert und führt hier keine neue Engine oder Projektion ein.
 
+## ADR 027 – Blockly-Ebenen innerhalb des Editors begrenzen
+
+Blockly-Kategorien, Flyouts und Scrollleisten verwenden eigene hohe Ebenenwerte. Ohne lokalen Stapelkontext konnten sie über der als Geschwisterelement angeordneten Questabschluss-Meldung erscheinen und deren Aktionen verdecken. Die positionierte `.battle-card` erhält deshalb `z-index: 0` und `isolation: isolate`; zusätzlich begrenzt `#snap-editor` seine internen Ebenen durch Isolation. Die Abschlussmeldung bleibt auf Ebene 5 innerhalb des Arenafensters. Damit kann auch ein hoher Blockly-Ebenenwert den Editor-Kontext nicht verlassen.
+
+Globale Popup-Elemente wie Zahlenfelder, Kontextmenüs und Tooltips werden vor dem Abschluss und beim Arena-Ausgang über `SnapEditor.closeTransientUi` mit der offiziellen `WorkspaceSvg.hideChaff(true)`-API geschlossen. Workspace, Verbindungen und Entwürfe bleiben erhalten. Die bestehende Fokusführung, Hintergrundsperre durch `inert` und Rückkehr über „Programm ansehen“ gelten weiter. Der Modaltest prüft nun zusätzlich das Schließen temporärer Blockly-Oberflächen und den Erhalt des Programms beim Zurückkehren. Es werden keine globalen Ebenenwerte pauschal erhöht.
+
 ## Noch nicht enthalten
 
 Dreier-Formation, artspezifische ausführbare Fähigkeiten, Variablen und Funktionen in der Programmiersprache, freie JavaScript-Runtime, Online-Speicherung, Login, Backend, NOVA und Kompetenzengine bleiben spätere Erweiterungen. Frühere ADRs beschreiben die Entwicklungsschritte; ADR 024 ersetzt die frühere lineare Gebiets- und Questprogression. Die frühere Ausbauplanung zu Q06 ist durch ADR 021, die erste reguläre Teamkoordination durch ADR 022 umgesetzt.

@@ -70,6 +70,7 @@ export class GameUi {
     this.click('dialog-dismiss', () => { this.el('dialog').hidden = true; this.pendingDialogAction = undefined; gameEvents.emit('dialog-closed'); });
     gameEvents.on('battle-opened', (programs: ProgramSources, mission: string | number, skills?: Partial<Record<ArkanId, readonly SkillId[]>>, presentation?: EncounterPresentation) => this.open(programs, mission, skills, presentation));
     gameEvents.on('battle-closed', () => {
+      this.snap?.closeTransientUi();
       this.setExpanded(false);
       this.completion.clear();
       this.capture(); this.drag.cancel(); this.panel.hidden = true;
@@ -77,7 +78,7 @@ export class GameUi {
     });
     gameEvents.on('quest-completed', (completion: QuestCompletion) => {
       if (this.panel.hidden || this.presentation?.mode !== 'lesson' || completion.lesson !== this.mission) return;
-      this.drag.cancel(); this.el('editor-tooltip').hidden = true; this.completion.show(completion);
+      this.drag.cancel(); this.snap?.closeTransientUi(); this.el('editor-tooltip').hidden = true; this.completion.show(completion);
     });
     gameEvents.on('battle-updated', (state: EncounterState, feedback: string) => this.update(state, feedback));
     gameEvents.on('battle-playback', (state: PlaybackState) => {

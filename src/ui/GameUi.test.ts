@@ -35,6 +35,8 @@ vi.mock('./SnapEditor', () => ({ SnapEditor: class {
   hasLooseBlocks() { return this.loose; }
   resizes = 0;
   resize() { this.resizes++; }
+  popupsClosed = 0;
+  closeTransientUi() { this.popupsClosed++; }
   setReadOnly(readOnly: boolean) { this.readOnly = readOnly; }
   highlight(path?: string) { this.highlightedPath = path; }
   mutate(nodes: ProgramNode[], loose = false) { this.nodes = nodes; this.loose = loose; this.changed(); }
@@ -260,13 +262,18 @@ describe('Editorzustand und Arkan-Zuordnung', () => {
     const campaign = new Campaign({ version: 2, introduced: true, owned: [{ speciesId: 'glutling' }], team: [instanceId('glutling')] });
     campaign.interact(`lesson:${lesson.id}`); campaign.beginMission(lesson.id);
     gameEvents.emit('battle-opened', { glutling: lesson.starter }, lesson.id, { glutling: lesson.allowed }, presentation);
+    click('blocks-mode');
+    const snap = snaps.at(-1) as { popupsClosed: number; source: () => string };
+    const source = snap.source(); const closed = snap.popupsClosed;
     button('battle-run-program').focus(); gameEvents.emit('quest-completed', campaign.finishMission(lesson.id));
+    expect(snap.popupsClosed).toBe(closed + 1);
     const tab = new KeyboardEvent('keydown', { key: 'Tab', shiftKey: true, bubbles: true, cancelable: true });
     button('quest-completion-exit').dispatchEvent(tab); expect(tab.defaultPrevented).toBe(true);
     expect(document.activeElement?.id).toBe('quest-completion-review');
     click('quest-completion-review'); expect(document.getElementById('quest-completion')!.hidden).toBe(true);
     expect(document.getElementById('quest-completion-status')!.hidden).toBe(false);
     expect(document.activeElement?.id).toBe('battle-run-program'); expect(document.getElementById('battle-card')!.inert).toBe(false);
+    expect(snap.source()).toBe(source);
     gameEvents.emit('quest-completed', campaign.finishMission(lesson.id));
     expect(document.getElementById('quest-completion-heading')!.textContent).toBe('Quest erneut geschafft!');
     button('quest-completion-exit').dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
