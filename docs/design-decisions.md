@@ -65,3 +65,9 @@ Als konkrete Prototypausgestaltung gibt es 13 Quests bei sechs Questgebern. Für
 **Status:** Nutzerpräferenz vom 14. November 2026; als Stilziel festgehalten, endgültige Assets folgen später.
 
 Die neue bevorzugte Referenz ist das [Low-Poly-Diorama von Square Glade Games](https://www.youtube.com/shorts/wKRqFhqWc0A). Sie hat für den gewünschten Grafikstil Vorrang vor dem früheren gemalten Talbild; dieses bleibt als Landschafts- und Anordnungsreferenz erhalten. Die Stilbeschreibung und die technische Ausarbeitung für vorgerenderte 2D-Assets stehen in `CodeMap_Grafikstil.md`. Die unmittelbare Änderung reduziert die Renderlast der bisherigen Platzhalterlandschaft. Eine vollständige Umgestaltung auf die neue Optik ist damit noch nicht implementiert.
+
+## DD 007 Vollständige Grundbewegung von Beginn an
+
+**Status:** Nutzerentscheidung vom 14. November 2026; umgesetzt.
+
+Alle Quests bieten rechts, links, oben und unten an, selbst wenn einzelne Richtungen für ihre Lösung nicht erforderlich sind. Beide Arkana besitzen diese Bewegungen als Grundrepertoire. Das erweitert die frühere Startfreigabe für rechts und oben. Angriff, Schleifen und Abfragen werden weiterhin getrennt eingeführt. Block- und Textmodus behandeln dieselben Bewegungsmöglichkeiten; bestehende Spielstände erhalten die fehlenden Richtungen automatisch.

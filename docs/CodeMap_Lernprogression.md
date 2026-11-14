@@ -37,7 +37,7 @@ Q06 ist keine Voraussetzung für Q13 oder Q07. Die Team-Einführung folgt weiter
 ## Regeln für alle Aufgaben
 
 1. Erst konkrete Handlung erklären, dann Fachwort benennen. Aufgaben formulieren beobachtbare Ziele; Hinweise werden schrittweise genauer. Fachbegriffe werden hervorgehoben und nach passendem Abschluss mit Beispielen im Charakterfenster gespeichert sichtbar.
-2. Neue Befehle und Strukturen werden bei Annahme ihrer erklärten Einführung verfügbar. Ein Fehlversuch entzieht sie nicht. Die Aufgabenpalette begrenzt auch alte vollständig freigeschaltete Arkana auf das jeweilige Thema.
+2. Rechts, links, oben und unten gehören in jeder Quest zum Grundrepertoire, auch wenn die Lösung nur einzelne Richtungen benötigt. Weitere Befehle und Strukturen werden bei Annahme ihrer erklärten Einführung verfügbar. Ein Fehlversuch entzieht sie nicht. Die Aufgabenpalette begrenzt auch alte vollständig freigeschaltete Arkana auf das jeweilige Thema.
 3. Block- und Textmodus verwenden dieselben Objektprogramme, Freigaben und Erfolgskriterien. Schleifen besitzen echte innere Anschlüsse; `pathRightClear` bleibt beim Umwandeln und Speichern erhalten. Arkana werden nur durch ihre Programme bewegt.
 4. Rätsel und Kämpfe verwenden dieselbe sichtbare Wiedergabe mit Einzelschritt, Gesamtprogramm, Pause, Tempo und Trace. Reine Formatwechsel erhalten einen Versuch; semantische Änderungen und Neustarts verwerfen seine Nachweise.
 5. Räumliches Ziel und Lernkriterium werden getrennt geprüft. Schleifen müssen wirklich wirksame Aktionen ausführen. Bei Verschachtelung müssen in mindestens zwei äußeren Durchläufen jeweils mindestens zwei innere Durchläufe wirksam sein. Leere Blöcke oder blockierte Schritte reichen nicht.

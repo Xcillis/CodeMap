@@ -1,6 +1,7 @@
 import type { ArkanId } from '../combat/types';
 
 export type SkillId = 'moveForward' | 'moveRight' | 'moveLeft' | 'moveUp' | 'moveDown' | 'attack' | 'enemyAdjacent' | 'repeat' | 'pathRightClear';
+export const BASIC_MOVEMENT = ['moveRight', 'moveLeft', 'moveUp', 'moveDown'] as const satisfies readonly SkillId[];
 export type ArkanaType = 'fire' | 'water' | 'nature' | 'shadow' | 'light';
 
 export const ARKANA_TYPES: Record<ArkanaType, { name: string; role: string }> = {
@@ -56,5 +57,5 @@ export interface OwnedArkana {
 export const isArkanId = (value: unknown): value is ArkanId => value === 'moosling' || value === 'glutling';
 export const instanceId = (species: ArkanId): string => `aetheria-${species}-01`;
 export function startingSkills(): SkillId[] {
-  return ['moveRight', 'moveUp'];
+  return [...BASIC_MOVEMENT];
 }

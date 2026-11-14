@@ -1,6 +1,6 @@
 import type { ArkanId, ProgramBlock, ProgramNode } from './types';
 import { blocksToNodes, nodesToSource } from './DecisionProgram';
-import { ARKANA_SPECIES, type SkillId } from '../gameplay/ArkanaCatalog';
+import { ARKANA_SPECIES, BASIC_MOVEMENT, type SkillId } from '../gameplay/ArkanaCatalog';
 import { ACTIONS } from './ActionCatalog';
 
 export type { SkillId } from '../gameplay/ArkanaCatalog';
@@ -57,7 +57,7 @@ export const COMMANDS: readonly CommandDefinition[] = [
 ];
 
 export function learnedSkills(actor: ArkanId, mission: number): readonly SkillId[] {
-  return ARKAN_SKILLS[actor].lessons.filter((lesson) => lesson.mission <= mission).flatMap((lesson) => lesson.skills);
+  return [...BASIC_MOVEMENT, ...ARKAN_SKILLS[actor].lessons.filter((lesson) => lesson.mission <= mission).flatMap((lesson) => lesson.skills)];
 }
 
 export function availableCommands(actor: ArkanId, mission: number, learned = learnedSkills(actor, mission)): readonly CommandDefinition[] {

@@ -18,6 +18,14 @@ const solutions = [
   '',
 ];
 describe('Lernaufgaben mit eigenen Freigaben und Zielen', () => {
+  it('erlaubt links und unten schon in der ersten Quest als wirksame Schritte und behält das Runenziel', () => {
+    const lesson = getLesson('q01-glutspur'); const session = new LessonSession(lesson, lesson.allowed);
+    const source = `glutling.moveLeft(); glutling.moveDown(); glutling.moveRight(); glutling.moveUp(); ${solutions[0]}`;
+    session.execute({ glutling: source }, true);
+    expect(session.frames[0].after.player).toMatchObject({ x: 0, y: 3 });
+    expect(session.frames[1].after.player).toMatchObject({ x: 0, y: 4 });
+    expect(session.snapshot).toMatchObject({ tick: 7, outcome: 'victory', player: { x: 3, y: 2 } });
+  });
   for (const [index, id] of LESSON_IDS.entries()) it(`${id}: liefert schrittweise und vollständig dieselben Zustände und Traces`, () => {
     const lesson = getLesson(id); const full = new LessonSession(lesson, lesson.allowed); const steps = new LessonSession(lesson, lesson.allowed);
     const programs = QUEST_SOLUTIONS[id];
@@ -59,6 +67,7 @@ describe('Lernaufgaben mit eigenen Freigaben und Zielen', () => {
   it('verlangt auf dem Musterpfad die gemeinsam wiederholte Bewegungssequenz', () => {
     const lesson = getLesson('q04-musterpfad');
     for (const source of [
+      'repeat(2, () => { glutling.moveRight(); glutling.moveLeft(); }); glutling.moveRight(); glutling.moveUp(); glutling.moveRight(); glutling.moveUp(); glutling.moveRight(); glutling.moveUp();',
       'glutling.moveRight(); glutling.moveUp(); glutling.moveRight(); glutling.moveUp(); glutling.moveRight(); glutling.moveUp();',
       'repeat(1, () => { glutling.moveRight(); glutling.moveUp(); }); glutling.moveRight(); glutling.moveUp(); glutling.moveRight(); glutling.moveUp();',
       'repeat(1, () => { glutling.moveRight(); }); repeat(1, () => { glutling.moveUp(); }); repeat(1, () => { glutling.moveRight(); }); repeat(1, () => { glutling.moveUp(); }); repeat(1, () => { glutling.moveRight(); }); repeat(1, () => { glutling.moveUp(); });',

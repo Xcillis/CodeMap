@@ -330,7 +330,7 @@ describe('Editorzustand und Arkan-Zuordnung', () => {
     expect(document.getElementById('category-combat')).toBeNull();
     expect(document.getElementById('category-flow')).toBeNull();
     expect(document.getElementById('category-senses')).toBeNull();
-    expect(Array.from(document.querySelectorAll<HTMLElement>('[data-command]')).map((entry) => entry.dataset.command)).toEqual(['moveRight', 'moveUp']);
+    expect(Array.from(document.querySelectorAll<HTMLElement>('[data-command]')).map((entry) => entry.dataset.command)).toEqual(['moveRight', 'moveLeft', 'moveUp', 'moveDown']);
     click('text-mode'); expect(text().value).toBe('glutling.moveRight();');
     const session = new LessonSession(lesson, lesson.allowed);
     gameEvents.emit('battle-updated', session.snapshot, 'Bereit');

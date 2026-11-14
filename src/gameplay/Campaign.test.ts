@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { Campaign, normalizeCampaign } from './Campaign';
-import { ARKANA_SPECIES, instanceId } from './ArkanaCatalog';
+import { ARKANA_SPECIES, BASIC_MOVEMENT, instanceId } from './ArkanaCatalog';
 import { LESSON_IDS, getLesson, type LessonId } from './WorldQuests';
 import { QUEST_ROUTES, giverLessons, requirementsMet } from './QuestNetwork';
 import { LessonSession } from '../combat/LessonSession';
@@ -23,11 +23,21 @@ function forest(): Campaign { const c = tutorial(); win(c, 'q11-schleifenwache')
 afterEach(() => vi.useRealTimers());
 
 describe('Gebiete und unabhängige Aufgabenreihen', () => {
+  it('ergänzt fehlende Grundbewegungen bei beiden Arkana in bestehenden Spielständen', () => {
+    const campaign = new Campaign({ version: 2, introduced: true, owned: [
+      { speciesId: 'glutling', learned: ['moveRight', 'moveUp', 'attack'] }, { speciesId: 'moosling', learned: ['moveRight'] },
+    ] });
+    for (const owned of campaign.snapshot.owned) {
+      expect(owned.learned).toEqual(expect.arrayContaining([...BASIC_MOVEMENT])); expect(owned.learned).not.toContain('repeat');
+    }
+    expect(campaign.snapshot.owned[0].learned).toContain('attack');
+    expect(new Campaign(campaign.snapshot).snapshot).toEqual(campaign.snapshot); expect(campaign.snapshot.completed).toEqual([]);
+  });
   it('beginnt im Tal ohne Arkana und führt Bewegung vor Angriff ein', () => {
     const c = new Campaign(); expect(c.region).toBe('valley'); expect(c.snapshot.owned).toEqual([]); expect(c.forestUnlocked).toBe(false);
     expect(c.availableEncounters.map((e) => e.id)).toEqual(['glutling']); expect(c.interact('giver:eldren').action).toBe('meet-eldren');
     expect(c.apply('recruit-glutling')).toContain('Eldren'); c.apply('meet-eldren'); c.apply('recruit-glutling'); c.apply('recruit-glutling'); expect(c.snapshot.owned).toHaveLength(1);
-    expect(c.snapshot.owned[0].learned).toEqual(['moveRight', 'moveUp']); expect(c.prepareMission('q03-wiederkehr')).toContain('Voraussetzung');
+    expect(c.snapshot.owned[0].learned).toEqual(['moveRight', 'moveLeft', 'moveUp', 'moveDown']); expect(c.prepareMission('q03-wiederkehr')).toContain('Voraussetzung');
     win(c, 'q01-glutspur'); const s = begin(c, 'q02-basisangriff'); expect(c.snapshot.owned[0].learned).toContain('attack'); expect(c.snapshot.owned[0].learned).not.toContain('repeat');
     s.execute(QUEST_SOLUTIONS['q02-basisangriff'], true); c.finishMission('q02-basisangriff'); c.leaveMission(); expect(c.objective).toContain('Wähle');
   });

@@ -74,7 +74,7 @@ describe('Q06: neue Entscheidungen in jedem Schleifendurchlauf', () => {
   });
   it('erhält laufende Zustände bei Syntax- und Freigabefehlern und erlaubt einen leeren Entwurf', () => {
     const session = create(); session.execute({ glutling: source }); const before = session.snapshot;
-    for (const invalid of ['glutling.', 'attack();', 'moosling.attack();', 'glutling.moveLeft();', `repeat(6, () => { ${choice} glutling.attack(); glutling.attack(); });`]) {
+    for (const invalid of ['glutling.', 'attack();', 'moosling.attack();', 'if (glutling.pathRightClear) { glutling.moveLeft(); }', `repeat(6, () => { ${choice} glutling.attack(); glutling.attack(); });`]) {
       session.execute({ glutling: invalid }, true); expect(session.snapshot, invalid).toEqual(before); expect(session.frames).toEqual([]);
     }
     expect(session.execute({ glutling: '' }, true)).toContain('leer'); expect(session.snapshot.tick).toBe(0);

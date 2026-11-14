@@ -40,6 +40,7 @@ export class RepeatProgress {
       const sequences = new Map<string, number>();
       for (const iteration of iterations.values()) {
         if (iteration.blocked || new Set(iteration.moves.map((move) => move.path)).size < 2 || new Set(iteration.moves.map((move) => move.action)).size < 2) continue;
+        if (!iteration.moves.some((move) => move.action === 'MOVE_RIGHT') || !iteration.moves.some((move) => move.action === 'MOVE_UP')) continue;
         const signature = JSON.stringify(iteration.moves);
         const count = (sequences.get(signature) ?? 0) + 1; sequences.set(signature, count);
         if (count >= 2) return true;

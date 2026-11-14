@@ -95,7 +95,9 @@ export class LessonSession {
         }
       }
       const moved = before.player.x !== raw.player.x || before.player.y !== raw.player.y;
-      this.repeatProgress.record(step.action, moved, trace, moved || Boolean(before.enemy && raw.enemy && raw.enemy.hp < before.enemy.hp));
+      const hit = Boolean(before.enemy && raw.enemy && raw.enemy.hp < before.enemy.hp);
+      const effective = this.lesson.kind === 'combat' && this.lesson.repeatGoal === 'nested' ? hit : moved || hit;
+      this.repeatProgress.record(step.action, moved, trace, effective);
       this.branchProgress.record(step.action, before, raw, trace);
       this.actionFrames.push({ actor: this.actor, action: step.action, before, after: this.snapshot, trace: trace ? structuredClone({ ...trace, line: parsed.sourceMap?.[trace.path] }) : undefined });
     } while (full && this.snapshot.outcome === 'ongoing' && (this.nextTrial || !this.runner?.done));

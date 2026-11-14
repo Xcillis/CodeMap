@@ -10,7 +10,7 @@ import { learnedTerms } from '../gameplay/LearningTerms';
 describe('Verschachtelte Schleifen und bedingte Rätsel', () => {
   it('verlangt echte innere Wiederholungen in mehreren äußeren Durchläufen', () => {
     const lesson = getLesson('q10-schachtelkampf');
-    for (const invalid of ['glutling.attack(); glutling.attack(); glutling.attack(); glutling.attack();', 'repeat(4, () => { glutling.attack(); });', 'repeat(1, () => { repeat(4, () => { glutling.attack(); }); });', 'repeat(2, () => { repeat(2, () => {}); }); repeat(4, () => { glutling.attack(); });']) {
+    for (const invalid of ['glutling.attack(); glutling.attack(); glutling.attack(); glutling.attack();', 'repeat(4, () => { glutling.attack(); });', 'repeat(1, () => { repeat(4, () => { glutling.attack(); }); });', 'repeat(2, () => { repeat(2, () => {}); }); repeat(4, () => { glutling.attack(); });', 'repeat(2, () => { repeat(2, () => { glutling.moveLeft(); glutling.moveRight(); }); }); glutling.attack(); glutling.attack(); glutling.attack(); glutling.attack();']) {
       const s = new LessonSession(lesson, lesson.allowed); expect(s.execute({ glutling: invalid }, true)).toContain('Verschachtelungsübung');
       expect(s.snapshot).toMatchObject({ outcome: 'incomplete', enemy: { hp: 0 } }); expect(s.frames.every((f) => f.after.outcome !== 'victory')).toBe(true);
     }

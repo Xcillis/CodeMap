@@ -29,6 +29,8 @@ Die statische Tallandschaft wird einmalig in wiederverwendbare Texturen umgewand
 
 ## Spielen und programmieren
 
+In jeder Quest stehen von Anfang an alle vier Grundbewegungen bereit: **rechts, links, oben und unten**. Im Text heißen sie beispielsweise `glutling.moveRight()`, `glutling.moveLeft()`, `glutling.moveUp()` und `glutling.moveDown()`. Das gilt auch für Moosling und bestehende Spielstände. Angriff, Schleifen und Wahrnehmung erhalten weiterhin ihre eigenen Lernfreigaben.
+
 - **WASD / Pfeiltasten:** Held bewegen. **E / Leertaste:** nahe Person, Runenwinde oder Reiseort benutzen. Auf Tablets stehen Steuerkreuz und **REDEN** zur Verfügung.
 - **C / Charakter:** Sammlung, aktuelles Team und gelernte Fachbegriffe mit Beispielen. **J / Questjournal:** Quests und freigeschaltete Reisen. **Esc:** Ansicht schließen. Reiter unterstützen Links/Rechts und Pos1/Ende.
 - Innerhalb einer Aufgabe bewegen sich Arkana ausschließlich durch ihre Programme. Jedes Objekt hat seinen eigenen Entwurf, gespeichert pro Quest und Arkana.

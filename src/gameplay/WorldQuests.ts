@@ -1,5 +1,5 @@
 import type { ArkanId, GridPosition, ProgramSources } from '../combat/types';
-import type { SkillId } from './ArkanaCatalog';
+import { BASIC_MOVEMENT, type SkillId } from './ArkanaCatalog';
 import type { QuestGiverId } from './QuestNetwork';
 
 export const LESSON_IDS = ['q01-glutspur', 'q02-basisangriff', 'q03-wiederkehr', 'q04-musterpfad', 'q05-aufmerksam', 'q06-waechter', 'q07-moosling', 'q08-team', 'q09-schachtelpfad', 'q10-schachtelkampf', 'q11-schleifenwache', 'q12-steinrutsch', 'q13-lichtpfad'] as const;
@@ -39,12 +39,12 @@ export type WorldQuest = QuestBase & (
   | { kind: 'combat'; enemy: GridPosition; enemyHp: number; decisionTrials?: readonly DecisionTrial[]; adaptiveTrials?: readonly DecisionTrial[]; companion?: GridPosition; repeatGoal?: RepeatGoal }
 );
 
-export const WORLD_QUESTS: readonly WorldQuest[] = [
+const QUEST_DEFINITIONS: readonly WorldQuest[] = [
   { id: 'q01-glutspur', title: 'Glutlings erste Schritte', target: 'Runenstein am Weg', x: 790, y: 690,
     kind: 'puzzle', start: { x: 1, y: 3 }, goal: { x: 3, y: 2 }, walls: [{ x: 1, y: 2 }, { x: 2, y: 2 }], repeatGoal: 'none',
-    introduction: 'Mit einem Befehl sagst du Glutling, was es tun soll. „Gehe nach rechts“ bewegt es zum Beispiel ein Feld nach rechts. Ein Befehl wird auch Anweisung genannt.\n\nGlutling führt deine Befehle von oben nach unten aus, einen nach dem anderen. Eine solche geordnete Befehlsfolge heißt Sequenz.\n\nProbiere den vorbereiteten Befehl mit „Nächsten Schritt ausführen“ aus. Füge dann weitere Bewegungsbefehle hinzu, bis Glutling die goldene Rune erreicht. Achte auf die Steine.',
+    introduction: 'Mit einem Befehl sagst du Glutling, was es tun soll. „Gehe nach rechts“ bewegt es zum Beispiel ein Feld nach rechts. Du kannst auch nach links, oben oder unten gehen. Jeder dieser Befehle bewegt Glutling genau ein Feld; Steine und andere Wesen blockieren den Weg. Ein Befehl wird auch Anweisung genannt.\n\nGlutling führt deine Befehle von oben nach unten aus, einen nach dem anderen. Eine solche geordnete Befehlsfolge heißt Sequenz.\n\nProbiere den vorbereiteten Befehl mit „Nächsten Schritt ausführen“ aus. Füge dann weitere Bewegungsbefehle hinzu, bis Glutling die goldene Rune erreicht. Achte auf die Steine.',
     objective: 'Bringe Glutling zur goldenen Rune. Stelle dafür Bewegungsbefehle in der passenden Reihenfolge zusammen.',
-    introduces: ['moveRight', 'moveUp'], allowed: ['moveRight', 'moveUp'], starter: 'glutling.moveRight();',
+    introduces: [...BASIC_MOVEMENT], allowed: [], starter: 'glutling.moveRight();',
     reward: 'Glutling hat den Runenstein erreicht! Deine Befehle wurden nacheinander ausgeführt. Ihre Reihenfolge hat Glutling sicher zum Ziel geführt. Eine solche Befehlsfolge heißt Sequenz. Am Übungskonstrukt lernst du als Nächstes das Angreifen.',
     hints: ['Ein Bewegungsbefehl bewegt Glutling ein Feld. Klicke auf „Nächsten Schritt ausführen“ und beobachte den vorbereiteten Befehl.', 'Die Steine liegen oberhalb von Glutlings Start. Gehe zuerst unter ihnen hindurch nach rechts.', 'Nach zwei Schritten nach rechts liegt die Rune ein Feld oberhalb. Ordne die Befehle von oben nach unten so an, dass Glutling zuerst nach rechts und danach nach oben geht.'] },
   { id: 'q02-basisangriff', title: 'Das Übungskonstrukt', target: 'Übungskonstrukt', x: 1120, y: 575,
@@ -138,6 +138,10 @@ export const WORLD_QUESTS: readonly WorldQuest[] = [
     introduces: ['pathRightClear'], allowed: ['moveRight', 'moveUp', 'repeat', 'pathRightClear'], starter: '', reward: 'Der Lichtpfad ist erhellt! Dieselbe Bedingung wurde im veränderten Zustand neu geprüft und hat beide Wege ausgewählt. Andere Waldaufgaben kannst du in deiner eigenen Reihenfolge bearbeiten.',
     hints: ['Rechts vom Start liegt ein Stein. Die erste Antwort ist deshalb nein.', 'Lege „falls Weg rechts frei“ in eine Schleife: dann rechts, sonst oben.', 'Vier Entscheidungen führen zur Rune. Beobachte zuerst nein, danach zweimal ja und am zweiten Stein wieder nein.'] },
 ];
+/** Cardinal movement is universal, even when a lesson only needs a subset to reach its goal. */
+export const WORLD_QUESTS: readonly WorldQuest[] = QUEST_DEFINITIONS.map((quest) => ({
+  ...quest, allowed: [...new Set<SkillId>([...BASIC_MOVEMENT, ...quest.allowed])],
+}));
 export const getLesson = (id: LessonId): WorldQuest => WORLD_QUESTS.find((quest) => quest.id === id)!;
 export const lessonActors = (quest: WorldQuest): readonly ArkanId[] => quest.team ?? ['glutling'];
 export const lessonPrograms = (quest: WorldQuest): ProgramSources => quest.starters ? { ...quest.starters } : { [lessonActors(quest)[0]]: quest.starter };

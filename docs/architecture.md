@@ -238,6 +238,14 @@ Blockly-Kategorien, Flyouts und Scrollleisten verwenden eigene hohe Ebenenwerte.
 
 Globale Popup-Elemente wie Zahlenfelder, Kontextmenüs und Tooltips werden vor dem Abschluss und beim Arena-Ausgang über `SnapEditor.closeTransientUi` mit der offiziellen `WorkspaceSvg.hideChaff(true)`-API geschlossen. Workspace, Verbindungen und Entwürfe bleiben erhalten. Die bestehende Fokusführung, Hintergrundsperre durch `inert` und Rückkehr über „Programm ansehen“ gelten weiter. Der Modaltest prüft nun zusätzlich das Schließen temporärer Blockly-Oberflächen und den Erhalt des Programms beim Zurückkehren. Es werden keine globalen Ebenenwerte pauschal erhöht.
 
+## ADR 028 – Vier Grundrichtungen in sämtlichen Quests
+
+`BASIC_MOVEMENT` definiert rechts, links, oben und unten einmalig im Arkana-Katalog. Neue und bereits gespeicherte Arkana erhalten diese Fähigkeiten über die bestehende Normalisierung der Startfähigkeiten. Die exportierten `WORLD_QUESTS` ergänzen die aufgabenspezifischen Freigaben jeder Definition um dieses gemeinsame Repertoire und entfernen Duplikate. Damit besitzen auch künftige Quests automatisch alle vier Richtungen. Die Standardfreigaben der Trainingsbibliothek verwenden dieselbe Basis. Angriff, zielgerichtetes Nähergehen, Wiederholung und Wahrnehmung behalten ihre getrennten Freigaben. Es werden keine Abschlüsse oder neuen Arkana vergeben und keine Programmentwürfe überschrieben.
+
+Blockpalette, Textbibliothek und Programmausführung lesen die gemeinsamen Freigaben. Links- und Abwärtsbefehle werden damit auch in Aufgaben akzeptiert, deren direkter Lösungsweg nur rechts und oben benötigt. Hindernisse, belegte Felder, Kartenränder und Aktionsbudget gelten weiterhin. Die Einführung nennt alle vier Richtungen anhand einer konkreten Bewegung.
+
+Zusätzliche Bewegungsmöglichkeiten dürfen Lernnachweise nicht umgehen: Auf dem Musterpfad muss die wiederholte Folge tatsächlich Rechts- und Aufwärtsbewegungen enthalten. Im verschachtelten Angriffsmuster zählen für den Verschachtelungsnachweis wirksame Treffer; verschachteltes Hin- und Hergehen mit anschließend flachen Angriffen genügt nicht. Tests prüfen die Textbefehle und echten Blockly-Paletten für beide Arkana in allen Quests, ausgeführte Links-/Abwärtsschritte, alte Spielstände und diese möglichen Umgehungen.
+
 ## Noch nicht enthalten
 
 Dreier-Formation, artspezifische ausführbare Fähigkeiten, Variablen und Funktionen in der Programmiersprache, freie JavaScript-Runtime, Online-Speicherung, Login, Backend, NOVA und Kompetenzengine bleiben spätere Erweiterungen. Frühere ADRs beschreiben die Entwicklungsschritte; ADR 024 ersetzt die frühere lineare Gebiets- und Questprogression. Die frühere Ausbauplanung zu Q06 ist durch ADR 021, die erste reguläre Teamkoordination durch ADR 022 umgesetzt.

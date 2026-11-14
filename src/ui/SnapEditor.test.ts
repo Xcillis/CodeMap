@@ -4,10 +4,22 @@ import { describe, expect, it } from 'vitest';
 import { blockAtPath, loadNodes, workspaceNodes, snapToolbox, restoreWorkspaceState } from './SnapEditor';
 import { compileActionPlan, nodesToSource } from '../combat/DecisionProgram';
 import { BattleSession } from '../combat/BattleSession';
-import { getLesson } from '../gameplay/WorldQuests';
+import { getLesson, WORLD_QUESTS } from '../gameplay/WorldQuests';
 import { LessonSession } from '../combat/LessonSession';
 
 describe('Echte Blockly-Verbindungen', () => {
+  it('führt alle vier Richtungsblöcke in jeder Questpalette und erhält sie beim Block-/Textwechsel', () => {
+    for (const quest of WORLD_QUESTS) for (const actor of ['glutling', 'moosling'] as const) {
+      const toolbox = JSON.stringify(snapToolbox(actor, 0, quest.allowed));
+      for (const block of ['cm_move_right', 'cm_move_left', 'cm_move_up', 'cm_move_down']) expect(toolbox, quest.id).toContain(block);
+      const workspace = new Blockly.Workspace();
+      try {
+        const source = `${actor}.moveLeft();\n${actor}.moveDown();\n${actor}.moveUp();\n${actor}.moveRight();`;
+        const nodes = compileActionPlan(source, actor).nodes!; loadNodes(workspace, nodes, actor);
+        expect(nodesToSource(workspaceNodes(workspace), actor)).toBe(source);
+      } finally { workspace.dispose(); }
+    }
+  });
   it('verbindet echte verschachtelte Schleifen und die Wald-Abfrage ohne Verlust beim Textwechsel', () => {
     const workspace = new Blockly.Workspace();
     try {
@@ -53,7 +65,7 @@ describe('Echte Blockly-Verbindungen', () => {
       expect(blockAtPath(workspace, '0.body.0.then.0')?.type).toBe('cm_attack');
       expect(blockAtPath(workspace, '0.body.0.otherwise.0')?.type).toBe('cm_move');
       const toolbox = JSON.stringify(snapToolbox('glutling', 0, lesson.allowed));
-      expect(toolbox).toContain('cm_repeat'); expect(toolbox).toContain('cm_if'); expect(toolbox).not.toContain('cm_move_left');
+      expect(toolbox).toContain('cm_repeat'); expect(toolbox).toContain('cm_if'); expect(toolbox).toContain('cm_move_left'); expect(toolbox).toContain('cm_move_down'); expect(toolbox).not.toContain('cm_if_path');
     } finally { workspace.dispose(); }
   });
   it('löst Q05 mit Angriff und Bewegung in den getrennten if/else-Anschlüssen', () => {
