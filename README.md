@@ -23,6 +23,8 @@ npm run dev
 
 NPCs öffnen ein Menü ihrer Aufgaben und Folgequests. Das **Questjournal** zeigt getrennt nach Gebiet, was entdeckt, bereit, gesperrt oder abgeschlossen ist und welche Voraussetzungen fehlen. Eine Quest aus einem anderen Gebiet verlangt zuerst die Reise dorthin.
 
+Das Tal folgt der bereitgestellten Landschaftsreferenz: begrünte Felswände, geschwungene Wege, ein Bach mit begehbarer Holzbrücke, ein Teich und unterschiedliche Bäume. Wasser und große Hindernisse besitzen passende Kollisionen. Alle Grafiken entstehen lokal mit Phaser; der [Grafikstil](docs/CodeMap_Grafikstil.md) beschreibt die vorläufige Umsetzung und die spätere Asset-Ausarbeitung.
+
 ## Spielen und programmieren
 
 - **WASD / Pfeiltasten:** Held bewegen. **E / Leertaste:** nahe Person, Runenwinde oder Reiseort benutzen. Auf Tablets stehen Steuerkreuz und **REDEN** zur Verfügung.

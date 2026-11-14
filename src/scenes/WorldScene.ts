@@ -10,10 +10,12 @@ import { touchInput } from '../input/TouchInput';
 import { isArkanId } from '../gameplay/ArkanaCatalog';
 import type { ArkanId } from '../combat/types';
 import { QUEST_GIVERS, giverLessons, isQuestGiverId, type QuestGiverId } from '../gameplay/QuestNetwork';
-import { REGIONS, VALLEY_PASS, VALLEY_CLIFFS } from '../gameplay/WorldRegions';
+import { REGIONS, VALLEY_PASS, WORLD_SIZE } from '../gameplay/WorldRegions';
+import { VALLEY_OBSTACLES } from '../world/ValleyLayout';
+import { drawValley } from '../world/ValleyRenderer';
 
-const WORLD_WIDTH = 1600;
-const WORLD_HEIGHT = 1040;
+const WORLD_WIDTH = WORLD_SIZE.width;
+const WORLD_HEIGHT = WORLD_SIZE.height;
 
 export class WorldScene extends Phaser.Scene {
   private player!: Phaser.GameObjects.Arc;
@@ -166,28 +168,8 @@ export class WorldScene extends Phaser.Scene {
 
   private drawLandscape(): void {
     if (this.campaign.region === 'forest') { this.drawForest(); return; }
-    const ground = this.add.graphics();
-    ground.fillStyle(0x5d8e4f).fillRect(0, 0, WORLD_WIDTH, WORLD_HEIGHT);
-    for (let x = 0; x < WORLD_WIDTH; x += 40) {
-      for (let y = 0; y < WORLD_HEIGHT; y += 40) {
-        if ((x / 40 + y / 40) % 2 === 0) ground.fillStyle(0x639654, 0.32).fillRect(x, y, 40, 40);
-      }
-    }
-    ground.lineStyle(36, 0xbda670, 1);
-    ground.beginPath().moveTo(90, 770).lineTo(530, 720).lineTo(780, 620).lineTo(1120, 575).lineTo(1510, 650).strokePath();
-    ground.lineStyle(36, 0xbda670, 1);
-    ground.beginPath().moveTo(780, 620).lineTo(775, 230).strokePath();
-    ground.lineStyle(5, 0xd8c88e, 0.6);
-    ground.beginPath().moveTo(90, 770).lineTo(530, 720).lineTo(780, 620).lineTo(1120, 575).lineTo(1510, 650).strokePath();
+    this.gateRocks = drawValley(this).landslide;
     this.drawBuilding(1040, 255);
-    this.drawPond(270, 245);
-    [[180, 510], [350, 420], [565, 265], [590, 845], [920, 215], [1260, 405], [1410, 825], [1180, 860], [1420, 260], [770, 900], [100, 210], [430, 875]].forEach(([x, y]) => this.drawTree(x, y));
-    ground.lineStyle(38, 0xbda670).beginPath().moveTo(1120, 575).lineTo(1540, 520).strokePath();
-    ground.fillStyle(0x5c625b).fillRect(0, 0, 1600, 65).fillRect(0, 975, 1600, 65).fillRect(0, 0, 50, 1040).fillRect(1410, 0, 100, 430).fillRect(1410, 610, 100, 430);
-    ground.lineStyle(6, 0x8c967c).strokeRect(1410, -8, 100, 438).strokeRect(1410, 610, 100, 438);
-    this.gateRocks = this.add.container(0, 0).setDepth(4);
-    for (const [x, y, radius] of [[1435, 460, 35], [1480, 475, 33], [1455, 520, 40], [1480, 565, 35], [1430, 575, 32]]) this.gateRocks.add(this.add.circle(x, y, radius, 0x727b78).setStrokeStyle(4, 0xa7aba0));
-    this.add.text(140, 100, 'TAL VON AETHERIA', { fontSize: '25px', color: '#fff0bd', stroke: '#26352c', strokeThickness: 4 }).setDepth(4);
   }
 
   private createObstacles(): Phaser.Physics.Arcade.StaticGroup {
@@ -199,10 +181,7 @@ export class WorldScene extends Phaser.Scene {
       return body;
     };
     if (this.campaign.region === 'forest') { for (const [x, y] of this.forestTrees()) addObstacle(x, y + 10, 30, 30); return group; }
-    addObstacle(1040, 295, 280, 155);
-    [[180, 520], [350, 430], [565, 275], [590, 855], [920, 225], [1260, 415], [1410, 835], [1180, 870], [1420, 270], [770, 910], [100, 220], [430, 885]].forEach(([x, y]) => addObstacle(x, y, 30, 30));
-    addObstacle(800, 32.5, 1600, 65); addObstacle(800, 1007.5, 1600, 65); addObstacle(25, 520, 50, 1040);
-    for (const wall of VALLEY_CLIFFS) addObstacle(wall.x, wall.y, wall.width, wall.height);
+    for (const obstacle of VALLEY_OBSTACLES) addObstacle(obstacle.x, obstacle.y, obstacle.width, obstacle.height);
     this.gateBody = addObstacle(VALLEY_PASS.x, VALLEY_PASS.y, VALLEY_PASS.width, VALLEY_PASS.height);
     return group;
   }

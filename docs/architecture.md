@@ -216,6 +216,14 @@ Die Kampagnenversion bleibt 2, ergänzt um `worldVersion: 1`, Gebiet und eine au
 
 Automatisierte Prüfungen decken alle 13 Questlösungen in Einzel- und Gesamtausführung, unterschiedliche Reihenfolgen, lokale Folgesperren, Pflicht-Einführungen, Lernnachweise, beide Abfrageantworten, Questgeber-Menüs, Reisen, Passgeometrie und die Migration ab. Die Szenen erzeugen weiterhin ausschließlich lokale Platzhaltergrafiken; neue Abhängigkeiten sind nicht erforderlich. Der konkrete Questplan steht in `CodeMap_Gebietsplan.md`.
 
+## ADR 025 – Referenzgestützte Tallandschaft mit gemeinsamer Geometrie
+
+Das vom Nutzer am 14. November 2026 bereitgestellte Talbild konkretisiert die Landschaftsgestaltung. `world/ValleyLayout` hält Bachlauf, Brücke, Teich, Bäume, Wege, Felsen und die statischen Hindernisse als reine Daten vor. `world/ValleyRenderer` zeichnet daraus geschichtete, lokal erzeugte Phaser-Grafiken mit reproduzierbarer Wiesenverteilung. Es werden keine neuen Abhängigkeiten oder externen Bilddateien eingebunden. Akademie, Questgeber und Fundorte behalten ihre Positionen. Der spätere Asset-Austausch kann dieselben Anker und Hindernisflächen verwenden; die Bildreferenz und Farbgestaltung sind in `CodeMap_Grafikstil.md` dokumentiert.
+
+Der Bach wird entlang derselben geglätteten Mittellinie gezeichnet und in schmale statische Hindernisstreifen unterteilt. Seine einzige Öffnung ist die Holzbrücke. Deren Geländer begrenzen den begehbaren Korridor. Der Teich verwendet zur sichtbaren Ellipse passende Hindernisstreifen; Bäume kollidieren an den Stammfüßen. Die Akademiekollision deckt nun die gesamte sichtbare Gebäudewand ab. `WorldScene` übernimmt die Daten in ihre bestehende Physikgruppe. Der Steinrutsch bleibt ein separater Körper mit ausblendbarer Gerölldarstellung, dessen Freigabe ausschließlich vom Kampagnenzustand abhängt. Kleine Wasserreflexe laufen als szenengebundene Tweens und beeinflussen keine Zustände.
+
+Ein automatisierter Flutfülltest prüft zusammenhängende Laufwege mit dem Platzbedarf der Spielfigur zu allen Tal-Interaktionsorten, zu beiden Brückenseiten und zum Pass. Mit geschlossener Sperre ist der Wald-Ausgang unerreichbar; nach der Räumung ist er erreichbar. Eine zusätzlich gesperrte Brücke trennt die Bachseiten vollständig. Damit werden versehentlich unzugängliche Questorte und Umgehungen bei späteren Landschaftsänderungen erkannt. Die übrigen Gebiets- und Questregeln aus ADR 024 bleiben erhalten.
+
 ## Noch nicht enthalten
 
 Dreier-Formation, artspezifische ausführbare Fähigkeiten, Variablen und Funktionen in der Programmiersprache, freie JavaScript-Runtime, Online-Speicherung, Login, Backend, NOVA und Kompetenzengine bleiben spätere Erweiterungen. Frühere ADRs beschreiben die Entwicklungsschritte; ADR 024 ersetzt die frühere lineare Gebiets- und Questprogression. Die frühere Ausbauplanung zu Q06 ist durch ADR 021, die erste reguläre Teamkoordination durch ADR 022 umgesetzt.
