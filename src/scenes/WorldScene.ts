@@ -29,6 +29,7 @@ export class WorldScene extends Phaser.Scene {
   private gateRocks?: Phaser.GameObjects.Container;
   private dialogActive = false;
   private overlayActive = false;
+  private interactionHint?: string;
   private readonly onDialogClosed = () => { this.dialogActive = false; this.clearInput(); };
   private readonly onOverlay = (open: boolean) => { this.overlayActive = open; this.clearInput(); };
   private readonly onTeamToggle = (id: string) => { const message = this.campaign.toggleTeam(id); this.publishCampaign(); gameEvents.emit('world-notice', message); };
@@ -68,6 +69,7 @@ export class WorldScene extends Phaser.Scene {
   create(data?: { fromTravel?: boolean }): void {
     this.dialogActive = false; this.overlayActive = false; this.gateBody = undefined; this.gateRocks = undefined;
     this.encounterLabels.clear(); this.arkanaVisuals.clear();
+    this.interactionHint = undefined;
     this.physics.world.setBounds(0, 0, WORLD_WIDTH, WORLD_HEIGHT);
     this.drawLandscape();
     const obstacles = this.createObstacles();
@@ -111,7 +113,7 @@ export class WorldScene extends Phaser.Scene {
   update(): void {
     const interactionPressed = this.playerController.update(!this.dialogActive && !this.overlayActive);
     const nearby = this.interactionController.nearestTo(this.player.x, this.player.y);
-    gameEvents.emit('interaction-hint', nearby && !this.dialogActive && !this.overlayActive ? `E oder Leertaste: ${nearby.label}` : '');
+    this.showInteractionHint(nearby && !this.dialogActive && !this.overlayActive ? `E oder Leertaste: ${nearby.label}` : '');
 
     if (interactionPressed && nearby && !this.dialogActive && !this.overlayActive) {
       this.dialogActive = true;
@@ -133,7 +135,7 @@ export class WorldScene extends Phaser.Scene {
         for (const visual of visuals) visual.destroy();
         this.arkanaVisuals.delete(id);
         this.encounterLabels.delete(id);
-        gameEvents.emit('interaction-hint', '');
+        this.showInteractionHint('');
       }
     }
     for (const encounter of encounters) if (!this.arkanaVisuals.has(encounter.id)) this.createWorldEncounter(encounter.id, encounter.name, encounter.x, encounter.y, encounter.color);
@@ -153,6 +155,10 @@ export class WorldScene extends Phaser.Scene {
   }
 
   private clearInput(): void { touchInput.clear(); this.input.keyboard?.resetKeys(); }
+  private showInteractionHint(text: string): void {
+    if (this.interactionHint === text) return;
+    this.interactionHint = text; gameEvents.emit('interaction-hint', text);
+  }
 
   private createWorldEncounter(id: string, label: string, x: number, y: number, color: number): void {
     if (isArkanId(id) && this.campaign.has(id)) return;

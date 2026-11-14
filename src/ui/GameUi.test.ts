@@ -51,6 +51,16 @@ beforeEach(() => {
 });
 afterEach(() => vi.useRealTimers());
 
+it('ändert den DOM-Hinweis nur bei neuem Text, auch wenn identische Meldungen pro Frame eintreffen', () => {
+  const hint = document.getElementById('interaction-hint')!;
+  const observer = new MutationObserver(() => {}); observer.observe(hint, { childList: true, characterData: true, subtree: true });
+  for (let frame = 0; frame < 60; frame++) gameEvents.emit('interaction-hint', 'E: Mit Eldren sprechen');
+  expect(observer.takeRecords()).toHaveLength(1);
+  expect(hint.textContent).toBe('E: Mit Eldren sprechen');
+  gameEvents.emit('interaction-hint', ''); expect(observer.takeRecords()).toHaveLength(1);
+  gameEvents.emit('interaction-hint', ''); expect(observer.takeRecords()).toHaveLength(0); observer.disconnect();
+});
+
 describe('Platz für das Programm bei allen Aufgaben', () => {
   const details = (id: string) => document.getElementById(id) as HTMLDetailsElement;
   const openLesson = (index: number) => {

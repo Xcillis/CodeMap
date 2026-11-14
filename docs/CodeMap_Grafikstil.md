@@ -1,6 +1,12 @@
-# Gestaltungsreferenz: das Tal
+# Gestaltungsreferenzen und bevorzugter Grafikstil
 
-Stand: 14. November 2026. Das vom Nutzer bereitgestellte Talbild dient als Referenz für Landschaft, Farbigkeit und Orientierung. Die aktuelle spielbare Fassung verwendet vorläufige, lokal erzeugte Phaser-Grafiken. Die Ausarbeitung mit generierten HD-2D-Assets bleibt ein eigener späterer Schritt.
+Stand: 14. November 2026. Die bevorzugte Stilreferenz ist jetzt [„I created a low-poly isometric diorama biome for my indie game“ von Square Glade Games](https://www.youtube.com/shorts/wKRqFhqWc0A). Titel und Vorschaubild wurden geprüft; eine vollständige Videoanalyse liegt hier nicht vor. Das zuvor bereitgestellte Talbild bleibt Referenz für Landschaftsaufbau und Orientierung. Die aktuelle spielbare Fassung verwendet vorläufige, lokal erzeugte Phaser-Grafiken. Die Ausarbeitung mit endgültigen Assets bleibt ein eigener späterer Schritt.
+
+## Bevorzugte Stilrichtung
+
+Die neue Nutzerpräferenz richtet sich auf einen stilisierten Low-Poly-Diorama-Look mit schräger Ansicht von oben. Das Vorschaubild zeigt plastische Nadelbäume, natürlich grüne Vegetation, türkisfarbenes Wasser, erdige Wege und deutlich gerichtete weiche Schatten. Für die weitere Gestaltung sind lesbare räumliche Formen, eine einheitliche Lichtquelle und eine ruhige, natürliche Palette maßgeblich.
+
+Für den bestehenden Phaser-Aufbau ist eine Umsetzung über vorgerenderte 2D-Umgebungselemente und Figuren mit fester Perspektive vorgesehen. Das erlaubt räumlich wirkende Objekte und Animationen bei der vorhandenen 2D-Spielmechanik. Die verbindlichen Perspektiv-, Größen- und Lichtvorgaben werden vor einer Asset-Serie an einer kleinen zusammenhängenden Szene geprüft. Die aktuell erzeugten Platzhalter zeigen noch die bisherige Talinterpretation. Die Performancekorrektur setzt die neue Stilpräferenz als Planungsgrundlage fest und verändert keine Kameraprojektion oder Spielregeln.
 
 ## Bildsprache
 
@@ -15,7 +21,7 @@ Stand: 14. November 2026. Das vom Nutzer bereitgestellte Talbild dient als Refer
 
 Die bestehende Akademie, die Questplätze, Arkana-Fundorte und Gebietsein- und -ausgänge behalten ihre Positionen. Verzweigte Wege führen zu Eldren, Brann und Mira. Die Schleife der Wege gibt der zentralen Wiese eine Form und verbindet die westlichen Aufgabenorte mit der Akademie. Der östliche Ast führt über die Runenwinde zum gesperrten Pass.
 
-`ValleyLayout` enthält die tatsächlichen Landschaftspositionen und Hindernisflächen. `ValleyRenderer` zeichnet diese Daten in getrennten Ebenen: Boden, Wiesen, Wege, Wasser, Brücke, Felsen, Figuren und Baumkronen. Ein fester Zufallsstart erzeugt bei jedem Besuch dieselbe Verteilung von Wiesen und Blüten. Einige kleine Wasserreflexe bewegen sich unabhängig von der Spielmechanik.
+`ValleyLayout` enthält die tatsächlichen Landschaftspositionen und Hindernisflächen. `ValleyRenderer` erzeugt daraus einmalig zwei zwischengespeicherte Bildebenen für Terrain und Baumkronen sowie ein kleines separates Geröllbild. Die zugrunde liegenden Phaser-Grafikobjekte werden danach zerstört. Weitere Talbesuche verwenden dieselben drei Texturen. Ein fester Zufallsstart erzeugt dieselbe Verteilung von Wiesen und Blüten. Einige kleine Wasserreflexe bewegen sich unabhängig von der Spielmechanik und werden auf der Brücke ausgespart.
 
 Bach und Teich besitzen Kollisionen. Die Brücke hält einen breiten, begehbaren Korridor über das Wasser frei; Geländer begrenzen ihn oben und unten. Baumstämme und große Felsen blockieren, kleine Blüten und Gras bleiben begehbar. Der Steinrutsch verwendet weiterhin seine eigene, vom Questabschluss gesteuerte Sperre. Beim Freiräumen werden Darstellung und Kollision gemeinsam entfernt.
 

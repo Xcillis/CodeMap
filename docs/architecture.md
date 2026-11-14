@@ -224,6 +224,14 @@ Der Bach wird entlang derselben geglätteten Mittellinie gezeichnet und in schma
 
 Ein automatisierter Flutfülltest prüft zusammenhängende Laufwege mit dem Platzbedarf der Spielfigur zu allen Tal-Interaktionsorten, zu beiden Brückenseiten und zum Pass. Mit geschlossener Sperre ist der Wald-Ausgang unerreichbar; nach der Räumung ist er erreichbar. Eine zusätzlich gesperrte Brücke trennt die Bachseiten vollständig. Damit werden versehentlich unzugängliche Questorte und Umgehungen bei späteren Landschaftsänderungen erkannt. Die übrigen Gebiets- und Questregeln aus ADR 024 bleiben erhalten.
 
+## ADR 026 – Statische Landschaft zwischenspeichern
+
+Nach der Talüberarbeitung wurde Ruckeln gemeldet. Die neue Landschaft bestand aus vielen dauerhaften `Graphics`-Objekten mit komplexen Pfaden, Wiesen und Kreisbögen. Der installierte Phaser-Quelltext beschreibt die erneute Canvas-Ausführung beziehungsweise Polygonzerlegung beim Rendern und empfiehlt `generateTexture` für statische Grafik. Dies ist ein anhand des Codes begründeter Performanceverdacht; eine FPS-Messung auf dem betroffenen Gerät liegt nicht vor.
+
+`StaticLandscape` erzeugt temporäre, nicht in die Anzeigeliste eingetragene Grafikobjekte. Nach dem Zeichnen werden sie einmal in lokale Canvas-Texturen überführt und in `finally` zerstört. Der gemeinsame Texturmanager hält genau zwei Talebenen von jeweils 1600 × 1040 Pixeln und ein separates Geröllbild von 112 × 192 Pixeln vor. Weitere Gebietsbesuche erzeugen neue Bilder mit denselben Texturen, ohne die Geometrie erneut aufzubauen oder zusätzliche Cacheeinträge anzulegen. Die Ebenen erhalten ihre bisherigen Funktionen für Boden, Baumkronen und separat ausblendbaren Steinrutsch. Wasserreflexe bleiben wenige einfache dynamische Objekte und erscheinen nicht über der Brücke. Kollisionen und Questzustand verwenden weiterhin ihre vorhandenen Daten.
+
+Der Welthinweis wird nur bei verändertem Inhalt veröffentlicht. Die DOM-Ansicht prüft zusätzlich, ob ihr Text wirklich geändert werden muss. Dadurch entstehen beim Laufen neben derselben Person keine identischen Textknotenänderungen pro Frame. Tests prüfen Cachewiederverwendung über mehrere Szeneninstanzen, begrenzte Texturzahl, Aufräumen nach Fehlern und unveränderte DOM-Hinweise. Die bestehenden Laufwegprüfungen gelten weiter. Die neue Low-Poly-Stilpräferenz ist getrennt in `CodeMap_Grafikstil.md` dokumentiert und führt hier keine neue Engine oder Projektion ein.
+
 ## Noch nicht enthalten
 
 Dreier-Formation, artspezifische ausführbare Fähigkeiten, Variablen und Funktionen in der Programmiersprache, freie JavaScript-Runtime, Online-Speicherung, Login, Backend, NOVA und Kompetenzengine bleiben spätere Erweiterungen. Frühere ADRs beschreiben die Entwicklungsschritte; ADR 024 ersetzt die frühere lineare Gebiets- und Questprogression. Die frühere Ausbauplanung zu Q06 ist durch ADR 021, die erste reguläre Teamkoordination durch ADR 022 umgesetzt.

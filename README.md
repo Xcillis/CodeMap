@@ -25,6 +25,8 @@ NPCs öffnen ein Menü ihrer Aufgaben und Folgequests. Das **Questjournal** zeig
 
 Das Tal folgt der bereitgestellten Landschaftsreferenz: begrünte Felswände, geschwungene Wege, ein Bach mit begehbarer Holzbrücke, ein Teich und unterschiedliche Bäume. Wasser und große Hindernisse besitzen passende Kollisionen. Alle Grafiken entstehen lokal mit Phaser; der [Grafikstil](docs/CodeMap_Grafikstil.md) beschreibt die vorläufige Umsetzung und die spätere Asset-Ausarbeitung.
 
+Die statische Tallandschaft wird einmalig in wiederverwendbare Texturen umgewandelt. Beim Bewegen werden Terrain und Baumkronen als zwei Bildebenen angezeigt; aufwendige Vektorformen werden dabei nicht pro Frame erneut verarbeitet. Die bevorzugte Richtung für endgültige Assets ist inzwischen der im Grafikstil dokumentierte Low-Poly-Diorama-Look.
+
 ## Spielen und programmieren
 
 - **WASD / Pfeiltasten:** Held bewegen. **E / Leertaste:** nahe Person, Runenwinde oder Reiseort benutzen. Auf Tablets stehen Steuerkreuz und **REDEN** zur Verfügung.

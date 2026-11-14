@@ -48,7 +48,10 @@ export class GameUi {
       setLearningText(this.el('quest-text'), objective);
       this.el('hud').classList.toggle('complete', complete);
     });
-    gameEvents.on('interaction-hint', (text: string) => { this.el('interaction-hint').textContent = text; });
+    gameEvents.on('interaction-hint', (text: string) => {
+      const hint = this.el('interaction-hint');
+      if (hint.textContent !== text) hint.textContent = text;
+    });
     gameEvents.on('dialog-opened', (dialog: DialogPayload) => {
       this.pendingDialogAction = dialog.action;
       this.el('dialog-speaker').textContent = dialog.speaker;

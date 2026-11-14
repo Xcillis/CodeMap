@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
 import { WORLD_SIZE } from '../gameplay/WorldRegions';
+import { staticLandscape } from './StaticLandscape';
 import {
   RIVER_POINTS, RIVER_WIDTH, VALLEY_BOULDERS, VALLEY_BORDERS, VALLEY_BRIDGE, VALLEY_PATHS,
   VALLEY_POND, VALLEY_TREES, riverX, valleyBlocked, type Obstacle, type Point, type ValleyTree,
@@ -28,8 +29,8 @@ function drawRock(g: Phaser.GameObjects.Graphics, body: Obstacle, moss = true): 
   }
 }
 
-function drawBorders(scene: Phaser.Scene): void {
-  const g = scene.add.graphics().setDepth(1); const random = randomSource(75);
+function drawBorders(g: Phaser.GameObjects.Graphics): void {
+  const random = randomSource(75);
   for (const body of VALLEY_BORDERS) {
     const vertical = body.height > body.width;
     g.fillStyle(0x4e6754).fillRect(body.x - body.width / 2, body.y - body.height / 2, body.width, body.height);
@@ -42,11 +43,14 @@ function drawBorders(scene: Phaser.Scene): void {
   }
 }
 
-function drawTree(scene: Phaser.Scene, tree: ValleyTree, index: number): void {
-  const { x, y, size } = tree; const g = scene.add.graphics().setDepth(2); const canopy = scene.add.graphics().setDepth(6);
+function drawTrunk(g: Phaser.GameObjects.Graphics, tree: ValleyTree): void {
+  const { x, y, size } = tree;
   g.fillStyle(0x284b35, .25).fillEllipse(x + 10, y + 13, 76 * size, 25 * size);
   g.fillStyle(0x694a2e).fillRect(x - 6 * size, y - 35 * size, 13 * size, 57 * size);
   polygon(g, 0x976b3b, [x, y - 30 * size, x + 3 * size, y + 15 * size, x + 14 * size, y + 23 * size, x + 3 * size, y + 20 * size, x - 9 * size, y + 21 * size, x - 3 * size, y + 10 * size]);
+}
+function drawCanopy(canopy: Phaser.GameObjects.Graphics, tree: ValleyTree, index: number): void {
+  const { x, y, size } = tree;
   const leaf = tree.kind === 'pine' ? [0x204f3b, 0x337849, 0x57994e] : [0x3e763b, 0x69a343, 0x99bb4d];
   if (tree.kind === 'pine') {
     for (let tier = 0; tier < 4; tier++) {
@@ -66,8 +70,7 @@ function drawTree(scene: Phaser.Scene, tree: ValleyTree, index: number): void {
   }
 }
 
-function drawPaths(scene: Phaser.Scene): void {
-  const g = scene.add.graphics().setDepth(.2);
+function drawPaths(g: Phaser.GameObjects.Graphics): void {
   for (const route of VALLEY_PATHS) {
     const points = new Phaser.Curves.Spline(route.map((point) => new Phaser.Math.Vector2(point.x, point.y))).getPoints(100);
     g.lineStyle(54, palette.edge, .7).strokePoints(points, false);
@@ -81,8 +84,7 @@ function drawPaths(scene: Phaser.Scene): void {
   g.lineStyle(3, 0x8b8157, .6).strokeEllipse(440, 390, 130, 95);
 }
 
-function drawWater(scene: Phaser.Scene): void {
-  const g = scene.add.graphics().setDepth(.3);
+function drawWater(g: Phaser.GameObjects.Graphics): void {
   g.lineStyle(RIVER_WIDTH + 18, 0x71866c).strokePoints([...RIVER_POINTS], false);
   g.lineStyle(RIVER_WIDTH + 8, 0xb8b990).strokePoints([...RIVER_POINTS], false);
   g.lineStyle(RIVER_WIDTH, palette.water).strokePoints([...RIVER_POINTS], false);
@@ -106,14 +108,19 @@ function drawWater(scene: Phaser.Scene): void {
     const angle = i * 2.4; const x = pond.x + Math.cos(angle) * 70; const y = pond.y + Math.sin(angle) * 34;
     g.fillStyle(0x88b75a).fillEllipse(x, y, 15, 8); g.lineStyle(1, 0xc4d375).beginPath().moveTo(x, y).lineTo(x + 6, y - 2).strokePath();
   }
+}
+
+function animateWater(scene: Phaser.Scene): void {
   for (let i = 0; i < 7; i++) {
+    const position = 160 + i * 118;
+    if (Math.abs(position - VALLEY_BRIDGE.y) < VALLEY_BRIDGE.height / 2 + 14) continue;
     const y = 160 + i * 118; const ripple = scene.add.ellipse(riverX(y), y, 18, 3).setStrokeStyle(1, 0xd3f1dc, .65).setDepth(.35);
     scene.tweens.add({ targets: ripple, y: y + 14, alpha: .15, duration: 1900 + i * 95, delay: i * 180, yoyo: true, repeat: -1 });
   }
 }
 
-function drawBridge(scene: Phaser.Scene): void {
-  const g = scene.add.graphics().setDepth(.5); const bridge = VALLEY_BRIDGE;
+function drawBridge(g: Phaser.GameObjects.Graphics): void {
+  const bridge = VALLEY_BRIDGE;
   const left = bridge.x - bridge.width / 2; const top = bridge.y - bridge.height / 2;
   g.fillStyle(0x203a35, .3).fillRect(left + 6, top + 10, bridge.width, bridge.height);
   g.fillStyle(0x705435).fillRect(left, top, bridge.width, bridge.height);
@@ -131,8 +138,8 @@ function drawBridge(scene: Phaser.Scene): void {
   }
 }
 
-function addMeadowDetail(scene: Phaser.Scene): void {
-  const g = scene.add.graphics().setDepth(.1); const random = randomSource(20261114);
+function addMeadowDetail(g: Phaser.GameObjects.Graphics): void {
+  const random = randomSource(20261114);
   const pathSegments = VALLEY_PATHS.flatMap((points) => points.slice(1).map((end, i) => ({ start: points[i], end })));
   const nearPath = (point: Point) => pathSegments.some(({ start, end }) => {
     const dx = end.x - start.x; const dy = end.y - start.y;
@@ -156,16 +163,24 @@ function addMeadowDetail(scene: Phaser.Scene): void {
 
 /** Local, layered vector placeholders inspired by the supplied valley reference; no bitmap background. */
 export function drawValley(scene: Phaser.Scene): { landslide: Phaser.GameObjects.Container } {
-  const ground = scene.add.graphics(); const random = randomSource(21);
-  ground.fillStyle(palette.grass).fillRect(0, 0, WORLD_SIZE.width, WORLD_SIZE.height);
-  for (let i = 0; i < 180; i++) ground.fillStyle(i % 2 ? palette.light : palette.shade, .12).fillEllipse(random() * 1600, random() * 1040, 70 + random() * 210, 25 + random() * 90);
-  drawPaths(scene); drawWater(scene); drawBridge(scene); addMeadowDetail(scene); drawBorders(scene);
-  const rocks = scene.add.graphics().setDepth(1);
-  for (const body of VALLEY_BOULDERS) drawRock(rocks, body);
-  VALLEY_TREES.forEach((tree, index) => drawTree(scene, tree, index));
-  const landslide = scene.add.container(0, 0).setDepth(4); const rubble = scene.add.graphics(); landslide.add(rubble);
-  rubble.fillStyle(0x8e8060).fillEllipse(1460, 520, 98, 172);
-  for (const [x, y, width, height] of [[1440, 449, 49, 36], [1480, 461, 45, 45], [1440, 490, 58, 49], [1480, 507, 47, 44], [1445, 536, 57, 51], [1480, 557, 47, 42], [1435, 582, 43, 38], [1472, 590, 48, 34]]) drawRock(rubble, { x, y, width, height }, false);
+  staticLandscape(scene, 'valley-terrain-v2', WORLD_SIZE.width, WORLD_SIZE.height, 0, (ground) => {
+    const random = randomSource(21);
+    ground.fillStyle(palette.grass).fillRect(0, 0, WORLD_SIZE.width, WORLD_SIZE.height);
+    for (let i = 0; i < 180; i++) ground.fillStyle(i % 2 ? palette.light : palette.shade, .12).fillEllipse(random() * 1600, random() * 1040, 70 + random() * 210, 25 + random() * 90);
+    addMeadowDetail(ground); drawPaths(ground); drawWater(ground); drawBridge(ground); drawBorders(ground);
+    for (const body of VALLEY_BOULDERS) drawRock(ground, body);
+    for (const tree of VALLEY_TREES) drawTrunk(ground, tree);
+  });
+  staticLandscape(scene, 'valley-canopies-v2', WORLD_SIZE.width, WORLD_SIZE.height, 6, (canopies) => {
+    VALLEY_TREES.forEach((tree, index) => drawCanopy(canopies, tree, index));
+  });
+  const landslide = scene.add.container(0, 0).setDepth(4);
+  const rubble = staticLandscape(scene, 'valley-landslide-v2', 112, 192, 0, (graphics) => {
+    graphics.translateCanvas(-1404, -424);
+    graphics.fillStyle(0x8e8060).fillEllipse(1460, 520, 98, 172);
+    for (const [x, y, width, height] of [[1440, 449, 49, 36], [1480, 461, 45, 45], [1440, 490, 58, 49], [1480, 507, 47, 44], [1445, 536, 57, 51], [1480, 557, 47, 42], [1435, 582, 43, 38], [1472, 590, 48, 34]]) drawRock(graphics, { x, y, width, height }, false);
+  }).setPosition(1404, 424);
+  landslide.add(rubble); animateWater(scene);
   scene.add.text(160, 100, 'TAL VON AETHERIA', { fontFamily: 'Georgia, serif', fontSize: '25px', color: '#fff3cc', stroke: '#354c34', strokeThickness: 5 }).setDepth(4);
   return { landslide };
 }

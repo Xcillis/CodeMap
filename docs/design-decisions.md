@@ -59,3 +59,9 @@ Das erste Gebiet ist ein abgetrenntes Tal. Bewegung und Angriff sind das gemeins
 Im Wald ist zunächst eine Einführung in Bedingungen und Verzweigungen verpflichtend. Anschließend sind bedingte Kämpfe, ein Entscheidungsrätsel und die Moosling-Reihe frei wählbar. Moosling wird dort gefunden und ausdrücklich aufgenommen. Die lokale Folgequest führt weiterhin zwei eigene Programme ein. Die Rückkehr ins Tal und offene Wahlquests bleiben möglich.
 
 Als konkrete Prototypausgestaltung gibt es 13 Quests bei sechs Questgebern. Für die Gebietsaufgabe genügt nach dem Tutorial eine beliebige der drei Schleifen-Einstiegsaufgaben. Dadurch bleibt die Wahlfreiheit erhalten. Die Gebietsaufgabe erklärt die für ihr Rätsel benötigte Verschachtelung selbst. Genaue Voraussetzungen, Orte und Lernziele stehen im Gebietsplan und in der Lernprogression. Alte Abschlüsse und Waldzugänge bleiben bei der Migration erhalten; neue Aufgaben werden dabei nicht automatisch bestanden.
+
+## DD 006 Low-Poly-Diorama als bevorzugter Grafikstil
+
+**Status:** Nutzerpräferenz vom 14. November 2026; als Stilziel festgehalten, endgültige Assets folgen später.
+
+Die neue bevorzugte Referenz ist das [Low-Poly-Diorama von Square Glade Games](https://www.youtube.com/shorts/wKRqFhqWc0A). Sie hat für den gewünschten Grafikstil Vorrang vor dem früheren gemalten Talbild; dieses bleibt als Landschafts- und Anordnungsreferenz erhalten. Die Stilbeschreibung und die technische Ausarbeitung für vorgerenderte 2D-Assets stehen in `CodeMap_Grafikstil.md`. Die unmittelbare Änderung reduziert die Renderlast der bisherigen Platzhalterlandschaft. Eine vollständige Umgestaltung auf die neue Optik ist damit noch nicht implementiert.
