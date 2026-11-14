@@ -1,18 +1,21 @@
 import { gameEvents } from '../game/events';
 import { ARKANA_SPECIES } from '../gameplay/ArkanaCatalog';
 import { Campaign, type CampaignState } from '../gameplay/Campaign';
-import { WORLD_QUESTS } from '../gameplay/WorldQuests';
 import type { ArkanId } from '../combat/types';
 import { CHARACTER_TABS, isCharacterTab, renderCharacterView, type CharacterTab } from './CharacterView';
 import { learnedTerms } from '../gameplay/LearningTerms';
 import { setLearningText } from './LearningText';
 import { adventureBackup, restoreAdventure, startNewAdventure, type AdventureChange } from '../gameplay/LocalProgress';
 import { renderAdventureControls } from './AdventureControls';
+import { renderQuestBoard } from './QuestBoardView';
+import { QUEST_GIVERS, isQuestGiverId, type QuestGiverId } from '../gameplay/QuestNetwork';
+import { REGIONS } from '../gameplay/WorldRegions';
 
 /** Collection and journal are views; ownership and quest validation stay in Campaign. */
 export class WorldUi {
   private campaign = new Campaign();
-  private tab: CharacterTab | 'journal' | 'training' = 'collection';
+  private tab: CharacterTab | 'journal' | 'training' | 'giver' = 'collection';
+  private giver?: QuestGiverId;
   private characterTab: CharacterTab = 'collection';
   private blocked = false;
   private returnFocus?: HTMLElement;
@@ -22,6 +25,7 @@ export class WorldUi {
     this.el('open-journal').addEventListener('click', () => this.open('journal'));
     this.el('open-training').addEventListener('click', () => this.open('training'));
     gameEvents.on('world-training-open', () => this.open('training'));
+    gameEvents.on('world-giver-open', (id: unknown) => { if (isQuestGiverId(id) && QUEST_GIVERS[id].region === this.campaign.region) { this.giver = id; this.open('giver'); } });
     this.el('world-panel-close').addEventListener('click', () => this.close());
     for (const tab of CHARACTER_TABS) {
       const button = this.el(`character-tab-${tab}`);
@@ -56,7 +60,7 @@ export class WorldUi {
     });
     this.render();
   }
-  private open(tab: CharacterTab | 'journal' | 'training'): void {
+  private open(tab: CharacterTab | 'journal' | 'training' | 'giver'): void {
     if (this.blocked) return;
     if (this.panel.hidden) this.returnFocus = document.activeElement instanceof HTMLElement ? document.activeElement : undefined;
     this.tab = tab; this.panel.hidden = false; this.render(); gameEvents.emit('world-overlay', true);
@@ -78,13 +82,13 @@ export class WorldUi {
   private render(): void {
     const state = this.campaign.snapshot;
     const team = this.campaign.activeTeam;
-    this.el('active-team-summary').textContent = `Team ${team.length}/${this.campaign.teamLimit}: ${team.map((item) => ARKANA_SPECIES[item.speciesId].name).join(' → ') || 'noch leer'}`;
+    this.el('active-team-summary').textContent = `${REGIONS[state.region].name} · Team ${team.length}/${this.campaign.teamLimit}: ${team.map((item) => ARKANA_SPECIES[item.speciesId].name).join(' → ') || 'noch leer'}`;
     const character = isCharacterTab(this.tab);
-    this.el('world-panel-title').textContent = character ? 'Charakter' : this.tab === 'journal' ? 'Questjournal' : 'Freie Trainingsarena';
+    this.el('world-panel-title').textContent = character ? 'Charakter' : this.tab === 'journal' ? 'Questjournal' : this.tab === 'giver' && this.giver ? QUEST_GIVERS[this.giver].name : 'Freie Trainingsarena';
     const intro = this.tab === 'collection' ? `${state.owned.length} von ${Object.keys(ARKANA_SPECIES).length} Arkana-Arten gesammelt. Hier findest du ihre Eigenschaften und gelernten Fähigkeiten.`
       : this.tab === 'team' ? `${team.length} von ${this.campaign.teamLimit} Teamplätzen belegt. Die Einführung jeder Lernquest nennt das benötigte Team. Im freien Training sind bereits Solo und Duo möglich.`
       : this.tab === 'glossary' ? `${learnedTerms(state.completed).length} Fachbegriffe gelernt. Lies Erklärungen und probiere die Beispiele mit den bereits gelernten Befehlen aus.`
-      : this.tab === 'journal' ? this.campaign.objective : 'Alle implementierten Befehle sind hier verfügbar. Das Training verändert weder Lernfreigaben noch Questabschlüsse. Alte Arena-Entwürfe bleiben in den entsprechenden Trainingsaufgaben erhalten.';
+      : this.tab === 'journal' ? this.campaign.objective : this.tab === 'giver' && this.giver ? `${QUEST_GIVERS[this.giver].description} Wähle eine bereite Aufgabe. Folgequests haben eigene Voraussetzungen.` : 'Alle implementierten Befehle sind hier verfügbar. Das Training verändert weder Lernfreigaben noch Questabschlüsse. Alte Arena-Entwürfe bleiben in den entsprechenden Trainingsaufgaben erhalten.';
     setLearningText(this.el('world-panel-intro'), intro);
     this.el('character-tabs').hidden = !character;
     for (const tab of CHARACTER_TABS) {
@@ -105,20 +109,7 @@ export class WorldUi {
       return;
     }
     if (this.tab === 'training') { this.renderTraining(content); return; }
-    for (const [index, quest] of WORLD_QUESTS.entries()) {
-      const card = document.createElement('article'); card.className = 'journal-card';
-      const heading = document.createElement('h3'); heading.textContent = quest.title; card.append(heading);
-      const discovered = state.discovered.includes(quest.id); const completed = state.completed.includes(quest.id);
-      const error = this.campaign.missionError(quest.id);
-      const offer = this.campaign.lessonOffer(quest.id);
-      card.append(this.paragraph(completed ? 'Abgeschlossen' : discovered ? 'Entdeckt' : 'Noch nicht entdeckt'), this.paragraph(`Fundort: ${quest.target}`));
-      if (discovered && (index === 0 || state.completed.includes(WORLD_QUESTS[index - 1].id))) card.append(this.paragraph(quest.introduction));
-      if (error) card.append(this.paragraph(error));
-      const button = document.createElement('button'); button.type = 'button'; button.id = `journal-quest-${quest.id}`;
-      button.textContent = offer.action?.startsWith('prepare-lesson:') ? offer.actionLabel?.replace('Quest starten', 'starten') ?? 'Team wählen & starten' : completed ? 'Erneut spielen' : 'Quest starten'; button.disabled = !offer.action;
-      button.addEventListener('click', () => { if (offer.action) { this.close(); gameEvents.emit('campaign-action', offer.action); } });
-      card.append(button); content.append(card);
-    }
+    renderQuestBoard(content, this.campaign, (action) => { this.close(); gameEvents.emit('campaign-action', action); }, this.tab === 'giver' ? this.giver : undefined);
   }
   private changeAdventure(change: () => AdventureChange): void {
     if (this.blocked || this.panel.hidden) return;

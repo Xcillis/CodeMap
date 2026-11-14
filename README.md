@@ -1,114 +1,55 @@
 # CodeMap – lokaler RPG-Prototyp
 
-Lokaler Phaser-/TypeScript-Prototyp aus *Die Chroniken von Aetheria* mit Erkundung, auffindbaren Arkana, Sammlung, Teamwahl und acht programmierbaren Weltquests.
+Phaser-/TypeScript-RPG mit zwei verbundenen Gebieten, 13 spielbaren Lernquests, sammelbaren Arkana und einem Block-/Texteditor. Alles funktioniert lokal. Der [Gebietsplan](docs/CodeMap_Gebietsplan.md) beschreibt Questgeber, Voraussetzungen und Reisewege; die [Lernprogression](docs/CodeMap_Lernprogression.md) erklärt die didaktische Struktur.
 
-Jedes aktive Arkana besitzt sein eigenes Programm mit ausdrücklich benannten Befehlen, beispielsweise `moosling.attack()` und `glutling.moveForward()`.
-
-Die ersten acht Quests aus dem [Lern- und Questplan](docs/CodeMap_Lernprogression.md) sind spielbar: Anweisungen und Sequenzen, Basisangriff, Schleifen und Entscheidungen, danach Mooslings eigenes Programm und die Koordination zweier Arkana. Die freie Trainingsarena stellt unabhängig davon alle implementierten Befehle bereit.
-
-## Erster Spieldurchlauf
-
-Ist Glutling bereits gesammelt, aber das aktive Team passt noch nicht, bietet der Questdialog **Glutling wählen & Quest starten** an. Dieser Klick setzt Glutling allein aktiv und öffnet die Aufgabe direkt. Im Journal ist derselbe Weg verfügbar. Fehlt Glutling noch, zeigt der Dialog seinen Fundort und kehrt mit **Zur Spielwelt: Glutling suchen** zur Erkundung zurück.
-
-Für Q07 bietet dieselbe Oberfläche **Moosling wählen & Quest starten** an, sobald Moosling tatsächlich gesammelt ist. Q08 bietet **Team wählen & Quest starten** an: Erst das Annehmen dieser Einführung schaltet den zweiten regulären Teamplatz frei und setzt Moosling vor Glutling aktiv. Ein bloßer Dialogbesuch genügt nicht. Beide Arkana müssen bereits gesammelt sein; es wird keines automatisch vergeben.
-
-1. Sprich mit **Arkanist Eldren** an der Akademie (E oder REDEN). Er zeigt dir Glutlings Fundort.
-2. Begegne **Glutling am westlichen Akademieweg** und bestätige „In Sammlung aufnehmen“. Es kennt zunächst nur Bewegung nach rechts und oben. Für die ersten sechs Lernquests wird Glutling als einziges aktives Arkana gewählt.
-3. Untersuche den **Runenstein am Weg** oder sprich erneut mit Eldren. **„Glutlings erste Schritte“** ist ein Rätsel ohne Gegner: Führe die erste vorbereitete Anweisung einzeln aus und ergänze eine Bewegungssequenz zur goldenen Rune. Steine blockieren Felder.
-4. Nach der letzten Animation zeigt die Arena **„Quest abgeschlossen!“** mit einer Erklärung und dem nächsten Weltziel. **Zur Spielwelt** bringt dich zurück; **Programm ansehen** lässt dich deine Lösung weiter prüfen. **„Das Übungskonstrukt“** führt bei Annahme der Einführung den Basisangriff ein. Kombiniere Bewegung und Angriff gegen ein passives Konstrukt. Schleifen sind hier noch gesperrt.
-5. **„Der lange Runenweg“** führt erst jetzt `repeat` ein. Erreiche die Rune mit einer Schleife, die eine Bewegung mindestens zweimal ausführt. Vier Einzelbefehle oder eine leere Schleife genügen für den Lernabschluss nicht.
-6. Nach Q03 führt Eldren zu **„Der Musterpfad“** am **Musterstein am Nordweg** (nördlich der ersten Rune). Ein schmaler Treppenweg verlangt, rechts und oben gemeinsam mit derselben Schleife zu wiederholen. Der Abschluss prüft mindestens zwei erfolgreiche gemeinsame Durchläufe. Einzelbefehle, getrennte Schleifen und Durchläufe mit blockierten Schritten zählen dafür nicht. Ein unvollständiger Wiederholungsblock ist vorbereitet; Hinweise helfen schrittweise.
-7. **„Der aufmerksame Begleiter“** am **Prüfstein südlich der Akademie** folgt nach Q04. Glutling soll mit demselben falls/sonst-Block in zwei Situationen entscheiden: neben dem Konstrukt angreifen, sonst einen Schritt näher herangehen. Die erste Aktion je Situation zählt; das Konstrukt muss hier nicht besiegt werden. `glutling.enemyAdjacent` und `glutling.moveForward()` werden erklärt und eingeführt. Schleifen bleiben für diese einzelne Entscheidung ausgeblendet; die Kombination folgt in Q06.
-8. Erst nach den **fünf Einführungsquests** erscheint **Moosling im südöstlichen Hain**. Erkunde den Hain, sprich Moosling an und bestätige die Aufnahme. Es wird nicht automatisch vergeben und steht vorher weder als Weltfigur noch als Interaktion bereit. Im freien Training kannst du mit beiden Arten experimentieren, sobald du sie tatsächlich gesammelt hast. Q07 und Q08 führen anschließend Mooslings eigenes Programm und den zweiten aktiven Teamplatz ein.
-9. **„Der bewegliche Wächter“** am **Wächterstein am östlichen Nordweg** folgt nach Q05; Eldren bietet ebenfalls den Start an. Glutling entscheidet nun in einer Schleife wiederholt zwischen Annäherung und Angriff. Nach jeder seiner Aktionen handelt der Wächter: näher kommen oder direkt daneben für 1 LP angreifen. Dasselbe Programm muss zwei vollständige Begegnungen bestehen. Dabei muss dieselbe innere Bedingung in jeder Begegnung bei verschiedenen Schleifendurchläufen sowohl nein als auch ja ergeben und passende Aktionen auslösen. Reine Einzelbefehle reichen auch bei einem Sieg nicht für dieses Lernziel. Q06 verwendet weiterhin Glutling allein, schaltet keinen zweiten Teamplatz frei und ergänzt nach Abschluss das Beispiel im Fachbegriffe-Reiter.
-10. **„Mooslings eigener Weg“** am **Hain-Prüfstein** folgt nach Q06. Sammle Moosling, falls es noch fehlt, und wähle es allein aktiv. Bekannte Bewegung und Angriffe werden nun in seinem eigenen Programm verwendet. Mit 5 LP hält Moosling mehr aus; sein Angriff verursacht nur 1 Schaden. Das passive Konstrukt mit 3 LP verlangt entsprechend mehr Treffer. Der Begriff **Objekt** wird anhand der ausgewählten Figur erklärt.
-11. **„Zwei Programme, ein Ziel“** am **Teamstein am Westweg** folgt nach Q07. Nimm die Einführung an, um den zweiten Teamplatz zu öffnen. Moosling startet auf der Zeile des passiven Konstrukts, Glutling eine Zeile darüber. Wähle beide Figuren nacheinander und schreibe je ein Programm. Das Konstrukt mit 6 LP muss ausgeschaltet werden und beide Arkana müssen mindestens einen wirksamen Treffer beitragen. Moosling führt immer seine nächste Anweisung zuerst aus, danach Glutling. Ein fertiges Programm wartet. Die Begriffe **Ausführungsreihenfolge** und **Koordination** werden danach im Charakterfenster ergänzt. Spezialfähigkeiten wie Heilung und Ranken bleiben eigene spätere Einführungen.
-
-**C** oder der Button **Charakter** öffnet das Charakterfenster mit drei Reitern:
-
-- **Sammlung** zeigt die gefundenen Arkana, ihre Eigenschaften und gelernten Befehle.
-- **Aktuelles Team** zeigt aktive Teamplätze und weitere gesammelte Arkana. Hier setzt du Begleiter aktiv oder nimmst sie aus dem Team.
-- **Gelernte Fachbegriffe** erklärt bereits gelernte Begriffe mit einem konkreten Beispiel und passendem Programmtext. Nach Quest 1 erscheinen **Anweisung** und **Sequenz**, nach Quest 2 **Lebenspunkte**, nach Quest 3 **Schleife**. Nach Q04 kommen **Schleifenrumpf** und ein weiteres Schleifenbeispiel mit zwei inneren Anweisungen hinzu, nach Q05 **Bedingung** und **Verzweigung**. Nach Q06 wird das Beispiel zur wiederholten Entscheidung ergänzt, nach Q07 erscheint Objekt und nach Q08 erscheinen Ausführungsreihenfolge und Koordination mit getrennten Programmbeispielen. Bestehende Questabschlüsse werden automatisch berücksichtigt; freies Training schaltet keine Einträge frei.
-
-Die Reiter lassen sich anklicken, antippen oder mit Links/Rechts wechseln; Pos1/Ende springt zum ersten/letzten Reiter. **J** öffnet das Questjournal, **Esc** schließt die Ansicht. Während einer geöffneten Ansicht bewegt sich die Spielfigur nicht. Entdeckte Quests lassen sich mit passendem Team direkt im Journal wiederholen. Neue Quests werden über ihre Weltorte oder Eldren entdeckt. Die Rückkehr behält die Position in der Welt.
-
-Bei jeder Quest stehen **Ziele & Aufgabe** zunächst geöffnet über dem Editor. Mit **Ziele minimieren · Programmieren** oder beim ersten tatsächlichen Ausführen werden sie eingeklappt. Du kannst sie jederzeit wieder öffnen; deine Auswahl bleibt bei weiteren Schritten erhalten. **Einführung nachlesen**, **Tipps** und **Bedienung** sind getrennt aufklappbar. Beim Öffnen der Tipps erscheint die erste Hilfe; **Nächster Tipp** führt schrittweise weiter. Ein neuer Questbesuch zeigt die Ziele erneut und beginnt die Tipps von vorn. Das gilt auch beim Wiederholen bekannter Quests; freies Training verwendet dieselbe Ansicht.
-
-Die Arbeitsfläche nutzt den übrigen Fensterplatz. Figurenwahl und Werkzeugleisten sind kompakt; **Editor vergrößern** erweitert den Programmbereich auf das Fenster. **Arena & Editor** stellt die gemeinsame Ansicht wieder her. Beim Ausführen wird die Arena automatisch wieder sichtbar. Block- und Textentwürfe bleiben beim Vergrößern und beim Aufklappen erhalten. Auf kleineren Bildschirmen sind längere Ziele und Statusmeldungen scrollbar; die Ausführungsbuttons stehen außerhalb dieser Bereiche.
-
-Die Anfänge enthalten eine einzelne Anweisung oder einen leeren Entwurf, keine vollständige Lösung. Der Startblock ist auch vor der Schleifeneinführung unter **Programmstart** verfügbar.
-
-Die Einführung erklärt Begriffe wie „Sequenz“ anhand von Glutlings beobachtbaren Handlungen. Fachbegriffe werden in Dialogen, Einführungen und Hinweisen **fett und goldfarben hervorgehoben**. Aufgaben formulieren konkrete Schritte; Programmierwissen wird dabei nicht vorausgesetzt.
-
-## Neues Abenteuer und Sicherung
-
-Neue Spielstände starten **ohne Arkana**. Nach Eldrens Einführung findest und sammelst du zuerst Glutling; weitere Arkana kommen während des Spielverlaufs hinzu. Ein bereits gespeicherter Teststand kann weiterhin zwei gesammelte Arten enthalten. Vorhandener Besitz wird durch ein Update nicht entfernt.
-
-Für einen frischen Einstieg: **C → Sammlung → Neues Abenteuer → Sichern & neu beginnen**. Erst die Bestätigung ersetzt den aktiven Spielstand und lädt die Seite neu. Der bisherige Stand mit Sammlung, Team, Questfortschritt, Fachbegriffen sowie Text- und Blockentwürfen wird zuvor lokal gesichert. Eine vorhandene ältere Sicherung wird dabei ersetzt; ein noch leerer neuer Stand überschreibt sie nicht.
-
-Unter **Gesicherten Spielstand laden** kannst du die Sicherung wiederherstellen. Der gerade aktive Stand wird dabei seinerseits gesichert, sodass du zurückwechseln kannst. Die Sicherungsanzeige nennt die enthaltenen Arkana und Questabschlüsse. Bei einem Speicherfehler wird der Wechsel abgebrochen. Während Dialogen oder Begegnungen ist die Spielstandverwaltung gesperrt.
-
-## Freie Trainingsarena und bestehende Spielstände
-
-Über **Freie Trainingsarena** im Weltmenü oder den Trainingsstein südöstlich der Akademie bereitest du Solo- oder Duo-Versuche vor. Wähle die Trainingsaufgabe und die gesammelten Arkana. Dort sind alle implementierten Bewegungs-, Angriffs-, Wiederholungs- und Bedingungsbefehle verfügbar. Dieses Training vergibt keine Lernfreigaben und schließt keine Weltquest ab. Die Auswahl verändert dein aktives Weltteam nicht.
-
-**Ein Spielstand-Reset ist für den neuen Einstieg nicht erforderlich.** Die Kampagnenversion 2 verwendet neue Quest-IDs. Alte Siege werden separat archiviert; Sammlung, bestehende Teams und sämtliche Text- und Blockly-Entwürfe bleiben erhalten. Die bisherigen numerischen Programmplätze 1–3 werden von den entsprechenden freien Trainingsaufgaben weiterhin verwendet. Neue Lernquests speichern unter eigenen IDs. Ein älterer Spielstand kann daher die neue Einführung beginnen: Glutling finden oder aus der vorhandenen Sammlung allein aktiv setzen und mit Eldren sprechen.
-
-Auch wenn ein alter Spielstand bereits fortgeschrittene Fähigkeiten besitzt, begrenzen die Lernquests die Bibliothek auf ihren jeweiligen Inhalt. Dadurch bleibt die erste Quest eine Bewegungssequenz. Bereits besessene Arkana und freigeschaltete Zweierteams bleiben erhalten. Neue Weltteams starten mit einem Platz; der zweite öffnet sich erst bei Annahme der Q08-Einführung nach Q07. Duo-Training ist unabhängig davon mit zwei gesammelten Arten möglich.
-
-Bereits abgeschlossene Q01–Q03 bleiben erhalten. Nach dem Neuladen zeigt das Weltziel auf den Musterstein; sprich alternativ mit Eldren, um Q04 zu entdecken und direkt zu starten. Q04 besitzt einen eigenen Speicherplatz für Block- und Textentwürfe. Ein Reset ist nicht erforderlich.
-
-Ist Q04 bereits abgeschlossen, zeigt das nächste Weltziel auf den Prüfstein für Q05. Sprich mit Eldren oder untersuche den Prüfstein, um die Aufgabe zu öffnen. Q05 speichert den Programmentwurf separat. „Programm ausführen“ prüft beide Startsituationen mit demselben Programm; „Nächsten Schritt ausführen“ prüft die jeweils nächste Situation. Die Anzeige nennt Situation und bestandene Fälle. Ein geändertes Programm oder „Neu starten“ beginnt die Prüfung von vorn; ein reiner Darstellungswechsel erhält den Fortschritt. Ein begonnener oder abgebrochener Versuch wird nicht als bestandene Quest gespeichert.
-
-Ist Q05 bereits geschafft, führt das Weltziel ohne Reset zum Wächterstein für Q06. Moosling bleibt nach Q05 auffindbar; bestehender Besitz und alle bisherigen Entwürfe bleiben erhalten. Q06 hat einen eigenen Programmplatz. Die beiden Starts beginnen bei Glutling `(1, 3)` und dem Wächter `(4, 3)` beziehungsweise `(5, 3)`, jeweils mit vollen Lebenspunkten. Der Wächter hat 6 LP; Glutling verursacht weiterhin 2 Schaden. Bei ausgeschaltetem Wächter endet die Situation sofort. Einzelschritte und Gesamtausführung liefern denselben Ablauf mit getrennt sichtbaren Aktionen beider Figuren. Ein erster bestandener Fall genügt noch nicht; erst nach der letzten Animation des zweiten Erfolgs erscheint der Questabschluss. Syntaxfehler und nicht freigegebene Befehle verändern den laufenden Zustand nicht.
-
-Die Sammlung zeigt Typ, Basiswerte, Stärken, Schwächen und erlernte Befehle. Vorläufige Werte: Moosling (Natur) hat 5 LP und 1 Angriffsschaden, Glutling (Feuer) 4 LP und 2 Angriffsschaden. Die Teamreihenfolge bestimmt die Reihenfolge der Aktionen; Entfernen und erneutes Hinzufügen setzt ein Arkana ans Teamende. Bei einem Teamplatz ersetzt „Aktiv setzen“ den bisherigen Begleiter.
-
-Vorhandene Q06-Spielstände können ohne Reset fortsetzen. Fehlt Moosling, nennt das Weltziel seinen Fundort; andernfalls bietet Eldren Q07 an. Q07 und Q08 speichern Entwürfe unter eigenen Missions- und Objektschlüsseln. Der zweite Teamplatz bleibt nach der angenommenen Q08-Einführung auch bei Fehlversuchen und nach dem Neuladen verfügbar. Beim Wiederholen früherer Soloquests wird nur die aktuelle Besetzung angepasst; die Teamkapazität bleibt erhalten. Weder ein Arenaneustart noch ein alter Trainingssieg wird als Abschluss der neuen Quests übernommen.
-
-Nach der Aufnahme verschwindet das Arkana mit Schatten, Beschriftung und Interaktion von seinem Fundort. Der gespeicherte Sammlungsbesitz verhindert ein erneutes Erscheinen nach dem Neuladen. Das Herausnehmen aus dem aktiven Team lässt es weiterhin in der Sammlung.
-
-Die Datenbasis folgt [Arkana-Typen und Fähigkeiten](docs/CodeMap_Arkana_Uebersicht.md): Feuer, Wasser, Natur, Schatten und Licht. Zunächst sind je eine Instanz von Moosling und Glutling auffindbar. Die Sammlung kennzeichnet spätere Spezialfähigkeiten als Vorschau. Elementare Schadensmultiplikatoren und deren Balancing bleiben offen.
-
-Sammlung, Team, entdeckte und abgeschlossene Quests sowie Programme werden lokal gespeichert. Bestehende Block- und Textentwürfe bleiben erhalten; ein früher abgeschlossenes Eldren-Gespräch wird übernommen. Bei gesperrtem Browser-Speicher bleibt der Fortschritt für die laufende Sitzung im Arbeitsspeicher verfügbar. Abbruch und Niederlage vergeben keine Questbelohnung. Siege werden nach Ende der sichtbaren Wiedergabe gespeichert; Wiederholungen erzeugen keine doppelten Belohnungen.
-
-## Arena und Programmierung
-
-- Auch ein leeres Programm ist erlaubt: Alle Blöcke lassen sich entfernen. Ein Arkan ohne Befehle wartet, während andere Programme weiterlaufen. Sind alle Programme leer, erscheint ein Hinweis und es wird kein Spielschritt ausgeführt.
-- Die Bibliothek ist in Bewegung, Kampf, Wahrnehmung und Ablauf gegliedert. Es erscheinen nur Kategorien mit verfügbaren Befehlen für den gewählten Arkan; das gilt im Block- und Textmodus.
-- Lernbibliothek und Ausführungsprüfung verwenden dieselbe Schnittmenge aus erlernten und für die Aufgabe erlaubten Befehlen. Neue Befehle werden mit ihrer Einführung bereitgestellt und bleiben bei Fehlversuchen erhalten. Im freien Training sind alle implementierten Befehle verfügbar. Die Nähe-Abfrage wird in den ersten drei Lernquests noch nicht eingeführt.
-- Der Blockmodus verwendet Blockly mit zusammensteckbaren Blöcken. Wähle eine Kategorie, ziehe einen Block aus der Palette und raste ihn unter „Wenn Programm ausgeführt wird“ ein.
-- Freigeschaltete Schleifen und Bedingungen haben innere Anschlüsse: Dort lassen sich mehrere Aktionen und weitere Strukturen einrasten. Über Entf, Kontextmenü oder Papierkorb werden Blöcke entfernt. Ein neuer Startblock ist unter „Programmstart“ beziehungsweise „Ablauf“ verfügbar.
-- Rechtsklick auf einen Aktions-, Schleifen- oder Bedingungsblock → „Duplizieren“ erstellt eine unabhängige Kopie daneben. Der vollständige Rumpf einschließlich verschachtelter Blöcke wird mitkopiert; nachfolgende Blöcke außerhalb des ausgewählten Blocks werden nicht kopiert. Die Kopie kann anschließend eingerastet werden. Undo/Redo umfasst die ganze Kopie; das Limit von 150 Editorblöcken gilt auch hierfür. Der einzelne Startblock wird nicht dupliziert.
-- Lose Blöcke bleiben pro Arkan und Mission als Entwurf gespeichert. Vor der Ausführung oder dem Wechsel zum Textmodus müssen sie verbunden oder gelöscht werden; der Textmodus zeigt genau den verbundenen Ablauf.
-- Im Textmodus fügt ein Drop in den Programmbereich den Codebaustein an der zuvor gesetzten Textcursorposition ein. Bestehender Text wird dabei erhalten, abgesehen von einer ausdrücklich markierten Auswahl.
-- Wähle ein aktives Arkana über seinen Button im Editor oder direkt auf dem Spielfeld. Die Arena und der Editor zeigen die tatsächlich gewählte Besetzung. Teamwechsel erfolgen in der Spielwelt.
-- Die Blocksprache verwendet Beschriftungen wie „angreifen“ und „zum nächsten Gegner gehen“. Letzteres bewegt das Arkana ein Feld näher und bleibt direkt neben dem Gegner stehen. Die ausgewählte Arkan-Karte und „Du programmierst gerade: …“ legen das Objekt fest. Im Textmodus bleiben die Befehle ausdrücklich benannt, etwa `glutling.attack()` und `glutling.moveForward()`.
-- Block- und Textmodus bearbeiten das Programm des ausgewählten Arkanen. Entwürfe werden pro Mission und Arkan im Browser gespeichert, auch unvollständiger Text.
-- „Nächsten Schritt ausführen“ führt einen Tick in Teamreihenfolge aus, anschließend handelt gegebenenfalls das Konstrukt. Ein beendetes Programm wartet.
-- „Programm ausführen“ startet alle Programme vom frischen Missionszustand. Nach einer Programmänderung startet auch der nächste Einzelschritt einen neuen Versuch; reine Darstellungswechsel setzen ihn nicht zurück.
-- Die Ausführung wird sichtbar abgespielt: „Pause“ hält nach der aktuellen Aktion an, „Fortsetzen“ setzt den Ablauf fort. Während einer Pause führt „Nächsten Schritt ausführen“ die nächste einzelne Aktion aus. Das Tempo lässt sich mit 0,5×, 1× und 2× wählen.
-- Der handelnde Arkan wird im Editor ausgewählt. Der aktive Block beziehungsweise die aktive Textzeile wird markiert; ein Hinweis zeigt Aktion, Schleifendurchlauf und gegebenenfalls den gewählten Bedingungszweig. Block-/Textwechsel und Arkan-Auswahl bleiben während des Abspielens möglich.
-- Während der Wiedergabe sind Programmänderungen gesperrt. „Neu starten“ beendet den Lauf sofort, löscht die Ausführungsmarkierung und gibt den Editor frei. Nach dem regulären Ende können Programme ebenfalls wieder bearbeitet werden.
-- Die Platzhalterfiguren bewegen sich zwischen Feldern. Treffer werden mit kurzem Vorstoß, Aufblinken und Schadenszahl dargestellt; blockierte Bewegungen und Angriffe außerhalb der Reichweite erhalten eine sichtbare Erklärung.
-- `moveRight()`, `moveLeft()`, `moveUp()` und `moveDown()` bewegen genau ein Rasterfeld in die jeweilige Richtung. Die ersten Aufgaben verwenden nur rechts und oben. Belegte Felder, Steine und Kartenränder blockieren einen Schritt; es gibt keine automatische Umgehung. Im freien Training bleibt `moveForward()` als bisheriger Befehl zum Gegner erhalten (horizontal bei Gleichstand).
-- „Neu starten“ setzt den Kampf zurück und behält die Programme. Nach einem Quest-Sieg erscheint der Abschluss direkt im Arenafenster, sobald die letzte Animation beendet ist. Die Meldung zeigt Questname, Lernrückmeldung und nächstes Weltziel. **Zur Spielwelt** beendet die Arena; **Programm ansehen** beziehungsweise Esc schließt die Meldung und behält eine sichtbare Abschlussmarkierung über dem Editor. In der offenen Welt erscheint kein zusätzlicher Abschlussdialog. Wiederholte Erfolge werden als **Quest erneut geschafft!** angezeigt und vergeben keine doppelten Belohnungen. Ein abgebrochener Lauf, eine noch offene Lernübung oder ein freies Training erzeugt keinen Questabschluss.
-
-## Starten
+## Lokal starten
 
 ```bash
 npm install
 npm run dev
 ```
 
-Danach die von Vite ausgegebene lokale Adresse im Browser öffnen (in der Regel `http://localhost:5173`).
+Öffne die von Vite ausgegebene Adresse, normalerweise `http://localhost:5173`, in Edge oder einem anderen Browser. Auf Windows kann in PowerShell bei Bedarf `npm.cmd` verwendet werden. `npm test` prüft die Logik und UI; `npm run build` erstellt den Produktionsbuild.
 
-## Steuerung
+## Vom Tal in den Wald
 
-- **WASD** oder **Pfeiltasten**: Figur bewegen
-- **E** oder **Leertaste**: nahe Person ansprechen
-- Auf Tablets: Steuerkreuz und Taste **REDEN** am unteren Bildschirmrand
+1. **Eldren an der Talakademie** erklärt den Einstieg. Finde Glutling am westlichen Akademieweg und nimm es ausdrücklich auf.
+2. Löse bei Eldren **Glutlings erste Schritte** und danach **Das Übungskonstrukt**: zuerst Bewegung und Sequenzen, danach Angriff.
+3. Wähle anschließend selbst zwischen drei Reihen: **Schleifenrätsel bei Eldren**, **Schleifenkampf bei Brann am Westplatz** und **verschachtelte Schleifen bei Mira am Ostpass**. Eldren und Mira besitzen jeweils Folgequests; die Reihen sperren einander nicht.
+4. Nach einer der Einstiegsaufgaben Q03, Q09 oder Q11 bietet Mira **Die Runenwinde am Steinrutsch** an. Das verschachtelte Bewegungsrätsel räumt nach bestätigtem Erfolg die Felsen im Ostpass weg. Die Blockade besitzt eine echte Kollision. Nicht gelöste Wahlaufgaben bleiben offen.
+5. Reise durch den freien Pass in den **Aetherwald**. Auch das Journal bietet nach der Freigabe einen Reisebutton. Der Rückweg bleibt offen.
+6. Löse dort zuerst **Lyras Einführung in Bedingungen**. Danach sind unabhängig voneinander der **bewegliche Wächter bei Lyra**, **Nerias Lichtpfad** und **Talas Moosling-Reihe** verfügbar.
+7. Moosling wird nach Lyras Einführung im südöstlichen Waldhain gefunden und ausdrücklich aufgenommen. Tala führt zuerst sein eigenes Programm ein und danach zwei getrennte Teamprogramme. Der zweite reguläre Teamplatz öffnet sich erst bei Annahme dieser Team-Einführung.
 
-Mit `npm test` laufen die automatisierten Tests, mit `npm run build` erfolgt der Produktionsbuild. Weitere Architektur- und Designentscheidungen stehen in `docs/architecture.md` und `docs/design-decisions.md`.
+NPCs öffnen ein Menü ihrer Aufgaben und Folgequests. Das **Questjournal** zeigt getrennt nach Gebiet, was entdeckt, bereit, gesperrt oder abgeschlossen ist und welche Voraussetzungen fehlen. Eine Quest aus einem anderen Gebiet verlangt zuerst die Reise dorthin.
 
-Blockly ist als lokale npm-Abhängigkeit eingebunden. Seine Mediendateien werden von Vite lokal bereitgestellt und in den Produktionsbuild übernommen; ein CDN ist nicht erforderlich. Als Entwurfsgrenzen gelten 1–6 Wiederholungen pro Schleife, zwölf Aktionen im längsten möglichen Ablauf, acht Verschachtelungsebenen und 150 Blöcke im Editor.
+## Spielen und programmieren
+
+- **WASD / Pfeiltasten:** Held bewegen. **E / Leertaste:** nahe Person, Runenwinde oder Reiseort benutzen. Auf Tablets stehen Steuerkreuz und **REDEN** zur Verfügung.
+- **C / Charakter:** Sammlung, aktuelles Team und gelernte Fachbegriffe mit Beispielen. **J / Questjournal:** Quests und freigeschaltete Reisen. **Esc:** Ansicht schließen. Reiter unterstützen Links/Rechts und Pos1/Ende.
+- Innerhalb einer Aufgabe bewegen sich Arkana ausschließlich durch ihre Programme. Jedes Objekt hat seinen eigenen Entwurf, gespeichert pro Quest und Arkana.
+- In der **Blocksprache** bestimmt die gewählte Figur das Objekt. Ziehe Befehle aus den passenden Kategorien an den Startblock oder in die Anschlüsse von Schleifen und Verzweigungen. Verschachtelte Schleifen werden direkt zusammengesteckt. Über Kontextmenü **Duplizieren** wird auch der Rumpf kopiert; Folgeblöcke außerhalb bleiben getrennt. Entf und Papierkorb löschen Blöcke.
+- Im **Textmodus** sind die Namen ausdrücklich qualifiziert: `glutling.moveRight()`, `moosling.attack()`. Unqualifizierte Befehle und Befehle anderer Objekte im gewählten Programm werden abgewiesen. Die Bibliothek bietet verfügbare Codevorlagen zum Einfügen an.
+- Block- und Textmodus bearbeiten denselben verbundenen Ablauf. Lose Blöcke bleiben als Entwurf erhalten, müssen vor Ausführung oder Textwechsel aber verbunden oder entfernt werden. Auch ein leeres Programm ist erlaubt.
+- **Nächsten Schritt ausführen:** nächste Anweisung je aktivem Arkana in fester Reihenfolge. **Programm ausführen:** frischer Versuch mit vollständiger sichtbarer Wiedergabe. **Pause / Fortsetzen**, einzelne Aktionen während der Pause und Tempo 0,5× / 1× / 2× helfen beim Beobachten. Ein fertiges Programm wartet auf das andere.
+- Die aktive Anweisung und Schleifendurchläufe beziehungsweise Antworten werden hervorgehoben. Änderungen an der Programmlogik starten einen neuen Versuch; reiner Format-/Darstellungswechsel erhält den laufenden Nachweis. Syntax- und Freigabefehler verändern den Aufgabenraum nicht.
+- Ziele sind beim Start geöffnet und minimieren sich beim ersten tatsächlichen Ausführen oder über **Ziele minimieren · Programmieren**. Ziele, Einführung, Tipps und Bedienung bleiben wieder aufklappbar. **Editor vergrößern** erweitert die Arbeitsfläche; beim Ausführen wird die Arena wieder sichtbar. Tooltips stehen oberhalb der Buttons.
+- **Neu starten** beendet den Versuch und behält die Entwürfe. Nach der letzten Erfolgsanimation erscheint **Quest abgeschlossen!** in der Arena mit Lernrückmeldung und Weltziel. **Programm ansehen** lässt die Lösung geöffnet; **Zur Spielwelt** kehrt zur bisherigen Position zurück. Fehlversuch, Abbruch und freies Training vergeben keinen Questabschluss.
+
+Die Aufgabenpalette zeigt nur die Schnittmenge aus gelernten und für diese Aufgabe erlaubten Befehlen. Neue Fähigkeiten werden bei Annahme ihrer erklärten Einführung verfügbar; ein Fehlversuch nimmt sie nicht weg. Bedingungen bleiben in den Talaufgaben auch für alte Spielstände mit allen Fähigkeiten gesperrt. Die freie Trainingsarena in beiden Gebieten stellt alle implementierten Befehle unabhängig vom Lernfortschritt bereit, vergibt aber keine Weltquestbelohnungen.
+
+Die bekannte Abfrage `enemyAdjacent` prüft direkte Gegnernachbarschaft. Nerias Rätsel führt `pathRightClear` ein: Das rechte Nachbarfeld muss innerhalb des Rasters und ohne Stein oder anderes Wesen sein. Die Frage wird im aktuellen Zustand ausgewertet. `moveForward()` geht ein Feld zum nächsten Gegner und betritt kein belegtes Feld. Gerichtete Bewegung umgeht Hindernisse nicht automatisch.
+
+## Sammlung, Team und Spielstände
+
+Neue Abenteuer beginnen **ohne Arkana**. Glutling und Moosling müssen in der Welt aufgenommen werden. Aufgenommene Arkana verschwinden samt Beschriftung und Interaktion; sie bleiben nach dem Entfernen aus dem aktiven Team in der Sammlung. Moosling hat vorläufig 5 LP und 1 Angriffsschaden, Glutling 4 LP und 2 Angriffsschaden. Die [Arkana-Übersicht](docs/CodeMap_Arkana_Uebersicht.md) bleibt Grundlage für Typen und spätere Spezialfähigkeiten. Heilung, Ranken und Elementmultiplikatoren sind noch keine implementierten Fähigkeiten.
+
+Sammlung, Fähigkeiten, Gebiet, Questabschlüsse sowie Text- und Blockly-Entwürfe werden lokal gespeichert. Alte IDs und numerische Trainingsplätze bleiben erhalten. Unabhängige Questabschlüsse werden anhand ihrer tatsächlichen Voraussetzungen validiert und nicht mehr als linearer Präfix abgeschnitten.
+
+Ein bisheriger Spielstand mit abgeschlossener Bedingungseinführung behält seinen Waldzugang; das Journal kennzeichnet diese Übergangsfreigabe. Die neuen Talquests werden dadurch nicht als geschafft markiert. Ein alter Stand kann daher direkt im Wald beginnen und über den Rückweg oder das Journal ins umgestaltete Tal reisen. Es ist kein Reset nötig.
+
+Für einen frischen Talstart: **C → Sammlung → Neues Abenteuer → Sichern & neu beginnen**. Erst die Bestätigung ersetzt den aktiven Stand. Zuvor werden Sammlung, Team, Gebiet, Quests und alle Entwürfe gesichert. **Gesicherten Spielstand laden** tauscht Sicherung und aktuellen Stand, sodass ein Rückwechsel möglich bleibt. Bei Speicherfehlern wird der Wechsel abgebrochen. Während Dialogen und Begegnungen ist diese Verwaltung gesperrt. Bei gesperrtem Browser-Speicher bleibt die laufende Sitzung im Arbeitsspeicher nutzbar.
+
+Blockly und seine Mediendateien werden lokal ausgeliefert; ein CDN ist nicht erforderlich. Der Parser wertet kein JavaScript aus. Grenzen: 1–6 Wiederholungen pro Schleife, zwölf Aktionen im längsten möglichen Ablauf, acht Verschachtelungsebenen und 150 Blöcke im Editor. Backend, NOVA und die vollständige Kompetenzengine bleiben spätere Vorhaben.
+
+Technische Entscheidungen stehen in [architecture.md](docs/architecture.md), Nutzerbeschlüsse in [design-decisions.md](docs/design-decisions.md).

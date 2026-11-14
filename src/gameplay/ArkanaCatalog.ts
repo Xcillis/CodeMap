@@ -1,6 +1,6 @@
 import type { ArkanId } from '../combat/types';
 
-export type SkillId = 'moveForward' | 'moveRight' | 'moveLeft' | 'moveUp' | 'moveDown' | 'attack' | 'enemyAdjacent' | 'repeat';
+export type SkillId = 'moveForward' | 'moveRight' | 'moveLeft' | 'moveUp' | 'moveDown' | 'attack' | 'enemyAdjacent' | 'repeat' | 'pathRightClear';
 export type ArkanaType = 'fire' | 'water' | 'nature' | 'shadow' | 'light';
 
 export const ARKANA_TYPES: Record<ArkanaType, { name: string; role: string }> = {
@@ -14,6 +14,7 @@ export const ARKANA_TYPES: Record<ArkanaType, { name: string; role: string }> = 
 export const SKILL_NAMES: Record<SkillId, string> = {
   moveForward: 'Zum nächsten Gegner gehen', attack: 'Basisangriff', repeat: 'Wiederholen', enemyAdjacent: 'Gegnernähe abfragen',
   moveRight: 'Nach rechts gehen', moveLeft: 'Nach links gehen', moveUp: 'Nach oben gehen', moveDown: 'Nach unten gehen',
+  pathRightClear: 'Weg rechts frei abfragen',
 };
 
 export interface ArkanaSpecies {
@@ -35,14 +36,14 @@ export const ARKANA_SPECIES: Record<ArkanId, ArkanaSpecies> = {
     strength: 'Mit 5 Lebenspunkten widerstandsfähiger als Glutling.',
     weakness: 'Sein Basisangriff verursacht nur 1 Schaden.',
     plannedAbilities: ['Ranken wachsen lassen', 'Heilung über Zeit'],
-    supported: ['moveForward', 'moveRight', 'moveLeft', 'moveUp', 'moveDown', 'attack', 'repeat', 'enemyAdjacent'],
+    supported: ['moveForward', 'moveRight', 'moveLeft', 'moveUp', 'moveDown', 'attack', 'repeat', 'enemyAdjacent', 'pathRightClear'],
   },
   glutling: {
     id: 'glutling', name: 'Glutling', type: 'fire', maxHp: 4, attack: 2,
     strength: 'Sein Basisangriff verursacht 2 Schaden.',
     weakness: 'Mit 4 Lebenspunkten weniger widerstandsfähig als Moosling.',
     plannedAbilities: ['Entzünden', 'Fackeln entzünden und Eis auftauen'],
-    supported: ['moveForward', 'moveRight', 'moveLeft', 'moveUp', 'moveDown', 'attack', 'repeat', 'enemyAdjacent'],
+    supported: ['moveForward', 'moveRight', 'moveLeft', 'moveUp', 'moveDown', 'attack', 'repeat', 'enemyAdjacent', 'pathRightClear'],
   },
 };
 

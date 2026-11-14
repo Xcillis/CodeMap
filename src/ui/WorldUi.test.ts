@@ -31,9 +31,31 @@ beforeEach(() => {
 afterEach(() => { for (const [name, callback] of domListeners) document.removeEventListener(name, callback); vi.restoreAllMocks(); });
 
 describe('Sammlung und Questjournal', () => {
+  it('zeigt bei einem Questgeber nur seine Aufgabenreihe mit eigenen Voraussetzungen', () => {
+    campaign = new Campaign({ version: 2, worldVersion: 1, region: 'valley', introduced: true, completed: LESSON_IDS.slice(0, 2), owned: [{ speciesId: 'glutling' }], team: [instanceId('glutling')] });
+    campaign.visitGiver('mira'); gameEvents.emit('campaign-updated', campaign.snapshot); gameEvents.emit('world-giver-open', 'mira');
+    expect(el('world-panel-title').textContent).toBe('Bergmeisterin Mira');
+    expect((el('journal-quest-q09-schachtelpfad') as HTMLButtonElement).disabled).toBe(false);
+    expect((el('journal-quest-q10-schachtelkampf') as HTMLButtonElement).disabled).toBe(true);
+    expect((el('journal-quest-q12-steinrutsch') as HTMLButtonElement).disabled).toBe(true);
+    expect(document.getElementById('journal-quest-q03-wiederkehr')).toBeNull();
+    let action = ''; gameEvents.on('campaign-action', (value: string) => { action = value; }); click('journal-quest-q09-schachtelpfad');
+    expect(action).toBe('lesson:q09-schachtelpfad'); expect(el('world-panel').hidden).toBe(true);
+    gameEvents.emit('battle-opened'); gameEvents.emit('world-giver-open', 'mira'); expect(el('world-panel').hidden).toBe(true);
+  });
+  it('trennt Tal und Wald im Journal und erlaubt die Reise erst nach der Passfreigabe', () => {
+    campaign = new Campaign({ version: 2, worldVersion: 1, introduced: true, completed: LESSON_IDS.slice(0, 2), owned: [{ speciesId: 'glutling' }], team: [instanceId('glutling')] });
+    gameEvents.emit('campaign-updated', campaign.snapshot); click('open-journal');
+    expect(el('world-panel-content').textContent).toContain('Aetherwald · Zugang gesperrt'); expect(document.getElementById('travel-forest')).toBeNull();
+    campaign = new Campaign({ ...campaign.snapshot, completed: ['q01-glutspur', 'q02-basisangriff', 'q11-schleifenwache', 'q12-steinrutsch'] });
+    gameEvents.emit('campaign-updated', campaign.snapshot); let action = ''; gameEvents.on('campaign-action', (value: string) => { action = value; });
+    click('travel-forest'); expect(action).toBe('travel-forest'); expect(el('world-panel').hidden).toBe(true);
+    campaign.apply('travel-forest'); campaign.visitGiver('lyra'); gameEvents.emit('campaign-updated', campaign.snapshot); gameEvents.emit('world-giver-open', 'lyra');
+    expect((el('journal-quest-q05-aufmerksam') as HTMLButtonElement).disabled).toBe(false); expect((el('journal-quest-q06-waechter') as HTMLButtonElement).disabled).toBe(true);
+  });
   it('führt vom Moosling-Fund über den Solo-Start zur bestätigten Team-Einführung', () => {
     campaign = new Campaign({ version: 2, introduced: true, completed: LESSON_IDS.slice(0, 6), owned: [{ speciesId: 'glutling' }], team: [instanceId('glutling')] });
-    campaign.interact('arkanist-eldren'); gameEvents.emit('campaign-updated', campaign.snapshot); click('open-journal');
+    campaign.visitGiver('tala'); gameEvents.emit('campaign-updated', campaign.snapshot); click('open-journal');
     expect((el('journal-quest-q07-moosling') as HTMLButtonElement).disabled).toBe(true);
     expect(el('world-panel-content').textContent).toContain('Finde zuerst Moosling');
     campaign.apply('recruit-moosling'); gameEvents.emit('campaign-updated', campaign.snapshot);
@@ -41,7 +63,7 @@ describe('Sammlung und Questjournal', () => {
     let action = ''; gameEvents.on('campaign-action', (value: string) => { action = value; });
     click('journal-quest-q07-moosling'); expect(action).toBe('prepare-lesson:q07-moosling');
     campaign.prepareMission('q07-moosling'); campaign.finishMission('q07-moosling'); campaign.leaveMission();
-    campaign.interact('arkanist-eldren'); gameEvents.emit('campaign-updated', campaign.snapshot); click('open-journal');
+    campaign.visitGiver('tala'); gameEvents.emit('campaign-updated', campaign.snapshot); click('open-journal');
     expect(el('journal-quest-q08-team').textContent).toBe('Team wählen & starten'); expect(campaign.teamLimit).toBe(1);
     click('world-panel-close'); click('open-collection'); click('character-tab-team'); expect(el('world-panel-intro').textContent).toContain('1 Teamplätzen');
     click('world-panel-close'); campaign.prepareMission('q08-team'); gameEvents.emit('campaign-updated', campaign.snapshot); click('open-collection'); click('character-tab-team');
@@ -53,7 +75,7 @@ describe('Sammlung und Questjournal', () => {
   });
   it('bietet Q06 nach Q05 an und zeigt das kombinierte Beispiel erst nach dessen Abschluss', () => {
     campaign = new Campaign({ version: 2, introduced: true, completed: LESSON_IDS.slice(0, 5), owned: [{ speciesId: 'glutling' }], team: [instanceId('glutling')] });
-    campaign.interact('arkanist-eldren'); gameEvents.emit('campaign-updated', campaign.snapshot); click('open-journal');
+    campaign.visitGiver('lyra'); gameEvents.emit('campaign-updated', campaign.snapshot); click('open-journal');
     expect((el('journal-quest-q06-waechter') as HTMLButtonElement).disabled).toBe(false);
     expect(el('world-panel-content').textContent).toContain('Wächterstein');
     click('world-panel-close'); click('open-collection'); click('character-tab-glossary');
@@ -80,8 +102,8 @@ describe('Sammlung und Questjournal', () => {
     expect(restartGame).not.toHaveBeenCalled(); expect(localStorage.getItem('codemap-m2-progress')).toBeNull();
   });
   it('bietet Q05 nach dem Musterpfad an und trägt Bedingung und Verzweigung erst nach dem Abschluss ein', () => {
-    campaign = new Campaign({ version: 2, introduced: true, completed: LESSON_IDS.slice(0, 4), owned: [{ speciesId: 'glutling' }], team: [] });
-    campaign.interact('arkanist-eldren'); gameEvents.emit('campaign-updated', campaign.snapshot); click('open-journal');
+    campaign = new Campaign({ version: 2, worldVersion: 1, region: 'forest', legacyForestAccess: true, introduced: true, completed: LESSON_IDS.slice(0, 4), owned: [{ speciesId: 'glutling' }], team: [] });
+    campaign.visitGiver('lyra'); gameEvents.emit('campaign-updated', campaign.snapshot); click('open-journal');
     const button = el('journal-quest-q05-aufmerksam') as HTMLButtonElement;
     expect(button.disabled).toBe(false); expect(button.textContent).toBe('Glutling wählen & starten');
     expect(el('world-panel-content').textContent).toContain('Prüfstein südlich der Akademie');
@@ -97,7 +119,7 @@ describe('Sammlung und Questjournal', () => {
     campaign = new Campaign({ version: 2, introduced: true, completed: LESSON_IDS.slice(0, 3), owned: [{ speciesId: 'glutling' }], team: [instanceId('glutling')] });
     gameEvents.emit('campaign-updated', campaign.snapshot); click('open-journal');
     expect((el('journal-quest-q04-musterpfad') as HTMLButtonElement).disabled).toBe(true);
-    campaign.interact('arkanist-eldren'); gameEvents.emit('campaign-updated', campaign.snapshot);
+    campaign.visitGiver('eldren'); gameEvents.emit('campaign-updated', campaign.snapshot);
     expect((el('journal-quest-q04-musterpfad') as HTMLButtonElement).disabled).toBe(false);
     expect(el('world-panel-content').textContent).toContain('Musterstein am Nordweg');
     let action = ''; gameEvents.on('campaign-action', (value: string) => { action = value; });

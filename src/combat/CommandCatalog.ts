@@ -5,7 +5,7 @@ import { ACTIONS } from './ActionCatalog';
 
 export type { SkillId } from '../gameplay/ArkanaCatalog';
 export type CommandCategory = 'movement' | 'combat' | 'senses' | 'flow';
-export type CommandId = 'move' | 'attack' | 'condition' | 'repeat' | 'moveRight' | 'moveLeft' | 'moveUp' | 'moveDown';
+export type CommandId = 'move' | 'attack' | 'condition' | 'pathCondition' | 'repeat' | 'moveRight' | 'moveLeft' | 'moveUp' | 'moveDown';
 
 export const COMMAND_CATEGORIES: readonly { id: CommandCategory; label: string; color: string }[] = [
   { id: 'movement', label: 'Bewegung', color: '#559cf0' },
@@ -52,6 +52,7 @@ export const COMMANDS: readonly CommandDefinition[] = [
   })),
   { id: 'attack', category: 'combat', label: 'Angreifen', description: 'Ein Basisangriff auf einen direkt benachbarten Gegner. Der Schaden hängt von der Art ab.', requires: ['attack'], syntax: (actor) => `${actor}.attack()`, block: () => ({ kind: 'action', count: 1, action: 'ATTACK' }) },
   { id: 'condition', category: 'senses', label: 'Gegner direkt daneben?', description: 'Fragt, ob der Gegner direkt neben dir steht. Bei ja wird der dann-Teil ausgeführt, bei nein der sonst-Teil.', requires: ['enemyAdjacent', 'attack', 'moveForward'], syntax: (actor) => `${actor}.enemyAdjacent`, block: () => ({ kind: 'condition', count: 1, whenTrue: 'ATTACK', whenFalse: 'MOVE_TOWARD' }) },
+  { id: 'pathCondition', category: 'senses', label: 'Weg rechts frei?', description: 'Prüft das rechte Nachbarfeld. Stein, Kartenrand oder ein anderes Wesen bedeuten nein.', requires: ['pathRightClear'], syntax: (actor) => `${actor}.pathRightClear`, block: () => ({ kind: 'condition', condition: 'pathRightClear', count: 1, whenTrue: 'MOVE_RIGHT', whenFalse: 'MOVE_UP' }) },
   { id: 'repeat', category: 'flow', label: 'Wiederhole … mal', description: 'Führt die Befehle im Inneren 1 bis 6 Mal aus. Lege zum Beispiel einen Bewegungsbefehl hinein und wähle die Anzahl.', requires: ['repeat'], syntax: () => 'repeat(2, () => { … });', block: () => ({ kind: 'action', count: 2, action: 'MOVE_TOWARD' }) },
 ];
 
@@ -75,7 +76,7 @@ export function nodesCapabilityError(nodes: readonly ProgramNode[], actor: Arkan
     for (const node of list) {
       if (node.kind === 'action') required.add(ACTIONS[node.action].method);
       else if (node.kind === 'repeat') { required.add('repeat'); visit(node.body); }
-      else { required.add('enemyAdjacent'); visit(node.then); visit(node.otherwise); }
+      else { required.add(node.condition ?? 'enemyAdjacent'); visit(node.then); visit(node.otherwise); }
     }
   };
   visit(nodes);
@@ -87,6 +88,7 @@ export function nodesCapabilityError(nodes: readonly ProgramNode[], actor: Arkan
 export function commandSource(command: CommandDefinition, actor: ArkanId): string {
   if (command.id === 'repeat') return nodesToSource([{ kind: 'repeat', count: 2, body: [] }], actor);
   if (command.id === 'condition') return `if (${actor}.enemyAdjacent) {\n\n} else {\n\n}`;
+  if (command.id === 'pathCondition') return `if (${actor}.pathRightClear) {\n\n} else {\n\n}`;
   const block = command.block();
   return nodesToSource(blocksToNodes([block]).flatMap((node) => node.kind === 'repeat' && node.count === 1 ? node.body : [node]), actor);
 }

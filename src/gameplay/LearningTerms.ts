@@ -10,6 +10,7 @@ export interface LearningTerm {
   example: string;
   code: string;
   furtherExamples?: readonly { lesson: LessonId; title: string; example: string; code: string }[];
+  alsoLessons?: readonly LessonId[];
 }
 
 /** Explanations describe observable actions before naming an abstract concept. */
@@ -27,11 +28,11 @@ export const LEARNING_TERMS: readonly LearningTerm[] = [
   { id: 'health', label: 'Lebenspunkte', aliases: ['Lebenspunkte', 'Lebenspunkt', 'LP'], lesson: 'q02-basisangriff', category: 'Spielwelt',
     explanation: 'Die Zahl der Lebenspunkte zeigt, wie viel Schaden ein Wesen noch aushält. Die Abkürzung ist LP. Bei 0 LP ist das Übungskonstrukt ausgeschaltet.',
     example: 'Das Konstrukt beginnt mit 4 LP. Glutlings Angriff zieht ihm 2 LP ab. Danach bleiben 2 LP übrig.', code: 'glutling.attack();' },
-  { id: 'loop', label: 'Schleife', aliases: ['Schleife', 'Schleifen'], lesson: 'q03-wiederkehr', category: 'Programmieren',
+  { id: 'loop', label: 'Schleife', aliases: ['Schleife', 'Schleifen'], lesson: 'q03-wiederkehr', alsoLessons: ['q09-schachtelpfad', 'q11-schleifenwache', 'q12-steinrutsch'], category: 'Programmieren',
     explanation: 'Du kannst Befehle automatisch mehrmals ausführen lassen. Das nennt man eine Schleife. Die Zahl beim Wiederholen legt fest, wie oft die Befehle im Inneren ausgeführt werden.',
     example: 'Dieser Wiederholungsblock lässt Glutling dreimal einen Schritt nach rechts gehen.', code: 'repeat(3, () => {\n  glutling.moveRight();\n});',
     furtherExamples: [{ lesson: 'q04-musterpfad', title: 'Mehrere Anweisungen gemeinsam wiederholen', example: 'Bei jedem Durchlauf geht Glutling zuerst nach rechts und danach nach oben. Zwei Durchläufe ergeben vier einzelne Bewegungen.', code: 'repeat(2, () => {\n  glutling.moveRight();\n  glutling.moveUp();\n});' }, adaptiveExample] },
-  { id: 'loop-body', label: 'Schleifenrumpf', aliases: ['Schleifenrumpf'], lesson: 'q04-musterpfad', category: 'Programmieren',
+  { id: 'loop-body', label: 'Schleifenrumpf', aliases: ['Schleifenrumpf'], lesson: 'q04-musterpfad', alsoLessons: ['q09-schachtelpfad', 'q12-steinrutsch'], category: 'Programmieren',
     explanation: 'Die Befehle im Inneren eines Wiederholungsblocks werden bei jedem Durchlauf nacheinander ausgeführt. Dieses Innere heißt Schleifenrumpf. Es kann mehrere Anweisungen enthalten.',
     example: '„Nach rechts“ und „nach oben“ stehen beide im Schleifenrumpf. Glutling führt bei jedem Durchlauf beide Bewegungen in dieser Reihenfolge aus.', code: 'repeat(2, () => {\n  glutling.moveRight();\n  glutling.moveUp();\n});' },
   { id: 'condition', label: 'Bedingung', aliases: ['Bedingung', 'Bedingungen'], lesson: 'q05-aufmerksam', category: 'Programmieren',
@@ -50,9 +51,15 @@ export const LEARNING_TERMS: readonly LearningTerm[] = [
     explanation: 'Du planst die Wege und Angriffe zweier Arkana so, dass beide zum gemeinsamen Ziel beitragen und keine belegten Felder betreten. Dieses Abstimmen heißt Koordination. Jedes Objekt behält sein eigenes Programm.',
     example: 'Programm von Moosling: Es geht zweimal nach rechts und greift zweimal an. Seine beiden Treffer ziehen zusammen 2 LP ab.', code: 'repeat(2, () => { moosling.moveRight(); });\nrepeat(2, () => { moosling.attack(); });',
     furtherExamples: [{ lesson: 'q08-team', title: 'Getrenntes Programm von Glutling', example: 'Glutling startet eine Zeile darüber, geht dreimal nach rechts und greift zweimal an. Seine Treffer ziehen zusammen weitere 4 LP ab. Beide Programme werden gemeinsam ausgeführt.', code: 'repeat(3, () => { glutling.moveRight(); });\nrepeat(2, () => { glutling.attack(); });' }] },
+  { id: 'nested-loop', label: 'Verschachtelte Schleife', aliases: ['verschachtelte Schleife', 'verschachtelte Schleifen'], lesson: 'q09-schachtelpfad', alsoLessons: ['q12-steinrutsch'], category: 'Programmieren',
+    explanation: 'Eine äußere Wiederholung enthält eine weitere Wiederholung. Diese innere Schleife beginnt bei jedem äußeren Durchlauf neu. Das nennt man eine verschachtelte Schleife.',
+    example: 'Die innere Schleife führt zwei Rechtsschritte aus. Danach folgt ein Aufwärtsschritt. Die äußere Schleife wiederholt diese ganze Stufe zweimal.', code: 'repeat(2, () => {\n  repeat(2, () => { glutling.moveRight(); });\n  glutling.moveUp();\n});' },
+  { id: 'query', label: 'Abfrage', aliases: ['Abfrage', 'Abfragen'], lesson: 'q13-lichtpfad', category: 'Programmieren',
+    explanation: 'Das Programm liest eine Information über die aktuelle Welt, etwa ob das rechte Nachbarfeld frei ist. Das heißt Abfrage. Nach einer Bewegung kann dieselbe Frage eine andere Antwort haben.',
+    example: 'Ist rechts ein Stein oder der Kartenrand, ergibt pathRightClear nein. Auf einem freien Nachbarfeld ergibt die Abfrage ja.', code: 'if (glutling.pathRightClear) {\n  glutling.moveRight();\n} else {\n  glutling.moveUp();\n}' },
 ];
 
 export function learnedTerms(completed: readonly LessonId[]): readonly LearningTerm[] {
-  return LEARNING_TERMS.filter((term) => completed.includes(term.lesson))
+  return LEARNING_TERMS.filter((term) => completed.includes(term.lesson) || term.alsoLessons?.some((lesson) => completed.includes(lesson)))
     .map((term) => ({ ...term, furtherExamples: term.furtherExamples?.filter((example) => completed.includes(example.lesson)) }));
 }

@@ -24,15 +24,31 @@ describe('Gelernte Fachbegriffe', () => {
     const terms = learnedTerms(new Campaign(JSON.parse(JSON.stringify(loaded.snapshot))).snapshot.completed);
     expect(terms.map((term) => term.id)).toEqual(['instruction', 'sequence', 'health', 'loop', 'loop-body']);
     expect(terms.find((term) => term.id === 'loop')?.furtherExamples?.[0].code).toContain('glutling.moveUp();');
-    loaded.leaveMission(); loaded.interact('lesson:q05-aufmerksam'); loaded.beginMission('q05-aufmerksam');
+    loaded.leaveMission(); loaded.visitGiver('mira'); loaded.prepareMission('q12-steinrutsch'); loaded.completeMission('q12-steinrutsch'); loaded.leaveMission(); loaded.apply('travel-forest');
+    loaded.visitGiver('lyra'); loaded.beginMission('q05-aufmerksam');
     expect(learnedTerms(loaded.snapshot.completed).map((term) => term.id)).not.toContain('condition');
     loaded.completeMission('q05-aufmerksam');
     const completed = new Campaign(JSON.parse(JSON.stringify(loaded.snapshot)));
-    expect(learnedTerms(completed.snapshot.completed).map((term) => term.id)).toEqual(['instruction', 'sequence', 'health', 'loop', 'loop-body', 'condition', 'branch']);
+    expect(learnedTerms(completed.snapshot.completed).map((term) => term.id)).toEqual(['instruction', 'sequence', 'health', 'loop', 'loop-body', 'condition', 'branch', 'nested-loop']);
   });
   it('übernimmt keine Begriffe aus alten Arenasiegen oder freiem Training', () => {
     const campaign = new Campaign({ version: 1, introduced: true, completed: [1, 2, 3], owned: [{ speciesId: 'glutling', learned: ['attack', 'repeat'] }] });
     campaign.beginTraining(1, ['glutling']); campaign.completeMission(LESSON_IDS[0]); campaign.leaveMission();
     expect(learnedTerms(campaign.snapshot.completed)).toEqual([]);
+  });
+  it('öffnet das Schleifenwissen auch über die frei gewählten Einstiegsreihen', () => {
+    for (const id of ['q09-schachtelpfad', 'q11-schleifenwache'] as const) {
+      const campaign = new Campaign(); campaign.apply('meet-eldren'); campaign.apply('recruit-glutling');
+      for (const tutorial of ['q01-glutspur', 'q02-basisangriff'] as const) {
+        campaign.interact(`lesson:${tutorial}`); campaign.prepareMission(tutorial); campaign.completeMission(tutorial); campaign.leaveMission();
+      }
+      campaign.interact(`lesson:${id}`); campaign.prepareMission(id);
+      expect(learnedTerms(campaign.snapshot.completed).map((term) => term.id)).not.toContain('loop');
+      campaign.completeMission(id); campaign.leaveMission();
+      const terms = learnedTerms(new Campaign(campaign.snapshot).snapshot.completed).map((term) => term.id);
+      expect(terms).toContain('loop');
+      if (id === 'q09-schachtelpfad') expect(terms).toEqual(expect.arrayContaining(['loop-body', 'nested-loop']));
+      expect(campaign.snapshot.completed).not.toContain('q03-wiederkehr');
+    }
   });
 });

@@ -4,6 +4,7 @@ import type { ActionFrame, ArkanId, GridPosition, ProgramSources, ProgramStep } 
 import { nodesCapabilityError } from './CommandCatalog';
 import { ProgramRunner } from './ProgramRunner';
 import type { SkillId } from '../gameplay/ArkanaCatalog';
+import { evaluateCondition } from './Conditions';
 
 export type MissionId = 1 | 2 | 3;
 export interface BattleConfiguration { spawns?: Partial<Record<ArkanId | 'konstrukt', GridPosition>>; enemyHp?: number; enemyActive?: boolean }
@@ -70,7 +71,7 @@ export class BattleSession {
     if (this.cursor >= this.length || this.actors.every((actor) => this.plans[actor]?.done)) return 'Aktionspläne beendet. Bearbeite ein Programm oder starte neu.';
     do {
       const steps: Partial<Record<ArkanId, (adjacent: boolean) => ProgramStep | undefined>> = {};
-      for (const actor of this.actors) steps[actor] = (adjacent) => this.plans[actor]?.next(adjacent);
+      for (const actor of this.actors) steps[actor] = () => this.plans[actor]?.next((condition) => evaluateCondition(this.snapshot, condition, actor));
       this.engine.runTick(steps, this.configuration?.enemyActive ?? (this.mission === 2), (frame) => {
         const trace = frame.actor !== 'konstrukt' ? this.plans[frame.actor]?.lastTrace : undefined;
         this.actionFrames.push({ ...frame, trace: trace ? structuredClone({ ...trace, line: lines[frame.actor as ArkanId]?.[trace.path] }) : undefined });

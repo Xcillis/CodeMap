@@ -17,6 +17,7 @@ Blockly.defineBlocksWithJsonArray([
   ...Object.entries(ACTIONS).map(([action, definition]) => ({ type: definition.block, message0: definition.label, previousStatement: 'Action', nextStatement: 'Action', colour: action === 'ATTACK' ? '#b84b43' : '#357bd0', tooltip: action === 'ATTACK' ? 'Greift einen direkt benachbarten Gegner an.' : action === 'MOVE_TOWARD' ? 'Ein Feld zum nächsten Gegner. Direkt daneben bleibt das Arkana stehen. Belegte Felder blockieren den Schritt.' : 'Bewegt das ausgewählte Arkana genau ein Feld in diese Richtung.' })),
   { type: 'cm_repeat', message0: 'wiederhole %1 mal', args0: [{ type: 'field_number', name: 'COUNT', value: 3, min: 1, max: 6, precision: 1 }], message1: '%1', args1: [{ type: 'input_statement', name: 'BODY', check: 'Action' }], previousStatement: 'Action', nextStatement: 'Action', colour: '#d39b26', tooltip: 'Alle eingerasteten Befehle im Inneren werden wiederholt.' },
   { type: 'cm_if', message0: 'falls Gegner direkt daneben', message1: 'dann %1', args1: [{ type: 'input_statement', name: 'THEN', check: 'Action' }], message2: 'sonst %1', args2: [{ type: 'input_statement', name: 'ELSE', check: 'Action' }], previousStatement: 'Action', nextStatement: 'Action', colour: '#8960b6', tooltip: 'Steht der Gegner direkt neben dem ausgewählten Arkana? Bei ja werden die Befehle unter dann ausgeführt, bei nein die unter sonst.' },
+  { type: 'cm_if_path', message0: 'falls Weg rechts frei', message1: 'dann %1', args1: [{ type: 'input_statement', name: 'THEN', check: 'Action' }], message2: 'sonst %1', args2: [{ type: 'input_statement', name: 'ELSE', check: 'Action' }], previousStatement: 'Action', nextStatement: 'Action', colour: '#8960b6', tooltip: 'Ist das rechte Nachbarfeld frei? Steine, Kartenrand und andere Wesen ergeben nein.' },
 ]);
 
 /** Shared conversion also works on a headless Blockly workspace in tests. */
@@ -31,6 +32,7 @@ export function workspaceNodes(workspace: Blockly.Workspace): ProgramNode[] {
       if (action) nodes.push({ kind: 'action', action });
       else if (block.type === 'cm_repeat') nodes.push({ kind: 'repeat', count: Number(block.getFieldValue('COUNT')), body: read(block.getInputTargetBlock('BODY')) });
       else if (block.type === 'cm_if') nodes.push({ kind: 'if', then: read(block.getInputTargetBlock('THEN')), otherwise: read(block.getInputTargetBlock('ELSE')) });
+      else if (block.type === 'cm_if_path') nodes.push({ kind: 'if', condition: 'pathRightClear', then: read(block.getInputTargetBlock('THEN')), otherwise: read(block.getInputTargetBlock('ELSE')) });
       else throw new Error('Unbekannter Block.');
     }
     return nodes;
@@ -72,7 +74,7 @@ export function loadNodes(workspace: Blockly.Workspace, nodes: readonly ProgramN
       }
       const then = chain(node.then);
       const otherwise = chain(node.otherwise);
-      return { type: 'cm_if', inputs: { ...(then ? { THEN: { block: then } } : {}), ...(otherwise ? { ELSE: { block: otherwise } } : {}) } };
+      return { type: node.condition === 'pathRightClear' ? 'cm_if_path' : 'cm_if', inputs: { ...(then ? { THEN: { block: then } } : {}), ...(otherwise ? { ELSE: { block: otherwise } } : {}) } };
     });
     for (let index = 0; index < blocks.length - 1; index++) blocks[index].next = { block: blocks[index + 1] };
     return blocks[0];
@@ -88,7 +90,7 @@ export function snapToolbox(actor: ArkanId, mission: number, skills?: readonly S
     kind: 'category', name: category.label, colour: category.color,
     contents: [...(category.id === 'flow' ? [{ kind: 'block', type: 'cm_start' }] : []), ...commands.filter((command) => command.category === category.id).map((command) => {
       const action = actionForCommand(command.id === 'move' ? 'moveForward' : command.id);
-      return { kind: 'block', type: action ? ACTIONS[action].block : command.id === 'condition' ? 'cm_if' : 'cm_repeat', ...(command.id === 'repeat' ? { fields: { COUNT: 2 } } : {}) };
+      return { kind: 'block', type: action ? ACTIONS[action].block : command.id === 'condition' ? 'cm_if' : command.id === 'pathCondition' ? 'cm_if_path' : 'cm_repeat', ...(command.id === 'repeat' ? { fields: { COUNT: 2 } } : {}) };
     })],
   })), ...(!categories.some((category) => category.id === 'flow') ? [{ kind: 'category', name: 'Programmstart', colour: '#d6a728', contents: [{ kind: 'block', type: 'cm_start' }] }] : [])] };
 }

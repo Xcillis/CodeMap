@@ -9,6 +9,8 @@ import type { MissionId } from '../combat/BattleSession';
 import { touchInput } from '../input/TouchInput';
 import { isArkanId } from '../gameplay/ArkanaCatalog';
 import type { ArkanId } from '../combat/types';
+import { QUEST_GIVERS, giverLessons, isQuestGiverId, type QuestGiverId } from '../gameplay/QuestNetwork';
+import { REGIONS, VALLEY_PASS, VALLEY_CLIFFS } from '../gameplay/WorldRegions';
 
 const WORLD_WIDTH = 1600;
 const WORLD_HEIGHT = 1040;
@@ -20,11 +22,9 @@ export class WorldScene extends Phaser.Scene {
   private readonly campaign = new Campaign(loadProgress().campaign);
   private readonly encounterLabels = new Map<string, Phaser.GameObjects.Text>();
   private readonly arkanaVisuals = new Map<ArkanId, readonly Phaser.GameObjects.GameObject[]>();
-  private readonly fixedTargets: readonly InteractionTarget[] = [
-    { id: 'arkanist-eldren', label: 'Arkanist Eldren', x: 915, y: 540, range: 75 },
-    { id: 'training', label: 'Freie Trainingsarena', x: 1000, y: 720, range: 70 },
-    ...WORLD_QUESTS.map((quest) => ({ id: `lesson:${quest.id}`, label: quest.target, x: quest.x, y: quest.y, range: 70 })),
-  ];
+  private fixedTargets: InteractionTarget[] = [];
+  private gateBody?: Phaser.GameObjects.Rectangle;
+  private gateRocks?: Phaser.GameObjects.Container;
   private dialogActive = false;
   private overlayActive = false;
   private readonly onDialogClosed = () => { this.dialogActive = false; this.clearInput(); };
@@ -33,6 +33,17 @@ export class WorldScene extends Phaser.Scene {
   private readonly onTraining = (mission: MissionId, team: ArkanId[]) => this.launchEncounter(this.campaign.beginTraining(mission, team));
   private readonly onCampaignAction = (action: CampaignAction) => {
     if (action === 'open-training') { gameEvents.emit('world-training-open'); return; }
+    if (action.startsWith('quests:')) {
+      const giver = action.slice(7);
+      if (isQuestGiverId(giver) && this.campaign.visitGiver(giver)) { this.publishCampaign(); gameEvents.emit('world-giver-open', giver); }
+      return;
+    }
+    if (action === 'travel-forest' || action === 'travel-valley') {
+      const previous = this.campaign.region; const message = this.campaign.apply(action);
+      if (previous !== this.campaign.region) { saveProgress({ campaign: this.campaign.snapshot }); this.clearInput(); this.scene.restart({ fromTravel: true }); }
+      else gameEvents.emit('world-notice', message);
+      return;
+    }
     if (action.startsWith('lesson:') || action.startsWith('prepare-lesson:')) {
       const id = action.slice(action.indexOf(':') + 1);
       if (isLessonId(id)) this.launchEncounter(action.startsWith('prepare-lesson:') ? this.campaign.prepareMission(id) : this.campaign.beginMission(id));
@@ -52,16 +63,26 @@ export class WorldScene extends Phaser.Scene {
     super('world');
   }
 
-  create(): void {
+  create(data?: { fromTravel?: boolean }): void {
+    this.dialogActive = false; this.overlayActive = false; this.gateBody = undefined; this.gateRocks = undefined;
+    this.encounterLabels.clear(); this.arkanaVisuals.clear();
     this.physics.world.setBounds(0, 0, WORLD_WIDTH, WORLD_HEIGHT);
     this.drawLandscape();
     const obstacles = this.createObstacles();
-    this.player = this.createPlayer(330, 735);
+    const region = REGIONS[this.campaign.region]; const spawn = data?.fromTravel ? region.arrival : region.spawn;
+    this.player = this.createPlayer(spawn.x, spawn.y);
     this.physics.add.collider(this.player, obstacles);
     this.playerController = new PlayerController(this, this.player);
-    this.createNpc(915, 540);
-    this.createWorldEncounter('training', 'Freie Trainingsarena', 1000, 720, 0x80c6d3);
-    for (const quest of WORLD_QUESTS) this.createWorldEncounter(`lesson:${quest.id}`, quest.target, quest.x, quest.y, 0xe1c970);
+    const people = (Object.keys(QUEST_GIVERS) as QuestGiverId[]).filter((id) => QUEST_GIVERS[id].region === this.campaign.region);
+    const training = this.campaign.region === 'valley' ? { x: 1000, y: 720 } : { x: 380, y: 650 };
+    this.fixedTargets = [...people.map((id) => ({ id: `giver:${id}`, label: QUEST_GIVERS[id].name, x: QUEST_GIVERS[id].x, y: QUEST_GIVERS[id].y, range: 75 })),
+      { id: 'training', label: 'Freie Trainingsarena', ...training, range: 70 },
+      { id: 'travel', label: this.campaign.region === 'valley' ? 'Zum Aetherwald reisen' : 'Ins Tal zurückreisen', ...region.exit, range: 55 },
+      ...(this.campaign.region === 'valley' ? [{ id: 'landslide', label: 'Runenwinde am Steinrutsch', x: 1360, y: 520, range: 65 }] : [])];
+    for (const person of people) this.createNpc(person);
+    this.createWorldEncounter('training', 'Freie Trainingsarena', training.x, training.y, 0x80c6d3);
+    this.createWorldEncounter('travel', this.campaign.region === 'valley' ? '→ Aetherwald' : '← Tal von Aetheria', region.exit.x, region.exit.y, 0xb9e4d4);
+    if (this.campaign.region === 'valley') this.createWorldEncounter('landslide', 'Runenwinde · Steinrutsch', 1360, 520, 0xe1c970);
     this.interactionController = new InteractionController(this.fixedTargets);
 
     this.cameras.main.setBounds(0, 0, WORLD_WIDTH, WORLD_HEIGHT);
@@ -115,7 +136,13 @@ export class WorldScene extends Phaser.Scene {
     }
     for (const encounter of encounters) if (!this.arkanaVisuals.has(encounter.id)) this.createWorldEncounter(encounter.id, encounter.name, encounter.x, encounter.y, encounter.color);
     this.interactionController.setTargets([...this.fixedTargets, ...encounters.map((encounter) => ({ id: encounter.id, label: `${encounter.name} begegnen`, x: encounter.x, y: encounter.y, range: 70 }))]);
-    for (const quest of WORLD_QUESTS) this.encounterLabels.get(`lesson:${quest.id}`)?.setText(`${state.completed.includes(quest.id) ? '✓' : '!'} ${quest.target}`);
+    for (const id of Object.keys(QUEST_GIVERS) as QuestGiverId[]) {
+      const quests = giverLessons(id); const available = state.introduced && this.campaign.has('glutling') ? quests.filter((quest) => this.campaign.questReady(quest) && !state.completed.includes(quest)).length : 0;
+      this.encounterLabels.get(`giver:${id}`)?.setText(`${QUEST_GIVERS[id].name}\n${available ? `! ${available} Aufgabe(n) bereit` : quests.every((quest) => state.completed.includes(quest)) ? '✓ Aufgaben abgeschlossen' : 'Aufgaben & Folgequests'}`);
+    }
+    if (this.gateBody?.body) (this.gateBody.body as Phaser.Physics.Arcade.StaticBody).enable = !this.campaign.forestUnlocked;
+    this.gateRocks?.setVisible(!this.campaign.forestUnlocked);
+    if (this.campaign.region === 'valley') this.encounterLabels.get('landslide')?.setText(this.campaign.forestUnlocked ? '✓ Steinrutsch geräumt · Ostpass frei' : '! Steinrutsch · Runenwinde');
   }
 
   private launchEncounter(encounter: WorldEncounter | string): void {
@@ -127,7 +154,7 @@ export class WorldScene extends Phaser.Scene {
 
   private createWorldEncounter(id: string, label: string, x: number, y: number, color: number): void {
     if (isArkanId(id) && this.campaign.has(id)) return;
-    const quest = id.startsWith('lesson:') || id === 'training';
+    const quest = !isArkanId(id);
     const shadow = this.add.ellipse(x, y + 18, 32, 10, 0x142c35, .3).setDepth(4);
     const marker = quest
       ? this.add.rectangle(x, y, 24, 34, color).setStrokeStyle(3, 0x3d4a41).setDepth(5)
@@ -138,6 +165,7 @@ export class WorldScene extends Phaser.Scene {
   }
 
   private drawLandscape(): void {
+    if (this.campaign.region === 'forest') { this.drawForest(); return; }
     const ground = this.add.graphics();
     ground.fillStyle(0x5d8e4f).fillRect(0, 0, WORLD_WIDTH, WORLD_HEIGHT);
     for (let x = 0; x < WORLD_WIDTH; x += 40) {
@@ -154,6 +182,12 @@ export class WorldScene extends Phaser.Scene {
     this.drawBuilding(1040, 255);
     this.drawPond(270, 245);
     [[180, 510], [350, 420], [565, 265], [590, 845], [920, 215], [1260, 405], [1410, 825], [1180, 860], [1420, 260], [770, 900], [100, 210], [430, 875]].forEach(([x, y]) => this.drawTree(x, y));
+    ground.lineStyle(38, 0xbda670).beginPath().moveTo(1120, 575).lineTo(1540, 520).strokePath();
+    ground.fillStyle(0x5c625b).fillRect(0, 0, 1600, 65).fillRect(0, 975, 1600, 65).fillRect(0, 0, 50, 1040).fillRect(1410, 0, 100, 430).fillRect(1410, 610, 100, 430);
+    ground.lineStyle(6, 0x8c967c).strokeRect(1410, -8, 100, 438).strokeRect(1410, 610, 100, 438);
+    this.gateRocks = this.add.container(0, 0).setDepth(4);
+    for (const [x, y, radius] of [[1435, 460, 35], [1480, 475, 33], [1455, 520, 40], [1480, 565, 35], [1430, 575, 32]]) this.gateRocks.add(this.add.circle(x, y, radius, 0x727b78).setStrokeStyle(4, 0xa7aba0));
+    this.add.text(140, 100, 'TAL VON AETHERIA', { fontSize: '25px', color: '#fff0bd', stroke: '#26352c', strokeThickness: 4 }).setDepth(4);
   }
 
   private createObstacles(): Phaser.Physics.Arcade.StaticGroup {
@@ -162,9 +196,14 @@ export class WorldScene extends Phaser.Scene {
       const body = this.add.rectangle(x, y, width, height, 0x000000, 0);
       this.physics.add.existing(body, true);
       group.add(body);
+      return body;
     };
+    if (this.campaign.region === 'forest') { for (const [x, y] of this.forestTrees()) addObstacle(x, y + 10, 30, 30); return group; }
     addObstacle(1040, 295, 280, 155);
     [[180, 520], [350, 430], [565, 275], [590, 855], [920, 225], [1260, 415], [1410, 835], [1180, 870], [1420, 270], [770, 910], [100, 220], [430, 885]].forEach(([x, y]) => addObstacle(x, y, 30, 30));
+    addObstacle(800, 32.5, 1600, 65); addObstacle(800, 1007.5, 1600, 65); addObstacle(25, 520, 50, 1040);
+    for (const wall of VALLEY_CLIFFS) addObstacle(wall.x, wall.y, wall.width, wall.height);
+    this.gateBody = addObstacle(VALLEY_PASS.x, VALLEY_PASS.y, VALLEY_PASS.width, VALLEY_PASS.height);
     return group;
   }
 
@@ -176,11 +215,25 @@ export class WorldScene extends Phaser.Scene {
     return player;
   }
 
-  private createNpc(x: number, y: number): void {
+  private createNpc(id: QuestGiverId): void {
+    const { x, y, name, color } = QUEST_GIVERS[id];
     this.add.ellipse(x, y + 20, 27, 9, 0x1d2a25, 0.3).setDepth(4);
-    this.add.circle(x, y, 17, 0x8c55bc).setStrokeStyle(3, 0xf2d8ff).setDepth(5);
+    this.add.circle(x, y, 17, color).setStrokeStyle(3, 0xf2d8ff).setDepth(5);
     this.add.triangle(x, y - 15, -14, 11, 14, 11, 0, -19, 0x40245f).setDepth(6);
-    this.add.text(x, y - 52, 'Arkanist Eldren', { fontFamily: 'Georgia, serif', fontSize: '16px', color: '#fff6d8', stroke: '#26352c', strokeThickness: 4 }).setOrigin(0.5).setDepth(7);
+    const label = this.add.text(x, y - 52, name, { fontFamily: 'Georgia, serif', fontSize: '16px', color: '#fff6d8', stroke: '#26352c', strokeThickness: 4, align: 'center' }).setOrigin(0.5).setDepth(7);
+    this.encounterLabels.set(`giver:${id}`, label);
+  }
+
+  private forestTrees(): number[][] { return [[170, 160], [350, 210], [500, 160], [780, 150], [950, 220], [1300, 150], [1470, 230], [240, 800], [440, 910], [650, 780], [790, 950], [1230, 940], [1500, 700], [1350, 650], [300, 350], [830, 650]]; }
+  private drawForest(): void {
+    const ground = this.add.graphics(); ground.fillStyle(0x315d46).fillRect(0, 0, 1600, 1040);
+    for (let x = 0; x < 1600; x += 80) for (let y = 0; y < 1040; y += 80) if ((x + y) % 160 === 0) ground.fillStyle(0x46765a, .4).fillRect(x, y, 80, 80);
+    ground.lineStyle(40, 0x93865d).beginPath().moveTo(100, 520).lineTo(600, 490).lineTo(1140, 390).strokePath();
+    ground.beginPath().moveTo(600, 490).lineTo(1030, 800).lineTo(1450, 915).strokePath();
+    for (const [x, y] of this.forestTrees()) this.drawTree(x, y);
+    this.drawPond(980, 145);
+    this.add.text(160, 75, 'AETHERWALD', { fontSize: '28px', color: '#d4f6d9', stroke: '#183c30', strokeThickness: 5 });
+    this.add.text(160, 113, 'Bedingungen & Verzweigungen', { fontSize: '17px', color: '#c7decb' });
   }
 
   private drawTree(x: number, y: number): void {

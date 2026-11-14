@@ -54,10 +54,12 @@ export function compileActionPlan(source: string, expectedActor?: ArkanId): Acti
           take(')');
           nodes.push({ kind: 'repeat', count, body });
         } else if (tokens[cursor] === 'if') {
-          cursor++; take('('); owner(); take('enemyAdjacent'); take(')');
+          cursor++; take('('); owner(); const condition = tokens[cursor++];
+          if (condition !== 'enemyAdjacent' && condition !== 'pathRightClear') throw new Error('Unbekannte Bedingung. Nutze eine Abfrage aus der Bibliothek.');
+          take(')');
           const then = group(depth + 1, `${path}.then.`);
           const otherwise = tokens[cursor] === 'else' ? (cursor++, group(depth + 1, `${path}.otherwise.`)) : [];
-          nodes.push({ kind: 'if', then, otherwise });
+          nodes.push({ kind: 'if', ...(condition === 'pathRightClear' ? { condition } : {}), then, otherwise });
         } else {
           owner();
           const command = tokens[cursor++];
@@ -76,7 +78,7 @@ export function compileActionPlan(source: string, expectedActor?: ArkanId): Acti
     if (programWork(nodes) > 512) return { actor, nodes, error: 'Zu viele verschachtelte Kontrollschritte (maximal 512).' };
     const blocks = legacyBlocks(nodes);
     const steps: ProgramStep[] = [];
-    for (const block of blocks) for (let index = 0; index < block.count; index++) steps.push(block.kind === 'action' ? { kind: 'action', action: block.action } : { kind: 'condition', whenTrue: block.whenTrue, whenFalse: block.whenFalse });
+    for (const block of blocks) for (let index = 0; index < block.count; index++) steps.push(block.kind === 'action' ? { kind: 'action', action: block.action } : { kind: 'condition', ...(block.condition ? { condition: block.condition } : {}), whenTrue: block.whenTrue, whenFalse: block.whenFalse });
     return { actor, nodes, blocks, steps, sourceMap };
   } catch (error) { return { error: error instanceof Error ? error.message : 'Ungültiges Programm.' }; }
 }
@@ -89,21 +91,21 @@ function legacyBlocks(nodes: readonly ProgramNode[]): ProgramBlock[] {
     else if (node.kind === 'repeat' && node.body.length === 1 && node.body[0].kind === 'if') {
       const branch = node.body[0];
       if (branch.then.length !== 1 || branch.otherwise.length !== 1 || branch.then[0].kind !== 'action' || branch.otherwise[0].kind !== 'action') return [];
-      blocks.push({ kind: 'condition', count: node.count, whenTrue: branch.then[0].action, whenFalse: branch.otherwise[0].action });
+      blocks.push({ kind: 'condition', ...(branch.condition ? { condition: branch.condition } : {}), count: node.count, whenTrue: branch.then[0].action, whenFalse: branch.otherwise[0].action });
     } else return [];
   }
   return blocks;
 }
 
 export function blocksToNodes(blocks: readonly ProgramBlock[]): ProgramNode[] {
-  return blocks.map((block) => ({ kind: 'repeat', count: block.count, body: block.kind === 'action' ? [{ kind: 'action', action: block.action }] : [{ kind: 'if', then: [{ kind: 'action', action: block.whenTrue }], otherwise: [{ kind: 'action', action: block.whenFalse }] }] }));
+  return blocks.map((block) => ({ kind: 'repeat', count: block.count, body: block.kind === 'action' ? [{ kind: 'action', action: block.action }] : [{ kind: 'if', ...(block.condition ? { condition: block.condition } : {}), then: [{ kind: 'action', action: block.whenTrue }], otherwise: [{ kind: 'action', action: block.whenFalse }] }] }));
 }
 
 export function nodesToSource(nodes: readonly ProgramNode[], actor: ArkanId, indent = ''): string {
   return nodes.map((node) => {
     if (node.kind === 'action') return `${indent}${actor}.${ACTIONS[node.action].method}();`;
     if (node.kind === 'repeat') return `${indent}repeat(${node.count}, () => {\n${nodesToSource(node.body, actor, indent + '  ')}\n${indent}});`;
-    return `${indent}if (${actor}.enemyAdjacent) {\n${nodesToSource(node.then, actor, indent + '  ')}\n${indent}}${node.otherwise.length ? ` else {\n${nodesToSource(node.otherwise, actor, indent + '  ')}\n${indent}}` : ''}`;
+    return `${indent}if (${actor}.${node.condition ?? 'enemyAdjacent'}) {\n${nodesToSource(node.then, actor, indent + '  ')}\n${indent}}${node.otherwise.length ? ` else {\n${nodesToSource(node.otherwise, actor, indent + '  ')}\n${indent}}` : ''}`;
   }).join('\n');
 }
 

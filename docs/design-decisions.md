@@ -49,3 +49,13 @@ Die ersten drei Aufgaben sind mit Glutling umgesetzt. Beim Fund stehen zunächst
 In der freien Trainingsarena sind alle implementierten Befehle zum Experimentieren verfügbar. Die Trainingsbesetzung wird separat aus gesammelten Arkana gewählt; Solo- und Duo-Versuche verändern das aktive Weltteam nicht. Trainingssiege vergeben weder Lernfähigkeiten noch Weltquestabschlüsse.
 
 Lernquests begrenzen ihre erlaubten Befehle auch für ältere, weiter fortgeschrittene Spielstände. Für neue Quest-IDs wird ein eigener Fortschritt geführt. Die bisherigen numerischen Programmplätze und Blockly-Arbeitsbereiche bleiben in den entsprechenden freien Trainingsaufgaben nutzbar. Ein Reset ist für den neuen Lerneinstieg nicht erforderlich.
+
+## DD 005 Tal und Wald mit freien Aufgabenreihen
+
+**Status:** Nutzerentscheidung vom 14. November 2026; umgesetzt. Ersetzt die frühere lineare Questfolge und die frühere Zuordnung beider Fundbegegnungen zum ersten Gebiet.
+
+Das erste Gebiet ist ein abgetrenntes Tal. Bewegung und Angriff sind das gemeinsame Tutorial. Danach wählen die Schüler:innen unabhängig zwischen Schleifenrätseln, Schleifenkämpfen und verschachtelten Schleifen. Einzelne Questgeber bieten lokale Folgequests an; diese machen keine fremde Aufgabenreihe zur Voraussetzung. Ein Steinrutsch blockiert den Waldzugang tatsächlich. Eine eigene Gebietsaufgabe räumt ihn und öffnet die Reise in den Aetherwald.
+
+Im Wald ist zunächst eine Einführung in Bedingungen und Verzweigungen verpflichtend. Anschließend sind bedingte Kämpfe, ein Entscheidungsrätsel und die Moosling-Reihe frei wählbar. Moosling wird dort gefunden und ausdrücklich aufgenommen. Die lokale Folgequest führt weiterhin zwei eigene Programme ein. Die Rückkehr ins Tal und offene Wahlquests bleiben möglich.
+
+Als konkrete Prototypausgestaltung gibt es 13 Quests bei sechs Questgebern. Für die Gebietsaufgabe genügt nach dem Tutorial eine beliebige der drei Schleifen-Einstiegsaufgaben. Dadurch bleibt die Wahlfreiheit erhalten. Die Gebietsaufgabe erklärt die für ihr Rätsel benötigte Verschachtelung selbst. Genaue Voraussetzungen, Orte und Lernziele stehen im Gebietsplan und in der Lernprogression. Alte Abschlüsse und Waldzugänge bleiben bei der Migration erhalten; neue Aufgaben werden dabei nicht automatisch bestanden.

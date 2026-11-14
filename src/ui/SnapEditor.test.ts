@@ -8,6 +8,22 @@ import { getLesson } from '../gameplay/WorldQuests';
 import { LessonSession } from '../combat/LessonSession';
 
 describe('Echte Blockly-Verbindungen', () => {
+  it('verbindet echte verschachtelte Schleifen und die Wald-Abfrage ohne Verlust beim Textwechsel', () => {
+    const workspace = new Blockly.Workspace();
+    try {
+      const start = workspace.newBlock('cm_start'); const outer = workspace.newBlock('cm_repeat'); outer.setFieldValue(2, 'COUNT');
+      const inner = workspace.newBlock('cm_repeat'); inner.setFieldValue(2, 'COUNT'); const attack = workspace.newBlock('cm_attack');
+      start.nextConnection!.connect(outer.previousConnection!); outer.getInput('BODY')!.connection!.connect(inner.previousConnection!); inner.getInput('BODY')!.connection!.connect(attack.previousConnection!);
+      const combat = getLesson('q10-schachtelkampf'); const session = new LessonSession(combat, combat.allowed);
+      session.execute({ glutling: nodesToSource(workspaceNodes(workspace), 'glutling') }, true); expect(session.snapshot.outcome).toBe('victory');
+      const puzzle = getLesson('q13-lichtpfad');
+      const source = 'repeat(4, () => { if (glutling.pathRightClear) { glutling.moveRight(); } else { glutling.moveUp(); } });';
+      const nodes = compileActionPlan(source, 'glutling').nodes!; loadNodes(workspace, nodes, 'glutling');
+      expect(blockAtPath(workspace, '0.body.0')?.type).toBe('cm_if_path'); expect(workspaceNodes(workspace)).toEqual(nodes);
+      const trial = new LessonSession(puzzle, puzzle.allowed); trial.execute({ glutling: nodesToSource(workspaceNodes(workspace), 'glutling') }, true); expect(trial.snapshot.outcome).toBe('victory');
+      const toolbox = JSON.stringify(snapToolbox('glutling', 0, puzzle.allowed)); expect(toolbox).toContain('cm_if_path'); expect(toolbox).not.toContain('cm_attack');
+    } finally { workspace.dispose(); }
+  });
   it('erhält getrennte Blockprogramme von Moosling und Glutling für Q08', () => {
     const lesson = getLesson('q08-team'); const moosling = new Blockly.Workspace(); const glutling = new Blockly.Workspace();
     try {

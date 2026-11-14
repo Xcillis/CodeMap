@@ -11,6 +11,7 @@ import { LessonSession } from '../combat/LessonSession';
 import { Campaign } from '../gameplay/Campaign';
 import { instanceId } from '../gameplay/ArkanaCatalog';
 import { Playback } from '../combat/Playback';
+import { QUEST_ROUTES } from '../gameplay/QuestNetwork';
 
 const listeners = vi.hoisted(() => new Map<string, ((...args: unknown[]) => void)[]>());
 const snaps = vi.hoisted(() => [] as unknown[]);
@@ -135,7 +136,7 @@ describe('Editorzustand und Arkan-Zuordnung', () => {
     expect(document.getElementById('program-owner')!.textContent).toContain('Moosling');
     click('text-mode'); type('moosling.'); gameEvents.emit('battle-closed');
     const campaign = new Campaign({ version: 2, introduced: true, completed: LESSON_IDS.slice(0, 7), owned: [{ speciesId: 'moosling' }, { speciesId: 'glutling' }], team: [instanceId('moosling')] });
-    campaign.interact('arkanist-eldren'); const encounter = campaign.prepareMission(duo.id);
+    campaign.visitGiver('tala'); const encounter = campaign.prepareMission(duo.id);
     if (typeof encounter === 'string') throw new Error(encounter);
     const programs = { moosling: 'repeat(2, () => { moosling.moveRight(); }); repeat(2, () => { moosling.attack(); });', glutling: 'repeat(3, () => { glutling.moveRight(); }); repeat(2, () => { glutling.attack(); });' };
     gameEvents.emit('battle-opened', lessonPrograms(duo), duo.id, encounter.skills, { title: duo.title, mode: 'lesson', instructions: duo.introduction, objective: duo.objective, hints: duo.hints });
@@ -182,7 +183,7 @@ describe('Editorzustand und Arkan-Zuordnung', () => {
   });
   it('zeigt Q05 mit beiden Situationen, passender Palette und Abschluss erst nach der zweiten Animation', () => {
     vi.useFakeTimers(); const lesson = getLesson('q05-aufmerksam');
-    const campaign = new Campaign({ version: 2, introduced: true, completed: LESSON_IDS.slice(0, 4), owned: [{ speciesId: 'glutling' }], team: [instanceId('glutling')] });
+    const campaign = new Campaign({ version: 2, worldVersion: 1, region: 'forest', legacyForestAccess: true, introduced: true, completed: LESSON_IDS.slice(0, 4), owned: [{ speciesId: 'glutling' }], team: [instanceId('glutling')] });
     campaign.interact(`lesson:${lesson.id}`); campaign.beginMission(lesson.id);
     gameEvents.emit('battle-opened', { glutling: lesson.starter }, lesson.id, { glutling: lesson.allowed }, { title: lesson.title, mode: 'lesson', instructions: lesson.introduction, objective: lesson.objective, hints: lesson.hints });
     expect(document.getElementById('category-senses')).not.toBeNull(); expect(document.getElementById('category-flow')).toBeNull();
@@ -205,7 +206,7 @@ describe('Editorzustand und Arkan-Zuordnung', () => {
     expect(document.getElementById('lesson-trial')!.hidden).toBe(true);
   });
   for (const [index, lesson] of WORLD_QUESTS.entries()) it(`${lesson.id}: zeigt den bestätigten Abschluss in der Arena und kehrt ohne Welt-Abschlussdialog zurück`, () => {
-    const campaign = new Campaign({ version: 2, introduced: true, completed: LESSON_IDS.slice(0, index), owned: [{ speciesId: 'glutling' }, { speciesId: 'moosling' }], team: [] });
+    const campaign = new Campaign({ version: 2, worldVersion: 1, region: QUEST_ROUTES[lesson.id].region, legacyForestAccess: true, introduced: true, completed: LESSON_IDS.slice(0, index), owned: [{ speciesId: 'glutling' }, { speciesId: 'moosling' }], team: [] });
     campaign.interact(`lesson:${lesson.id}`); campaign.prepareMission(lesson.id);
     const presentation = { title: lesson.title, mode: 'lesson', instructions: lesson.introduction, objective: lesson.objective, hints: lesson.hints };
     gameEvents.emit('battle-opened', lessonPrograms(lesson), lesson.id, Object.fromEntries(lessonActors(lesson).map((actor) => [actor, lesson.allowed])), presentation);

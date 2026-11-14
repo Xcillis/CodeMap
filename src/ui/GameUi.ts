@@ -336,7 +336,7 @@ export class GameUi {
     if (!frame) return;
     const name = frame.actor === 'moosling' ? 'Moosling' : frame.actor === 'glutling' ? 'Glutling' : 'Konstrukt';
     const loops = frame.trace?.loops.map((loop) => `Durchlauf ${loop.iteration} von ${loop.total}`).join(' · ');
-    const conditions = frame.trace?.conditions.map((condition) => `Gegner direkt daneben: ${condition.value ? 'ja' : 'nein'}`).join(' · ');
+    const conditions = frame.trace?.conditions.map((condition) => `${condition.condition === 'pathRightClear' ? 'Weg rechts frei' : 'Gegner direkt daneben'}: ${condition.value ? 'ja' : 'nein'}`).join(' · ');
     trace.textContent = [name, ACTIONS[frame.action].label, loops, conditions].filter(Boolean).join(' · ');
   }
 

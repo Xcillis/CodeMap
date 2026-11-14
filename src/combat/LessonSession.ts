@@ -6,9 +6,11 @@ import { compileActionPlan, nodesToSource, programCost } from './DecisionProgram
 import { nodesCapabilityError } from './CommandCatalog';
 import { ProgramRunner } from './ProgramRunner';
 import { RepeatProgress } from './RepeatProgress';
-import { DecisionProgress, enemyAdjacent } from './DecisionProgress';
+import { DecisionProgress } from './DecisionProgress';
 import { AdaptiveCombatSession } from './AdaptiveCombatSession';
 import { TeamLessonSession } from './TeamLessonSession';
+import { evaluateCondition } from './Conditions';
+import { BranchMovementProgress } from './BranchMovementProgress';
 import type { ActionFrame, ArkanId, EncounterState, ProgramSources } from './types';
 
 /** Shared quest entry point; solo rules and delegated active/team encounters use the same parser and runner. */
@@ -22,6 +24,7 @@ export class LessonSession {
   private signature = '';
   private actionFrames: ActionFrame<EncounterState>[] = [];
   private readonly repeatProgress = new RepeatProgress();
+  private readonly branchProgress = new BranchMovementProgress();
   private readonly decisions = new DecisionProgress();
   private trialIndex = 0;
   private passedTrials = 0;
@@ -42,7 +45,7 @@ export class LessonSession {
     if (this.cooperative) return this.cooperative.snapshot;
     if (this.adaptive) return this.adaptive.snapshot;
     const state: EncounterState = this.engine.snapshot;
-    if (state.outcome === 'victory' && this.lesson.kind === 'puzzle' && !this.repeatProgress.satisfies(this.lesson.repeatGoal)) state.outcome = 'incomplete';
+    if (state.outcome === 'victory' && (!this.repeatProgress.satisfies(this.lesson.repeatGoal ?? 'none') || (this.lesson.kind === 'puzzle' && this.lesson.branchGoal && !this.branchProgress.satisfied))) state.outcome = 'incomplete';
     const trials = this.lesson.kind === 'combat' ? this.lesson.decisionTrials : undefined;
     if (trials?.length) {
       state.outcome = this.decisionFailure ? 'incomplete' : this.passedTrials === trials.length ? 'victory' : 'ongoing';
@@ -57,7 +60,7 @@ export class LessonSession {
     this.trialIndex = 0; this.passedTrials = 0; this.nextTrial = false; this.decisionFailure = undefined; this.decisions.clear();
     if (this.engine instanceof PuzzleEngine) this.engine.reset();
     else this.resetCombat();
-    this.runner = undefined; this.signature = ''; this.actionFrames = []; this.repeatProgress.clear();
+    this.runner = undefined; this.signature = ''; this.actionFrames = []; this.repeatProgress.clear(); this.branchProgress.clear();
   }
   execute(sources: ProgramSources, full = false): string {
     if (this.cooperative) return this.cooperative.execute(sources, full);
@@ -75,7 +78,7 @@ export class LessonSession {
     do {
       if (this.nextTrial) { this.trialIndex++; this.nextTrial = false; this.resetCombat(); this.runner = new ProgramRunner(parsed.nodes); }
       const before = this.snapshot;
-      const step = this.runner?.next(enemyAdjacent(before));
+      const step = this.runner?.next((condition) => evaluateCondition(before, condition));
       if (!step || step.kind !== 'action') {
         if (before.lessonTrial) this.decisionFailure = 'Für diese Antwort ist kein Befehl verbunden. Ergänze den dann- und den sonst-Teil deines falls/sonst-Blocks.';
         break;
@@ -91,7 +94,9 @@ export class LessonSession {
           if (!this.nextTrial && !this.decisions.satisfied) this.decisionFailure = 'Nutze denselben falls/sonst-Block für beide Situationen, damit seine Bedingung einmal ja und einmal nein ergibt.';
         }
       }
-      this.repeatProgress.record(step.action, before.player.x !== raw.player.x || before.player.y !== raw.player.y, trace);
+      const moved = before.player.x !== raw.player.x || before.player.y !== raw.player.y;
+      this.repeatProgress.record(step.action, moved, trace, moved || Boolean(before.enemy && raw.enemy && raw.enemy.hp < before.enemy.hp));
+      this.branchProgress.record(step.action, before, raw, trace);
       this.actionFrames.push({ actor: this.actor, action: step.action, before, after: this.snapshot, trace: trace ? structuredClone({ ...trace, line: parsed.sourceMap?.[trace.path] }) : undefined });
     } while (full && this.snapshot.outcome === 'ongoing' && (this.nextTrial || !this.runner?.done));
     return this.result();
@@ -106,6 +111,9 @@ export class LessonSession {
     const state = this.snapshot;
     if (state.outcome === 'victory') return 'Questziel erreicht! Kehre zur Spielwelt zurück, um den nächsten Schritt zu erfahren.';
     if (state.lessonTrial) return `Situation ${state.lessonTrial.current}/${state.lessonTrial.total} · ${state.lessonTrial.passed} geschafft. ${state.lessonTrial.message}`;
+    if (state.outcome === 'incomplete' && this.lesson.repeatGoal === 'nested') return 'Ziel erreicht, Verschachtelungsübung noch offen: Die innere Schleife muss in mindestens zwei äußeren Durchläufen jeweils mindestens zweimal wirksam ausgeführt werden.';
+    if (state.outcome === 'incomplete' && this.lesson.repeatGoal === 'effective') return 'Konstrukt ausgeschaltet, Schleifenübung noch offen: Wiederhole mindestens zwei wirksame Bewegungen oder Treffer mit derselben Schleife.';
+    if (state.outcome === 'incomplete' && this.lesson.kind === 'puzzle' && this.lesson.branchGoal) return 'Rune erreicht, Entscheidungsübung noch offen: Dieselbe Weg-Abfrage muss ja und nein ergeben und jeweils die passende Bewegung auslösen.';
     if (state.outcome === 'incomplete') return this.lesson.kind === 'puzzle' && this.lesson.repeatGoal === 'movement-sequence'
       ? 'Rune erreicht. Die Musterübung ist noch offen: Wiederhole rechts und oben gemeinsam in derselben Schleife mindestens zweimal erfolgreich. Einzelbefehle, getrennte Schleifen und blockierte Schritte zählen nicht als gemeinsames Muster.'
       : 'Rune erreicht. Die Schleifenübung ist noch offen: Wiederhole eine Bewegung mindestens zweimal mit einer Schleife.';

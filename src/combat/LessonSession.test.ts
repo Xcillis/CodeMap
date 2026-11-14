@@ -5,6 +5,7 @@ import { ARKANA_SPECIES } from '../gameplay/ArkanaCatalog';
 import { LessonSession } from './LessonSession';
 import { PuzzleEngine } from './PuzzleEngine';
 import { compileActionPlan, nodesToSource } from './DecisionProgram';
+import { QUEST_SOLUTIONS } from '../test/questSolutions';
 
 const solutions = [
   'glutling.moveRight(); glutling.moveRight(); glutling.moveUp();',
@@ -19,7 +20,7 @@ const solutions = [
 describe('Lernaufgaben mit eigenen Freigaben und Zielen', () => {
   for (const [index, id] of LESSON_IDS.entries()) it(`${id}: liefert schrittweise und vollständig dieselben Zustände und Traces`, () => {
     const lesson = getLesson(id); const full = new LessonSession(lesson, lesson.allowed); const steps = new LessonSession(lesson, lesson.allowed);
-    const programs: ProgramSources = id === 'q08-team' ? { moosling: 'repeat(2, () => { moosling.moveRight(); }); repeat(2, () => { moosling.attack(); });', glutling: 'repeat(3, () => { glutling.moveRight(); }); repeat(2, () => { glutling.attack(); });' } : { [lessonActors(lesson)[0]]: solutions[index] };
+    const programs = QUEST_SOLUTIONS[id];
     full.execute(programs, true);
     const frames = [];
     for (let count = 0; count < 12 && steps.snapshot.outcome === 'ongoing'; count++) { steps.execute(programs); frames.push(...steps.frames); }

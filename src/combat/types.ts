@@ -2,10 +2,11 @@ export type CombatAction = 'ATTACK' | 'MOVE_TOWARD' | 'MOVE_RIGHT' | 'MOVE_LEFT'
 export type BattleOutcome = 'ongoing' | 'victory' | 'defeat' | 'incomplete';
 export type ArkanId = 'moosling' | 'glutling';
 export type ProgramSources = Partial<Record<ArkanId, string>>;
+export type ConditionId = 'enemyAdjacent' | 'pathRightClear';
 export type ProgramNode =
   | { kind: 'action'; action: CombatAction }
   | { kind: 'repeat'; count: number; body: ProgramNode[] }
-  | { kind: 'if'; then: ProgramNode[]; otherwise: ProgramNode[] };
+  | { kind: 'if'; condition?: ConditionId; then: ProgramNode[]; otherwise: ProgramNode[] };
 
 export interface RepeatActionBlock {
   kind: 'action';
@@ -15,6 +16,7 @@ export interface RepeatActionBlock {
 
 export interface RepeatConditionBlock {
   kind: 'condition';
+  condition?: ConditionId;
   count: number;
   whenTrue: CombatAction;
   whenFalse: CombatAction;
@@ -24,7 +26,7 @@ export type ProgramBlock = RepeatActionBlock | RepeatConditionBlock;
 
 export type ProgramStep =
   | { kind: 'action'; action: CombatAction }
-  | { kind: 'condition'; whenTrue: CombatAction; whenFalse: CombatAction };
+  | { kind: 'condition'; condition?: ConditionId; whenTrue: CombatAction; whenFalse: CombatAction };
 
 export interface GridPosition {
   x: number;
@@ -64,7 +66,7 @@ export interface ExecutionTrace {
   path: string;
   line?: number;
   loops: LoopTrace[];
-  conditions: { path: string; value: boolean }[];
+  conditions: { path: string; value: boolean; condition?: ConditionId }[];
 }
 export interface PuzzleState extends Omit<BattleState, 'enemy' | 'companion'> {
   enemy?: undefined;
