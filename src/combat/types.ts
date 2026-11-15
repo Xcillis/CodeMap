@@ -1,8 +1,12 @@
-export type CombatAction = 'ATTACK' | 'MOVE_TOWARD' | 'MOVE_RIGHT' | 'MOVE_LEFT' | 'MOVE_UP' | 'MOVE_DOWN';
+export type CombatAction = 'ATTACK' | 'MOVE_TOWARD' | 'MOVE_RIGHT' | 'MOVE_LEFT' | 'MOVE_UP' | 'MOVE_DOWN' | 'IGNITE' | 'VINE_SNARE' | 'HEALING_MOSS' | 'BARK_GUARD' | 'WAIT';
+export type AbilityEvidence = 'burn' | 'root' | 'heal' | 'guard';
+export type CombatRole = 'damage' | 'healing' | 'support' | 'tank';
+export interface TimedEffect { remaining: number; source: ArkanId }
+export interface CombatEffect { kind: AbilityEvidence | 'damage'; source: ArkanId; target: Combatant['id']; amount: number; text: string }
 export type BattleOutcome = 'ongoing' | 'victory' | 'defeat' | 'incomplete';
 export type ArkanId = 'moosling' | 'glutling';
 export type ProgramSources = Partial<Record<ArkanId, string>>;
-export type ConditionId = 'enemyAdjacent' | 'pathRightClear';
+export type ConditionId = 'enemyAdjacent' | 'pathRightClear' | 'allyInjured' | 'enemyBurning';
 export type ProgramNode =
   | { kind: 'action'; action: CombatAction }
   | { kind: 'repeat'; count: number; body: ProgramNode[] }
@@ -40,6 +44,11 @@ export interface Combatant extends GridPosition {
   maxHp: number;
   attackPower?: number;
   guarding: boolean;
+  burning?: TimedEffect;
+  rooted?: TimedEffect;
+  regeneration?: TimedEffect;
+  protection?: TimedEffect;
+  cooldowns?: Partial<Record<CombatAction, number>>;
 }
 
 export interface BattleState {
@@ -50,6 +59,7 @@ export interface BattleState {
   enemy: Combatant;
   log: string[];
   lessonTrial?: { current: number; total: number; title: string; passed: number; message: string };
+  enemyIntent?: { target: ArkanId; damage: number };
 }
 
 export interface ActionPlanResult {
@@ -82,4 +92,6 @@ export interface ActionFrame<State extends EncounterState = BattleState> {
   before: State;
   after: State;
   trace?: ExecutionTrace;
+  effects?: CombatEffect[];
+  periodic?: boolean;
 }

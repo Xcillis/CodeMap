@@ -3,11 +3,11 @@ import type { RegionId } from './WorldRegions';
 
 export const QUEST_GIVERS = {
   eldren: { name: 'Arkanist Eldren', region: 'valley', x: 915, y: 540, color: 0x8c55bc, description: 'Bewegung, Angriff und Runenrätsel an der Talakademie.' },
-  brann: { name: 'Wächter Brann', region: 'valley', x: 440, y: 390, color: 0xbd7652, description: 'Schleifen im Kampf am westlichen Übungsplatz.' },
+  brann: { name: 'Wächter Brann', region: 'valley', x: 440, y: 390, color: 0xbd7652, description: 'Schleifen im Kampf und Glutlings Feuerfähigkeiten am westlichen Übungsplatz.' },
   mira: { name: 'Bergmeisterin Mira', region: 'valley', x: 1280, y: 650, color: 0xc9a95c, description: 'Verschachtelte Schleifen und die Räumung des Steinrutschs am Ostpass.' },
   lyra: { name: 'Waldhüterin Lyra', region: 'forest', x: 600, y: 490, color: 0x69b482, description: 'Die verpflichtende Einführung in Bedingungen und ein beweglicher Wächter.' },
   neria: { name: 'Runenkundige Neria', region: 'forest', x: 1140, y: 390, color: 0x90aacb, description: 'Entscheidungen auf dem verschlungenen Waldpfad.' },
-  tala: { name: 'Arkana-Forscherin Tala', region: 'forest', x: 1030, y: 800, color: 0xa7b86c, description: 'Mooslings eigenes Programm und zwei koordinierte Begleiter.' },
+  tala: { name: 'Arkana-Forscherin Tala', region: 'forest', x: 1030, y: 800, color: 0xa7b86c, description: 'Mooslings eigenes Programm, Heilung, Ranken, Schutz und koordinierte Teamkämpfe.' },
 } as const;
 export type QuestGiverId = keyof typeof QUEST_GIVERS;
 export const isQuestGiverId = (value: unknown): value is QuestGiverId => typeof value === 'string' && Object.hasOwn(QUEST_GIVERS, value);
@@ -26,6 +26,10 @@ export const QUEST_ROUTES: Record<LessonId, Route> = {
   'q13-lichtpfad': { region: 'forest', giver: 'neria', all: ['q05-aufmerksam'], role: 'Wahlquest · Bedingtes Rätsel' },
   'q07-moosling': { region: 'forest', giver: 'tala', all: ['q05-aufmerksam'], role: 'Wahlreihe · Moosling' },
   'q08-team': { region: 'forest', giver: 'tala', all: ['q07-moosling'], role: 'Folgequest · Zwei Programme' },
+  'q14-feuerprobe': { region: 'valley', giver: 'brann', all: ['q02-basisangriff'], role: 'Wahlquest · Feuer und Brandschaden' },
+  'q15-wurzelschutz': { region: 'forest', giver: 'tala', all: ['q07-moosling'], role: 'Wahlquest · Unterstützung und Tank' },
+  'q16-heilmoos': { region: 'forest', giver: 'tala', all: ['q07-moosling'], role: 'Wahlquest · Heilung über Zeit' },
+  'q17-teamrollen': { region: 'forest', giver: 'tala', all: ['q08-team', 'q14-feuerprobe', 'q15-wurzelschutz', 'q16-heilmoos'], role: 'Folgequest · Aktiver Rollenkampf' },
 };
 export const requirementsMet = (id: LessonId, completed: readonly LessonId[]): boolean => {
   const route = QUEST_ROUTES[id]; return route.all.every((prior) => completed.includes(prior)) && (!route.any || route.any.some((prior) => completed.includes(prior)));

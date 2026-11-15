@@ -1,4 +1,4 @@
-import { BattleEngine } from './BattleEngine';
+import { BattleEngine, type BattleOptions } from './BattleEngine';
 import { nodesToSource, programCost, compileActionPlan, CONDITION_PROGRAM, DEFAULT_PROGRAM, FORMATION_PROGRAM } from './DecisionProgram';
 import type { ActionFrame, ArkanId, GridPosition, ProgramSources, ProgramStep } from './types';
 import { nodesCapabilityError } from './CommandCatalog';
@@ -7,16 +7,17 @@ import type { SkillId } from '../gameplay/ArkanaCatalog';
 import { evaluateCondition } from './Conditions';
 
 export type MissionId = 1 | 2 | 3;
-export interface BattleConfiguration { spawns?: Partial<Record<ArkanId | 'konstrukt', GridPosition>>; enemyHp?: number; enemyActive?: boolean }
+export interface BattleConfiguration extends BattleOptions { spawns?: Partial<Record<ArkanId | 'konstrukt', GridPosition>>; enemyHp?: number }
 
 export function missionPrograms(mission: MissionId, team?: readonly ArkanId[]): ProgramSources {
   if (team) {
     const source = mission === 1 ? DEFAULT_PROGRAM : mission === 2 ? CONDITION_PROGRAM : FORMATION_PROGRAM;
-    return Object.fromEntries(team.map((actor) => [actor, source.replace(/moosling/g, actor)]));
+    const nodes = compileActionPlan(source, 'moosling').nodes!;
+    return Object.fromEntries(team.map((actor) => [actor, nodesToSource(nodes, actor)]));
   }
   if (mission === 1) return { moosling: DEFAULT_PROGRAM };
   if (mission === 2) return { moosling: CONDITION_PROGRAM };
-  return { moosling: FORMATION_PROGRAM, glutling: FORMATION_PROGRAM.replace(/moosling/g, 'glutling') };
+  return { moosling: FORMATION_PROGRAM, glutling: nodesToSource(compileActionPlan(FORMATION_PROGRAM, 'moosling').nodes!, 'glutling') };
 }
 
 /** Owns execution independently of Phaser and editor selection. */
@@ -28,10 +29,10 @@ export class BattleSession {
   private length = 0;
   private actionFrames: ActionFrame[] = [];
   get frames(): readonly ActionFrame[] { return this.actionFrames; }
-  get done(): boolean { return this.snapshot.outcome !== 'ongoing' || this.length === 0 || this.actors.every((actor) => this.plans[actor]?.done); }
+  get done(): boolean { return this.snapshot.outcome !== 'ongoing' || this.length === 0 || !this.hasSteps(); }
 
   constructor(readonly mission: MissionId, private readonly team?: readonly ArkanId[], private readonly skills?: Partial<Record<ArkanId, readonly SkillId[]>>, private readonly configuration?: BattleConfiguration) {
-    this.engine = new BattleEngine(configuration?.spawns); this.reset();
+    this.engine = new BattleEngine(configuration?.spawns, configuration); this.reset();
   }
 
   get snapshot() { return this.engine.snapshot; }
@@ -68,16 +69,16 @@ export class BattleSession {
     this.length = length;
     if (this.length === 0) return 'Die Programme sind leer. Ziehe einen Befehl in den Programmbereich.';
     if (this.snapshot.outcome !== 'ongoing') return this.result();
-    if (this.cursor >= this.length || this.actors.every((actor) => this.plans[actor]?.done)) return 'Aktionspläne beendet. Bearbeite ein Programm oder starte neu.';
+    if (this.cursor >= this.length || !this.hasSteps()) return 'Aktionspläne beendet. Bearbeite ein Programm oder starte neu.';
     do {
       const steps: Partial<Record<ArkanId, (adjacent: boolean) => ProgramStep | undefined>> = {};
       for (const actor of this.actors) steps[actor] = () => this.plans[actor]?.next((condition) => evaluateCondition(this.snapshot, condition, actor));
       this.engine.runTick(steps, this.configuration?.enemyActive ?? (this.mission === 2), (frame) => {
-        const trace = frame.actor !== 'konstrukt' ? this.plans[frame.actor]?.lastTrace : undefined;
+        const trace = frame.actor !== 'konstrukt' && !frame.periodic ? this.plans[frame.actor]?.lastTrace : undefined;
         this.actionFrames.push({ ...frame, trace: trace ? structuredClone({ ...trace, line: lines[frame.actor as ArkanId]?.[trace.path] }) : undefined });
       });
       this.cursor = this.snapshot.tick;
-    } while (full && this.cursor < this.length && this.snapshot.outcome === 'ongoing' && this.actors.some((actor) => !this.plans[actor]?.done));
+    } while (full && this.cursor < this.length && this.snapshot.outcome === 'ongoing' && this.hasSteps());
     return this.result();
   }
 
@@ -85,5 +86,9 @@ export class BattleSession {
     if (this.snapshot.outcome === 'victory') return 'Sieg! Die Programme haben das Ziel erreicht.';
     if (this.snapshot.outcome === 'defeat') return 'Niederlage. Bearbeite die Programme und führe sie erneut aus.';
     return `Schritt ${this.cursor}/${this.length}${this.cursor === this.length || this.actors.every((actor) => this.plans[actor]?.done) ? ' – Aktionspläne beendet.' : ''}`;
+  }
+  private hasSteps(): boolean {
+    const state = this.snapshot;
+    return this.actors.some((actor) => [state.player, state.companion].some((unit) => unit?.id === actor && unit.hp > 0) && !this.plans[actor]?.done);
   }
 }

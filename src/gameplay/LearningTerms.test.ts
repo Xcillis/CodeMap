@@ -4,6 +4,12 @@ import { learnedTerms } from './LearningTerms';
 import { LESSON_IDS } from './WorldQuests';
 
 describe('Gelernte Fachbegriffe', () => {
+  it('öffnet Zustände und Rollen erst nach der jeweiligen Fähigkeitseinführung mit konkretem Beispiel', () => {
+    expect(learnedTerms(['q02-basisangriff']).some((term) => term.id === 'cooldown')).toBe(false);
+    expect(learnedTerms(['q14-feuerprobe']).map((term) => term.id)).toEqual(expect.arrayContaining(['status', 'cooldown']));
+    expect(learnedTerms(['q15-wurzelschutz']).find((term) => term.id === 'tank')?.code).toContain('moosling.barkGuard()');
+    expect(learnedTerms(['q16-heilmoos']).find((term) => term.id === 'regeneration')?.code).toContain('moosling.healingMoss()');
+  });
   it('öffnet Einträge stufenweise durch Questabschlüsse und erhält sie nach dem Laden', () => {
     const campaign = new Campaign(); campaign.apply('meet-eldren'); campaign.apply('recruit-glutling');
     campaign.interact('lesson:q01-glutspur'); campaign.beginMission(LESSON_IDS[0]);

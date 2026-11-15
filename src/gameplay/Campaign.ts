@@ -46,7 +46,7 @@ export function normalizeCampaign(value: unknown, legacyIntroduction = false): C
     if (!isArkanId(candidate.speciesId) || owned.some((item) => item.speciesId === candidate.speciesId)) continue;
     const supported = ARKANA_SPECIES[candidate.speciesId].supported;
     const learned = Array.isArray(candidate.learned) ? candidate.learned.filter((skill): skill is SkillId => supported.some((allowed) => skill === allowed)) : [];
-    owned.push({ id: instanceId(candidate.speciesId), speciesId: candidate.speciesId, learned: [...new Set([...startingSkills(), ...learned, ...introductions.flatMap((id) => getLesson(id).introduces)])] });
+    owned.push({ id: instanceId(candidate.speciesId), speciesId: candidate.speciesId, learned: [...new Set([...startingSkills(), ...learned, ...introductions.flatMap((id) => getLesson(id).introduces)])].filter((skill) => supported.includes(skill)) });
   }
   const legacyProgress = { completed: legacyIds(legacy.completed), discovered: legacyIds(legacy.discovered) };
   const team = Array.isArray(raw.team) ? [...new Set(raw.team)].filter((id): id is string => typeof id === 'string' && owned.some((item) => item.id === id)).slice(0, teamCapacity(completed, introductions, legacyProgress.completed)) : [];
@@ -111,7 +111,7 @@ export class Campaign {
     const team = this.activeTeam; const actors = lessonActors(getLesson(id));
     if (team.length !== actors.length || actors.some((actor, index) => team[index]?.speciesId !== actor)) return actors.length === 1
       ? `Wähle ${ARKANA_SPECIES[actors[0]].name} als einziges aktives Arkana unter Charakter → Aktuelles Team.`
-      : 'Diese Aufgabe benötigt Moosling zuerst und Glutling danach. Mit „Team wählen & Quest starten“ nimmst du die Einführung zum zweiten Teamplatz an und setzt beide aktiv.';
+      : `Diese Aufgabe benötigt ${ARKANA_SPECIES[actors[0]].name} zuerst und ${ARKANA_SPECIES[actors[1]].name} danach. Mit „Team wählen & Quest starten“ setzt du beide aktiv.`;
   }
   lessonOffer(id: LessonId): Pick<CampaignDialog, 'action' | 'actionLabel'> {
     if (this.active || this.lessonPrerequisiteError(id)) return {};
@@ -130,7 +130,7 @@ export class Campaign {
     const error = this.missionError(id); if (error) return error;
     const lesson = getLesson(id);
     if (!this.state.introductions.includes(id)) this.state.introductions.push(id);
-    for (const owned of this.state.owned) owned.learned = [...new Set([...owned.learned, ...lesson.introduces])];
+    for (const owned of this.state.owned) owned.learned = [...new Set([...owned.learned, ...lesson.introduces])].filter((skill) => ARKANA_SPECIES[owned.speciesId].supported.includes(skill));
     const actors = lessonActors(lesson);
     const skills = Object.fromEntries(actors.map((actor) => [actor, this.state.owned.find((item) => item.speciesId === actor)!.learned.filter((skill) => lesson.allowed.includes(skill))]));
     this.active = { kind: 'lesson', lesson: id, team: [...actors], skills };
@@ -168,7 +168,7 @@ export class Campaign {
       if (this.has(species)) return `${ARKANA_SPECIES[species].name} ist bereits in deiner Sammlung.`;
       if (!this.state.introduced) return 'Sprich zuerst mit Arkanist Eldren. Er hilft dir, dein erstes Arkana zu finden.';
       if (!encounterUnlocked(this.state, species)) return 'Moosling wartet im südöstlichen Waldhain nach Lyras Einführung. Reise zuerst in den Wald und lerne dort die Bedingungen kennen.';
-      const owned: OwnedArkana = { id: instanceId(species), speciesId: species, learned: [...new Set([...startingSkills(), ...this.state.introductions.flatMap((id) => getLesson(id).introduces)])] };
+      const owned: OwnedArkana = { id: instanceId(species), speciesId: species, learned: [...new Set([...startingSkills(), ...this.state.introductions.flatMap((id) => getLesson(id).introduces)])].filter((skill) => ARKANA_SPECIES[species].supported.includes(skill)) };
       this.state.owned.push(owned);
       if (this.state.team.length < this.teamLimit) this.state.team.push(owned.id);
       return `${ARKANA_SPECIES[species].name} hat sich dir angeschlossen. ${this.objective}`;
@@ -210,7 +210,7 @@ export class Campaign {
     const name = this.preparationName(id);
     const explanation = needsTeam ? lessonActors(quest).length === 1
       ? `Für diese Aufgabe spielt ${name} allein. Mit „${name} wählen & Quest starten“ wird es dein einziges aktives Arkana und die Aufgabe beginnt. Deine anderen Arkana bleiben in der Sammlung.`
-      : 'Mit „Team wählen & Quest starten“ nimmst du die Einführung zum zweiten Teamplatz an. Moosling wird zuerst, Glutling danach aktiv gesetzt. Beide behalten ihre eigenen Programme.' : error;
+      : `Mit „Team wählen & Quest starten“ wird ${ARKANA_SPECIES[lessonActors(quest)[0]].name} zuerst und ${ARKANA_SPECIES[lessonActors(quest)[1]].name} danach aktiv gesetzt. Beide behalten ihre eigenen Programme.` : error;
     return { speaker: quest.title.toUpperCase(), text: `${ready && this.state.introduced && this.has('glutling') ? quest.introduction : 'Hier wartet eine Lernaufgabe auf dich.'}${explanation ? `\n\n${explanation}` : ''}`,
       actionLabel: !this.state.introduced ? 'Zur Spielwelt: Eldren aufsuchen' : !this.has('glutling') ? 'Zur Spielwelt: Glutling suchen' : ready && lessonActors(quest).includes('moosling') && !this.has('moosling') ? 'Zur Spielwelt: Moosling suchen' : 'Zur Spielwelt', ...offer };
   }

@@ -1,5 +1,5 @@
 import type { ActionPlanResult, ArkanId, CombatAction, ProgramBlock, ProgramNode, ProgramStep } from './types';
-import { ACTIONS, actionForCommand } from './ActionCatalog';
+import { actionForCommand, actionMethod } from './ActionCatalog';
 
 export function programCost(nodes: readonly ProgramNode[]): number {
   return nodes.reduce((sum, node) => sum + (node.kind === 'action' ? 1 : node.kind === 'repeat' ? node.count * programCost(node.body) : Math.max(programCost(node.then), programCost(node.otherwise))), 0);
@@ -55,15 +55,15 @@ export function compileActionPlan(source: string, expectedActor?: ArkanId): Acti
           nodes.push({ kind: 'repeat', count, body });
         } else if (tokens[cursor] === 'if') {
           cursor++; take('('); owner(); const condition = tokens[cursor++];
-          if (condition !== 'enemyAdjacent' && condition !== 'pathRightClear') throw new Error('Unbekannte Bedingung. Nutze eine Abfrage aus der Bibliothek.');
+          if (condition !== 'enemyAdjacent' && condition !== 'pathRightClear' && condition !== 'allyInjured' && condition !== 'enemyBurning') throw new Error('Unbekannte Bedingung. Nutze eine Abfrage aus der Bibliothek.');
           take(')');
           const then = group(depth + 1, `${path}.then.`);
           const otherwise = tokens[cursor] === 'else' ? (cursor++, group(depth + 1, `${path}.otherwise.`)) : [];
-          nodes.push({ kind: 'if', ...(condition === 'pathRightClear' ? { condition } : {}), then, otherwise });
+          nodes.push({ kind: 'if', ...(condition !== 'enemyAdjacent' ? { condition } : {}), then, otherwise });
         } else {
           owner();
           const command = tokens[cursor++];
-          const action = actionForCommand(command);
+          const action = actionForCommand(command, actor);
           if (!action) throw new Error('Unbekannter Arkan-Befehl. Nutze einen Befehl aus der Bibliothek.');
           take('('); take(')');
           nodes.push({ kind: 'action', action });
@@ -103,7 +103,7 @@ export function blocksToNodes(blocks: readonly ProgramBlock[]): ProgramNode[] {
 
 export function nodesToSource(nodes: readonly ProgramNode[], actor: ArkanId, indent = ''): string {
   return nodes.map((node) => {
-    if (node.kind === 'action') return `${indent}${actor}.${ACTIONS[node.action].method}();`;
+    if (node.kind === 'action') return `${indent}${actor}.${actionMethod(node.action, actor)}();`;
     if (node.kind === 'repeat') return `${indent}repeat(${node.count}, () => {\n${nodesToSource(node.body, actor, indent + '  ')}\n${indent}});`;
     return `${indent}if (${actor}.${node.condition ?? 'enemyAdjacent'}) {\n${nodesToSource(node.then, actor, indent + '  ')}\n${indent}}${node.otherwise.length ? ` else {\n${nodesToSource(node.otherwise, actor, indent + '  ')}\n${indent}}` : ''}`;
   }).join('\n');

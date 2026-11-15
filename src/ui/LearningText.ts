@@ -1,6 +1,6 @@
-import { LEARNING_TERMS } from '../gameplay/LearningTerms';
+import { COMBAT_TERMS, LEARNING_TERMS } from '../gameplay/LearningTerms';
 
-const aliases = LEARNING_TERMS.flatMap((term) => term.aliases.map((label) => ({ label, term })));
+const aliases = [...LEARNING_TERMS, ...COMBAT_TERMS].flatMap((term) => term.aliases.map((label) => ({ label, term })));
 const escaped = aliases.map(({ label }) => label.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).sort((a, b) => b.length - a.length);
 const termPattern = new RegExp(`(?<![\\p{L}\\p{N}_])(?:${escaped.join('|')})(?![\\p{L}\\p{N}_])`, 'giu');
 

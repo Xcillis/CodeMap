@@ -1,15 +1,19 @@
 import type { ArkanId, ProgramBlock, ProgramNode } from './types';
 import { blocksToNodes, nodesToSource } from './DecisionProgram';
 import { ARKANA_SPECIES, BASIC_MOVEMENT, type SkillId } from '../gameplay/ArkanaCatalog';
-import { ACTIONS } from './ActionCatalog';
+import { ACTIONS, actionLabel, actionMethod } from './ActionCatalog';
+import { ABILITIES, type AbilityAction } from './Abilities';
 
 export type { SkillId } from '../gameplay/ArkanaCatalog';
-export type CommandCategory = 'movement' | 'combat' | 'senses' | 'flow';
-export type CommandId = 'move' | 'attack' | 'condition' | 'pathCondition' | 'repeat' | 'moveRight' | 'moveLeft' | 'moveUp' | 'moveDown';
+export type CommandCategory = 'movement' | 'combat' | 'senses' | 'flow' | 'healing' | 'support' | 'tank';
+export type CommandId = 'move' | 'attack' | 'condition' | 'pathCondition' | 'repeat' | 'moveRight' | 'moveLeft' | 'moveUp' | 'moveDown' | 'ignite' | 'vineSnare' | 'healingMoss' | 'barkGuard' | 'wait' | 'allyInjured' | 'enemyBurning';
 
 export const COMMAND_CATEGORIES: readonly { id: CommandCategory; label: string; color: string }[] = [
   { id: 'movement', label: 'Bewegung', color: '#559cf0' },
   { id: 'combat', label: 'Kampf', color: '#db7767' },
+  { id: 'healing', label: 'Heilung', color: '#79b96a' },
+  { id: 'support', label: 'Unterstützung', color: '#8bafcc' },
+  { id: 'tank', label: 'Schutz', color: '#b59d72' },
   { id: 'senses', label: 'Wahrnehmung', color: '#ad8aeb' },
   { id: 'flow', label: 'Ablauf', color: '#e1b64e' },
 ];
@@ -54,6 +58,13 @@ export const COMMANDS: readonly CommandDefinition[] = [
   { id: 'condition', category: 'senses', label: 'Gegner direkt daneben?', description: 'Fragt, ob der Gegner direkt neben dir steht. Bei ja wird der dann-Teil ausgeführt, bei nein der sonst-Teil.', requires: ['enemyAdjacent', 'attack', 'moveForward'], syntax: (actor) => `${actor}.enemyAdjacent`, block: () => ({ kind: 'condition', count: 1, whenTrue: 'ATTACK', whenFalse: 'MOVE_TOWARD' }) },
   { id: 'pathCondition', category: 'senses', label: 'Weg rechts frei?', description: 'Prüft das rechte Nachbarfeld. Stein, Kartenrand oder ein anderes Wesen bedeuten nein.', requires: ['pathRightClear'], syntax: (actor) => `${actor}.pathRightClear`, block: () => ({ kind: 'condition', condition: 'pathRightClear', count: 1, whenTrue: 'MOVE_RIGHT', whenFalse: 'MOVE_UP' }) },
   { id: 'repeat', category: 'flow', label: 'Wiederhole … mal', description: 'Führt die Befehle im Inneren 1 bis 6 Mal aus. Lege zum Beispiel einen Bewegungsbefehl hinein und wähle die Anzahl.', requires: ['repeat'], syntax: () => 'repeat(2, () => { … });', block: () => ({ kind: 'action', count: 2, action: 'MOVE_TOWARD' }) },
+  ...(Object.keys(ABILITIES) as AbilityAction[]).map((action): CommandDefinition => {
+    const rule = ABILITIES[action];
+    return { id: rule.skill as CommandId, category: rule.role === 'damage' ? 'combat' : rule.role,
+      label: ACTIONS[action].label, description: rule.description, requires: [rule.skill], syntax: (actor) => `${actor}.${ACTIONS[action].method}()`, block: () => ({ kind: 'action', count: 1, action }) };
+  }),
+  { id: 'wait', category: 'flow', label: 'Einen Schritt warten', description: 'Wartet einen Programmschritt. Zustände und Abklingzeiten laufen weiter; Gegner handeln weiterhin.', requires: ['wait'], syntax: (actor) => `${actor}.wait()`, block: () => ({ kind: 'action', count: 1, action: 'WAIT' }) },
+  ...(['allyInjured', 'enemyBurning'] as const).map((condition): CommandDefinition => ({ id: condition, category: 'senses', label: condition === 'allyInjured' ? 'Verbündeter verletzt?' : 'Gegner brennt?', description: condition === 'allyInjured' ? 'Prüft einen lebenden verletzten Verbündeten in Reichweite 3; auch das ausgewählte Arkana selbst zählt.' : 'Prüft, ob der Gegner gerade brennt.', requires: [condition], syntax: (actor) => `${actor}.${condition}`, block: () => ({ kind: 'condition', condition, count: 1, whenTrue: 'WAIT', whenFalse: 'WAIT' }) })),
 ];
 
 export function learnedSkills(actor: ArkanId, mission: number): readonly SkillId[] {
@@ -62,7 +73,8 @@ export function learnedSkills(actor: ArkanId, mission: number): readonly SkillId
 
 export function availableCommands(actor: ArkanId, mission: number, learned = learnedSkills(actor, mission)): readonly CommandDefinition[] {
   const supported = ARKAN_SKILLS[actor].supported;
-  return COMMANDS.filter((command) => command.requires.every((skill) => supported.includes(skill) && learned.includes(skill)));
+  return COMMANDS.filter((command) => command.requires.every((skill) => supported.includes(skill) && learned.includes(skill))).map((command) => command.id === 'attack'
+    ? { ...command, label: actionLabel('ATTACK', actor), description: `${actor === 'glutling' ? 'Feuer' : 'Natur'} · Nahkampf auf ein benachbartes Ziel, ${ARKANA_SPECIES[actor].attack} Schaden.`, syntax: (id) => `${id}.${actionMethod('ATTACK', id)}()` } : command);
 }
 
 export function programCapabilityError(blocks: readonly ProgramBlock[], actor: ArkanId, mission: number): string | undefined {
@@ -89,6 +101,7 @@ export function commandSource(command: CommandDefinition, actor: ArkanId): strin
   if (command.id === 'repeat') return nodesToSource([{ kind: 'repeat', count: 2, body: [] }], actor);
   if (command.id === 'condition') return `if (${actor}.enemyAdjacent) {\n\n} else {\n\n}`;
   if (command.id === 'pathCondition') return `if (${actor}.pathRightClear) {\n\n} else {\n\n}`;
+  if (command.id === 'allyInjured' || command.id === 'enemyBurning') return `if (${actor}.${command.id}) {\n\n} else {\n\n}`;
   const block = command.block();
   return nodesToSource(blocksToNodes([block]).flatMap((node) => node.kind === 'repeat' && node.count === 1 ? node.body : [node]), actor);
 }

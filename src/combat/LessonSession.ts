@@ -37,7 +37,7 @@ export class LessonSession {
     this.skills = skillMap[this.actor] ?? [];
     this.engine = lesson.kind === 'puzzle' ? new PuzzleEngine(lesson) : new BattleEngine({ [this.actor]: lesson.start, konstrukt: lesson.enemy });
     if (lesson.kind === 'combat' && lesson.adaptiveTrials?.length) this.adaptive = new AdaptiveCombatSession(lesson, this.skills);
-    if (lesson.kind === 'combat' && this.actors.length === 2) this.cooperative = new TeamLessonSession(lesson, skillMap);
+    if (lesson.kind === 'combat' && (this.actors.length === 2 || lesson.abilityGoals?.length)) this.cooperative = new TeamLessonSession(lesson, skillMap);
     this.reset();
   }
   get frames(): readonly ActionFrame<EncounterState>[] { return this.cooperative?.frames ?? this.adaptive?.frames ?? this.actionFrames; }

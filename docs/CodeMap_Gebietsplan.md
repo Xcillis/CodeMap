@@ -1,6 +1,6 @@
 # Gebiets- und Questplan: Tal und Aetherwald
 
-Stand: 14. November 2026. Die aktuelle Nutzerentscheidung ersetzt den bisherigen linearen Durchlauf durch alle acht Quests. Laufzeitdaten stehen in `WorldRegions.ts` und `QuestNetwork.ts`; Aufgabenziele und Lerntexte in `WorldQuests.ts`.
+Stand: 15. November 2026. Die Gebietsstruktur und der Ausbau auf 17 Quests ersetzen den früheren linearen Durchlauf. Laufzeitdaten stehen in `WorldRegions.ts` und `QuestNetwork.ts`; Aufgabenziele und Lerntexte in `WorldQuests.ts`.
 
 ## Tal von Aetheria
 
@@ -13,6 +13,7 @@ Ein von Bergwänden eingefasstes Tal enthält die Akademie, einen westlichen Üb
 | Eldren | Q03 Der lange Runenweg | Q02 | Schleifeneinführung, Rätsel |
 | Eldren | Q04 Der Musterpfad | Q03 | Mehrere Anweisungen gemeinsam wiederholen, Folge-Rätsel |
 | Brann, Westplatz `(440, 390)` | Q11 Branns Übungswache | Q02 | Eigene Schleifeneinführung, Kampf |
+| Brann | Q14 Glutlings Feuerprobe | Q02 | Feuerfähigkeit, Brand und Abklingzeit; unabhängig von den Schleifenreihen |
 | Mira, Ostpasslager `(1280, 650)` | Q09 Miras Runentreppe | Q02 | Eigene Einführung in Schleifen und verschachtelte Schleifen, Rätsel |
 | Mira | Q10 Miras Schlagmuster | Q09 | Verschachtelte Schleifen, Folge-Kampf |
 | Mira / Runenwinde vor dem Pass | Q12 Die Runenwinde am Steinrutsch | Q02 und **eine** aus Q03, Q09 oder Q11 | Verschachteltes Bewegungsrätsel, Gebietsfreigabe |
@@ -48,6 +49,9 @@ Der Wald besitzt eine andere Bodengestaltung, mehr Baumgruppen, Waldpfade und ei
 | Neria, Runenlichtung `(1140, 390)` | Q13 Nerias Lichtpfad | Q05 | Frei wählbares Rätsel mit der Abfrage „Weg rechts frei?“ |
 | Tala, Hainlager `(1030, 800)` | Q07 Mooslings eigener Weg | Q05 und aufgenommenes Moosling | Frei wählbare Objekt-/Arteneinführung, passiver Kampf |
 | Tala | Q08 Zwei Programme, ein Ziel | Q07, beide Arkana gesammelt | Team-Einführung und Folge-Kampf |
+| Tala | Q15 Mooslings Wurzelschutz | Q07 | Aktiver Kampf mit Ranken und Tank-Schutz |
+| Tala | Q16 Mooslings heilendes Moos | Q07 | Heilung über Zeit; unabhängig von Q15 |
+| Tala | Q17 Feuer und Wurzeln im Team | Q08, Q14, Q15, Q16 | Aktiver Zweierkampf mit vier Rollen |
 
 ```mermaid
 flowchart LR

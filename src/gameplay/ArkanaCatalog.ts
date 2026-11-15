@@ -1,6 +1,7 @@
-import type { ArkanId } from '../combat/types';
+import type { ArkanId, CombatRole } from '../combat/types';
 
-export type SkillId = 'moveForward' | 'moveRight' | 'moveLeft' | 'moveUp' | 'moveDown' | 'attack' | 'enemyAdjacent' | 'repeat' | 'pathRightClear';
+export type SkillId = 'moveForward' | 'moveRight' | 'moveLeft' | 'moveUp' | 'moveDown' | 'attack' | 'enemyAdjacent' | 'repeat' | 'pathRightClear' | 'ignite' | 'vineSnare' | 'healingMoss' | 'barkGuard' | 'wait' | 'allyInjured' | 'enemyBurning';
+export const ROLE_NAMES: Record<CombatRole, string> = { damage: 'Schaden', healing: 'Heilung', support: 'Unterstützung', tank: 'Schutz / Tank' };
 export const BASIC_MOVEMENT = ['moveRight', 'moveLeft', 'moveUp', 'moveDown'] as const satisfies readonly SkillId[];
 export type ArkanaType = 'fire' | 'water' | 'nature' | 'shadow' | 'light';
 
@@ -13,9 +14,10 @@ export const ARKANA_TYPES: Record<ArkanaType, { name: string; role: string }> = 
 };
 
 export const SKILL_NAMES: Record<SkillId, string> = {
-  moveForward: 'Zum nächsten Gegner gehen', attack: 'Basisangriff', repeat: 'Wiederholen', enemyAdjacent: 'Gegnernähe abfragen',
+  moveForward: 'Zum nächsten Gegner gehen', attack: 'Artspezifischer Nahkampf', repeat: 'Wiederholen', enemyAdjacent: 'Gegnernähe abfragen',
   moveRight: 'Nach rechts gehen', moveLeft: 'Nach links gehen', moveUp: 'Nach oben gehen', moveDown: 'Nach unten gehen',
   pathRightClear: 'Weg rechts frei abfragen',
+  ignite: 'Entzünden', vineSnare: 'Rankenfessel', healingMoss: 'Heilmoos', barkGuard: 'Rindenwacht', wait: 'Warten', allyInjured: 'Verletzten Verbündeten erkennen', enemyBurning: 'Brand erkennen',
 };
 
 export interface ArkanaSpecies {
@@ -28,23 +30,24 @@ export interface ArkanaSpecies {
   weakness: string;
   plannedAbilities: readonly string[];
   supported: readonly SkillId[];
+  roles: readonly CombatRole[];
 }
 
-/** First two prototype species. Special abilities are design previews, not executable commands. */
+/** First two species; supported abilities still require explicit learning before world-quest use. */
 export const ARKANA_SPECIES: Record<ArkanId, ArkanaSpecies> = {
   moosling: {
     id: 'moosling', name: 'Moosling', type: 'nature', maxHp: 5, attack: 1,
     strength: 'Mit 5 Lebenspunkten widerstandsfähiger als Glutling.',
-    weakness: 'Sein Basisangriff verursacht nur 1 Schaden.',
-    plannedAbilities: ['Ranken wachsen lassen', 'Heilung über Zeit'],
-    supported: ['moveForward', 'moveRight', 'moveLeft', 'moveUp', 'moveDown', 'attack', 'repeat', 'enemyAdjacent', 'pathRightClear'],
+    weakness: 'Sein Rankenhieb verursacht nur 1 Schaden; Heilung und Schutz brauchen Zeit.',
+    roles: ['healing', 'support', 'tank'], plannedAbilities: ['Rankenbrücken in der Spielwelt'],
+    supported: ['moveForward', 'moveRight', 'moveLeft', 'moveUp', 'moveDown', 'attack', 'repeat', 'enemyAdjacent', 'pathRightClear', 'vineSnare', 'healingMoss', 'barkGuard', 'wait', 'allyInjured'],
   },
   glutling: {
     id: 'glutling', name: 'Glutling', type: 'fire', maxHp: 4, attack: 2,
-    strength: 'Sein Basisangriff verursacht 2 Schaden.',
+    strength: 'Sein Glutstoß verursacht 2 Schaden. Entzünden ergänzt später anhaltenden Brandschaden.',
     weakness: 'Mit 4 Lebenspunkten weniger widerstandsfähig als Moosling.',
-    plannedAbilities: ['Entzünden', 'Fackeln entzünden und Eis auftauen'],
-    supported: ['moveForward', 'moveRight', 'moveLeft', 'moveUp', 'moveDown', 'attack', 'repeat', 'enemyAdjacent', 'pathRightClear'],
+    roles: ['damage'], plannedAbilities: ['Fackeln entzünden und Eis auftauen'],
+    supported: ['moveForward', 'moveRight', 'moveLeft', 'moveUp', 'moveDown', 'attack', 'repeat', 'enemyAdjacent', 'pathRightClear', 'ignite', 'wait', 'enemyBurning'],
   },
 };
 

@@ -1,6 +1,6 @@
 # CodeMap – Lernprogression in offenen Gebieten
 
-Stand: 14. November 2026. Die Nutzerentscheidung zu Tal und Wald ersetzt die vorherige lineare Kette Q01–Q08. Der vollständige [Gebiets- und Questplan](CodeMap_Gebietsplan.md) zeigt die 13 implementierten Quests, ihre NPCs und Voraussetzungen.
+Stand: 15. November 2026. Die Nutzerentscheidung zu Tal und Wald ersetzt die vorherige lineare Kette Q01–Q08. Der vollständige [Gebiets- und Questplan](CodeMap_Gebietsplan.md) zeigt die 17 implementierten Quests, ihre NPCs und Voraussetzungen.
 
 ## Gemeinsamer Einstieg
 
@@ -35,6 +35,8 @@ Danach sind unabhängig verfügbar:
 Q06 ist keine Voraussetzung für Q13 oder Q07. Die Team-Einführung folgt weiterhin auf Mooslings eigenes Programm, damit Objektwahl und Koordination getrennt gelernt werden.
 
 ## Regeln für alle Aufgaben
+
+Der RPG-Ausbau ergänzt die bekannten Programmierschritte um Fähigkeiten und Rollen: Q14 bei Brann erklärt Glutlings Brand und Abklingzeit, Q15 und Q16 bei Tala erklären nach Q07 unabhängig Ranken/Schutz beziehungsweise Heilung über Zeit. Erst Q17 nach diesen Einführungen und Q08 verbindet die vier Rollen im aktiven Zweierkampf. Neue Abfragen beschreiben konkrete Brand- und Verletzungszustände. Die Rollen erfordern keine neue Programmiersprache; Sequenzen, Wiederholungen und bereits eingeführte Verzweigungen bleiben nutzbar. Details stehen in [CodeMap_Kampfsystem.md](CodeMap_Kampfsystem.md).
 
 1. Erst konkrete Handlung erklären, dann Fachwort benennen. Aufgaben formulieren beobachtbare Ziele; Hinweise werden schrittweise genauer. Fachbegriffe werden hervorgehoben und nach passendem Abschluss mit Beispielen im Charakterfenster gespeichert sichtbar.
 2. Rechts, links, oben und unten gehören in jeder Quest zum Grundrepertoire, auch wenn die Lösung nur einzelne Richtungen benötigt. Weitere Befehle und Strukturen werden bei Annahme ihrer erklärten Einführung verfügbar. Ein Fehlversuch entzieht sie nicht. Die Aufgabenpalette begrenzt auch alte vollständig freigeschaltete Arkana auf das jeweilige Thema.

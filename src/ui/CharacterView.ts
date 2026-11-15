@@ -1,4 +1,5 @@
-import { ARKANA_SPECIES, ARKANA_TYPES, SKILL_NAMES, type OwnedArkana } from '../gameplay/ArkanaCatalog';
+import { ARKANA_SPECIES, ARKANA_TYPES, ROLE_NAMES, SKILL_NAMES, type OwnedArkana } from '../gameplay/ArkanaCatalog';
+import { actionLabel } from '../combat/ActionCatalog';
 import { Campaign } from '../gameplay/Campaign';
 import { learnedTerms } from '../gameplay/LearningTerms';
 import { setLearningText } from './LearningText';
@@ -25,10 +26,12 @@ export function renderCharacterView(content: HTMLElement, tab: CharacterTab, cam
       const species = ARKANA_SPECIES[owned.speciesId]; const index = state.team.indexOf(owned.id);
       const card = document.createElement('article'); card.className = `collection-card type-${species.type}`;
       card.append(heading(`${species.name} · ${ARKANA_TYPES[species.type].name}`),
+        paragraph(`Teamrollen: ${species.roles.map((role) => ROLE_NAMES[role]).join(', ')}`),
         paragraph(`${species.maxHp} Lebenspunkte · ${owned.learned.includes('attack') ? `${species.attack} Angriffsschaden` : 'Angreifen noch nicht gelernt'}`),
         paragraph(`Stärke: ${species.strength}`), paragraph(`Schwäche: ${species.weakness}`),
-        paragraph(`Gelernte Befehle: ${owned.learned.map((skill) => SKILL_NAMES[skill]).join(', ')}`),
-        paragraph(`Später vorgesehen: ${species.plannedAbilities.join(', ')}. Diese Spezialfähigkeiten sind noch nicht freigeschaltet.`),
+        paragraph(`Gelernte Befehle: ${owned.learned.map((skill) => skill === 'attack' ? actionLabel('ATTACK', species.id) : SKILL_NAMES[skill]).join(', ')}`),
+        paragraph(`Fähigkeiten noch nicht freigeschaltet: ${species.supported.filter((skill) => !owned.learned.includes(skill)).map((skill) => skill === 'attack' ? actionLabel('ATTACK', species.id) : SKILL_NAMES[skill]).join(', ') || 'alle bisher implementierten gelernt'}`),
+        paragraph(`Später in der Spielwelt vorgesehen: ${species.plannedAbilities.join(', ')}.`),
         paragraph(index >= 0 ? `Aktiv · Teamplatz ${index + 1}` : 'In der Sammlung'));
       content.append(card);
     }
@@ -38,7 +41,7 @@ export function renderCharacterView(content: HTMLElement, tab: CharacterTab, cam
     const active = document.createElement('ol'); active.id = 'team-active-members'; active.className = 'team-members';
     for (const [index, owned] of campaign.activeTeam.entries()) {
       const species = ARKANA_SPECIES[owned.speciesId]; const card = document.createElement('li'); card.className = `team-card type-${species.type}`;
-      card.append(heading(`Platz ${index + 1}: ${species.name}`), paragraph(`${ARKANA_TYPES[species.type].name} · ${species.maxHp} Lebenspunkte`), teamButton(owned, 'Aus dem Team nehmen', actions)); active.append(card);
+      card.append(heading(`Platz ${index + 1}: ${species.name}`), paragraph(`${ARKANA_TYPES[species.type].name} · ${species.maxHp} Lebenspunkte · ${species.roles.map((role) => ROLE_NAMES[role]).join(', ')}`), teamButton(owned, 'Aus dem Team nehmen', actions)); active.append(card);
     }
     if (!state.team.length) section.append(paragraph('Dein Team ist noch leer. Wähle unten ein gesammeltes Arkana aus.'));
     section.append(active, heading('Weitere gesammelte Arkana'));

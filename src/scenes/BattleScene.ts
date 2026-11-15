@@ -7,7 +7,9 @@ import { gameEvents } from '../game/events';
 import type { WorldEncounter } from '../gameplay/Campaign';
 import { getLesson, lessonPrograms, type EncounterPresentation } from '../gameplay/WorldQuests';
 import { ARKANA_SPECIES } from '../gameplay/ArkanaCatalog';
-import { ACTIONS } from '../combat/ActionCatalog';
+import { ACTIONS, actionLabel } from '../combat/ActionCatalog';
+import { isAbility } from '../combat/Abilities';
+import { statusLabels } from '../combat/CombatPresentation';
 
 const TILE = 72;
 const GRID_START_X = 110;
@@ -79,7 +81,7 @@ export class BattleScene extends Phaser.Scene {
       this.session = new LessonSession(lesson, encounter.skills);
       programs = lessonPrograms(lesson); key = lesson.id;
       presentation = { title: lesson.title, instructions: lesson.introduction, objective: lesson.objective, hints: lesson.hints, mode: 'lesson' };
-      this.subtitle.setText(encounter.team.length === 2 ? 'Reihenfolge: Moosling → Glutling · Beide Programme tragen bei.' : lesson.kind === 'puzzle' ? 'Goldene Rune: Ziel · Graue Steine: Hindernisse' : lesson.adaptiveTrials ? 'Aktiver Wächter: handelt nach jeder Aktion von Glutling.' : 'Das Konstrukt bleibt passiv. Plane Bewegung und Angriff.');
+      this.subtitle.setText(encounter.team.length === 2 ? `Reihenfolge: ${encounter.team.map((id) => ARKANA_SPECIES[id].name).join(' → ')} · ${lesson.kind === 'combat' && lesson.enemyActive ? 'Aktiver Wächter' : 'Beide Programme tragen bei'}` : lesson.kind === 'puzzle' ? 'Goldene Rune: Ziel · Graue Steine: Hindernisse' : lesson.adaptiveTrials || lesson.enemyActive ? 'Aktiver Wächter: reagiert auf eure Programme.' : 'Das Konstrukt bleibt passiv. Plane deine Fähigkeiten.');
     } else {
       this.session = new BattleSession(encounter.mission, encounter.team, encounter.skills);
       programs = missionPrograms(encounter.mission, encounter.team); key = encounter.mission;
@@ -168,8 +170,8 @@ export class BattleScene extends Phaser.Scene {
       visual = { root, marker, label }; this.visuals.set(actor.id, visual);
     }
     visual.root.setPosition(x, y).setScale(1).setAlpha(actor.hp > 0 ? 1 : .3);
-    visual.marker.setAlpha(1).setStrokeStyle(2, 0xffffff);
-    visual.label.setText(`${actor.name}\n${actor.hp}/${actor.maxHp}`);
+    visual.marker.setScale(1).setAlpha(1).setStrokeStyle(actor.protection ? 4 : 2, actor.protection ? 0x8cc8e2 : 0xffffff);
+    visual.label.setText(`${actor.name}\n${actor.hp}/${actor.maxHp}${statusLabels(actor).length ? `\n${statusLabels(actor).join(' · ')}` : ''}`);
   }
 
   private animateFrame(frame: ActionFrame<EncounterState>, duration: number): void {
@@ -183,9 +185,21 @@ export class BattleScene extends Phaser.Scene {
     visual.marker.setStrokeStyle(5, 0xffdf6d);
     const moved = before.x !== after.x || before.y !== after.y;
     let explanation = '';
-    if (moved) {
+    if (frame.effects?.length) {
+      for (const effect of frame.effects) {
+        const target = this.visuals.get(effect.target); if (!target) continue;
+        const unit = units(frame.after).find((candidate) => candidate.id === effect.target); if (unit) this.drawActor(unit, unit.id === 'glutling' ? 0xf29b4b : unit.id === 'konstrukt' ? 0xc95e58 : 0x63b76b, '#eff5dc');
+        const text = this.add.text(target.root.x, target.root.y - 18, effect.kind === 'heal' ? `+${effect.amount} LP` : effect.kind === 'guard' ? `Schutz ${effect.amount}` : effect.kind === 'root' ? 'Festgehalten' : `−${effect.amount}`, { fontSize: '19px', color: effect.kind === 'heal' ? '#acf59b' : effect.kind === 'guard' ? '#aadfff' : effect.kind === 'root' ? '#b8e69d' : '#ffc179', stroke: '#142c35', strokeThickness: 4 }).setOrigin(.5);
+        this.effects.add(text); this.tweens.add({ targets: text, y: text.y - 35, alpha: 0, duration: duration * .7 });
+        this.tweens.add({ targets: target.marker, alpha: .35, duration: duration * .13, repeat: 1, yoyo: true });
+      }
+      explanation = frame.effects.map((effect) => effect.text).join(' ');
+    } else if (moved) {
       this.tweens.add({ targets: visual.root, x: GRID_START_X + after.x * TILE + TILE / 2, y: GRID_START_Y + after.y * TILE + TILE / 2, duration: duration * .6, ease: 'Sine.easeInOut' });
       explanation = ACTIONS[frame.action].label;
+    } else if (isAbility(frame.action) || frame.action === 'WAIT') {
+      explanation = frame.after.log.at(-1) ?? ACTIONS[frame.action].label;
+      this.tweens.add({ targets: visual.marker, scale: 1.15, duration: duration * .25, yoyo: true });
     } else if (frame.action === 'ATTACK') {
       const target = units(frame.after).find((actor) => actor.id !== frame.actor && actor.hp < (units(frame.before).find((old) => old.id === actor.id)?.hp ?? actor.hp));
       if (target) {
@@ -196,7 +210,7 @@ export class BattleScene extends Phaser.Scene {
         this.tweens.add({ targets: victim.marker, alpha: .25, duration: duration * .12, repeat: 2, yoyo: true });
         const text = this.add.text(victim.root.x, victim.root.y - 20, `−${damage}`, { fontSize: '24px', color: '#ffe3a6', stroke: '#142c35', strokeThickness: 4 }).setOrigin(.5);
         this.effects.add(text); this.tweens.add({ targets: text, y: text.y - 40, alpha: 0, duration: duration * .7 });
-        explanation = `trifft ${target.name} für ${damage} Schaden`;
+        explanation = `${frame.actor === 'konstrukt' ? 'Angriff' : actionLabel('ATTACK', frame.actor)} trifft ${target.name} für ${damage} Schaden`;
       } else explanation = 'kann nicht angreifen: Gegner außer Reichweite';
     } else {
       const reason = frame.after.log.at(-1);

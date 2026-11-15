@@ -110,6 +110,7 @@ button { font: inherit; touch-action: none; }
 .program-scroll { display: flex; flex-direction: column; flex: 1; min-height: 0; overflow: auto; overscroll-behavior: contain; padding: .4rem; scrollbar-gutter: stable; }
 .battle-footer { flex: none; max-height: min(18dvh, 9rem); overflow: auto; }
 .battle-log-panel summary { cursor: pointer; padding: .5rem 0; color: #c5ddd4; font-size: .85rem; }
+.ability-status { margin: .25rem 0; color: #d5e3b9; white-space: pre-line; font-size: .78rem; line-height: 1.4; }
 .library-intro { margin: .3rem 0 .8rem; color: #c4ded7; font-size: .78rem; line-height: 1.45; }
 button:focus-visible, select:focus-visible, textarea:focus-visible, summary:focus-visible, #program-area-title:focus-visible { outline: 2px solid #f0d778; outline-offset: 2px; }
 .battle-card label { display: block; margin-bottom: .4rem; font-weight: 700; }

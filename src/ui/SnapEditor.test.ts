@@ -8,6 +8,22 @@ import { getLesson, WORLD_QUESTS } from '../gameplay/WorldQuests';
 import { LessonSession } from '../combat/LessonSession';
 
 describe('Echte Blockly-Verbindungen', () => {
+  it('zeigt nur gelernte artspezifische Fähigkeiten und erhält neue Zustandsfragen beim Moduswechsel', () => {
+    const lesson = getLesson('q17-teamrollen');
+    const fire = JSON.stringify(snapToolbox('glutling', 0, lesson.allowed));
+    const nature = JSON.stringify(snapToolbox('moosling', 0, lesson.allowed));
+    expect(fire).toContain('cm_ignite'); expect(fire).toContain('Glutstoß'); expect(fire).not.toContain('cm_healing_moss');
+    expect(nature).toContain('cm_healing_moss'); expect(nature).toContain('cm_bark_guard'); expect(nature).toContain('cm_vine_snare'); expect(nature).toContain('Rankenhieb'); expect(nature).not.toContain('cm_ignite');
+    expect(nature).toContain('cm_if_injured'); expect(fire).toContain('cm_if_burning');
+    for (const actor of ['glutling', 'moosling'] as const) {
+      const workspace = new Blockly.Workspace();
+      try {
+        const source = actor === 'glutling' ? 'if (glutling.enemyBurning) { glutling.flameStrike(); } else { glutling.ignite(); }' : 'if (moosling.allyInjured) { moosling.healingMoss(); } else { moosling.barkGuard(); }';
+        const nodes = compileActionPlan(source, actor).nodes!; loadNodes(workspace, nodes, actor);
+        expect(workspaceNodes(workspace)).toEqual(nodes); expect(compileActionPlan(nodesToSource(workspaceNodes(workspace), actor), actor).nodes).toEqual(nodes);
+      } finally { workspace.dispose(); }
+    }
+  });
   it('führt alle vier Richtungsblöcke in jeder Questpalette und erhält sie beim Block-/Textwechsel', () => {
     for (const quest of WORLD_QUESTS) for (const actor of ['glutling', 'moosling'] as const) {
       const toolbox = JSON.stringify(snapToolbox(actor, 0, quest.allowed));
@@ -128,10 +144,10 @@ describe('Echte Blockly-Verbindungen', () => {
     try {
       loadNodes(workspace, [{ kind: 'action', action: 'ATTACK' }, { kind: 'if', then: [{ kind: 'action', action: 'MOVE_TOWARD' }], otherwise: [] }], 'glutling');
       const labels = workspace.getAllBlocks(false).map((block) => block.toString()).join(' ');
-      expect(labels).toContain('angreifen');
+      expect(labels).toContain('Glutstoß');
       expect(labels).toContain('zum nächsten Gegner gehen');
       expect(labels).not.toMatch(/moosling|glutling/);
-      expect(nodesToSource(workspaceNodes(workspace), 'glutling')).toContain('glutling.attack()');
+      expect(nodesToSource(workspaceNodes(workspace), 'glutling')).toContain('glutling.flameStrike()');
       expect(nodesToSource(workspaceNodes(workspace), 'glutling')).toContain('glutling.moveForward()');
       expect(JSON.stringify(snapToolbox('glutling', 3))).not.toContain('ACTOR');
     } finally { workspace.dispose(); }

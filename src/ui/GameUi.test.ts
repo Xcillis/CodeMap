@@ -12,6 +12,7 @@ import { Campaign } from '../gameplay/Campaign';
 import { instanceId } from '../gameplay/ArkanaCatalog';
 import { Playback } from '../combat/Playback';
 import { QUEST_ROUTES } from '../gameplay/QuestNetwork';
+import { QUEST_SOLUTIONS } from '../test/questSolutions';
 
 const listeners = vi.hoisted(() => new Map<string, ((...args: unknown[]) => void)[]>());
 const snaps = vi.hoisted(() => [] as unknown[]);
@@ -141,6 +142,24 @@ describe('Platz für das Programm bei allen Aufgaben', () => {
 });
 
 describe('Editorzustand und Arkan-Zuordnung', () => {
+  it('zeigt artspezifische Rollenbibliotheken, Abklingzeiten und die durch Schutz geänderte Zielabsicht', () => {
+    const lesson = getLesson('q17-teamrollen');
+    gameEvents.emit('battle-opened', QUEST_SOLUTIONS[lesson.id], lesson.id,
+      { glutling: lesson.allowed, moosling: lesson.allowed }, { title: lesson.title, mode: 'lesson', instructions: lesson.introduction, objective: lesson.objective, hints: lesson.hints });
+    click('text-mode'); click('category-combat');
+    expect(document.querySelector('[data-command="attack"] strong')?.textContent).toBe('Glutstoß');
+    expect(document.querySelector('[data-command="ignite"]')).not.toBeNull(); expect(document.getElementById('category-healing')).toBeNull();
+    click('select-moosling'); click('category-combat'); expect(document.querySelector('[data-command="attack"] strong')?.textContent).toBe('Rankenhieb');
+    expect(document.querySelector('[data-command="ignite"]')).toBeNull(); click('category-healing');
+    expect(document.querySelector('[data-command="healingMoss"] code')?.textContent).toBe('moosling.healingMoss()');
+    const session = new LessonSession(lesson, lesson.allowed); session.execute(QUEST_SOLUTIONS[lesson.id], true);
+    const guard = session.frames.find((frame) => frame.action === 'BARK_GUARD')!;
+    gameEvents.emit('battle-updated', guard.after, 'Schutz aktiv');
+    expect(document.getElementById('battle-intent')!.textContent).toContain('Moosling');
+    expect(document.getElementById('ability-state-text')!.textContent).toContain('Rindenschutz');
+    gameEvents.emit('battle-playback', 'running'); gameEvents.emit('battle-frame', session.frames.find((frame) => frame.periodic)!);
+    expect(text().dataset.activeLine).toBeUndefined(); expect(document.getElementById('execution-trace')!.textContent).toContain('Anhaltende Wirkung');
+  });
   it('führt Q07 mit Moosling allein und Q08 mit zwei getrennten Entwürfen und sichtbarem Abschluss aus', () => {
     vi.useFakeTimers(); const solo = getLesson('q07-moosling'); const duo = getLesson('q08-team');
     gameEvents.emit('battle-opened', lessonPrograms(solo), solo.id, { moosling: solo.allowed }, { title: solo.title, mode: 'lesson', instructions: solo.introduction, objective: solo.objective, hints: solo.hints });
@@ -203,7 +222,7 @@ describe('Editorzustand und Arkan-Zuordnung', () => {
     const session = new LessonSession(lesson, lesson.allowed); gameEvents.emit('battle-updated', session.snapshot, lesson.objective);
     expect(document.getElementById('lesson-trial')!.textContent).toContain('Situation 1/2');
     const source = 'if (glutling.enemyAdjacent) {\n  glutling.attack();\n} else {\n  glutling.moveForward();\n}';
-    click('text-mode'); type(source); click('blocks-mode'); click('text-mode'); expect(text().value).toBe(source);
+    click('text-mode'); type(source); click('blocks-mode'); click('text-mode'); expect(text().value).toBe(source.replace('glutling.attack()', 'glutling.flameStrike()'));
     session.execute({ glutling: source }, true);
     const playback = new Playback<typeof session.frames[number]>((frame) => { gameEvents.emit('battle-frame', frame); gameEvents.emit('battle-updated', frame.after, 'Entscheidung'); }, (state) => gameEvents.emit('battle-playback', state));
     playback.play(session.frames, () => gameEvents.emit('quest-completed', campaign.finishMission(lesson.id)));
@@ -461,7 +480,7 @@ describe('Editorzustand und Arkan-Zuordnung', () => {
   it('erhält verschachtelte Programme und leere Programme in beiden Modi', () => {
     gameEvents.emit('battle-opened', missionPrograms(1), 1); click('text-mode');
     type('repeat(2, () => { moosling.moveForward(); moosling.attack(); });');
-    click('blocks-mode'); click('text-mode'); expect(text().value).toContain('moosling.attack();');
+    click('blocks-mode'); click('text-mode'); expect(text().value).toContain('moosling.vineStrike();');
     click('blocks-mode'); editor().mutate([]); click('text-mode'); expect(text().value).toBe('');
     click('blocks-mode'); expect(document.getElementById('block-editor')!.hidden).toBe(false);
   });
@@ -471,7 +490,7 @@ describe('Editorzustand und Arkan-Zuordnung', () => {
     click('text-mode'); expect(text().hidden).toBe(true);
     let ran = false; gameEvents.on('battle-run-program', () => { ran = true; }); click('battle-run-program'); expect(ran).toBe(false);
     click('select-glutling'); click('select-moosling'); click('text-mode'); expect(text().hidden).toBe(true);
-    editor().mutate([{ kind: 'action', action: 'ATTACK' }]); click('text-mode'); expect(text().value).toBe('moosling.attack();');
+    editor().mutate([{ kind: 'action', action: 'ATTACK' }]); click('text-mode'); expect(text().value).toBe('moosling.vineStrike();');
   });
   it('sendet beim Ausführen beide Programme und hält Missionsentwürfe getrennt', () => {
     gameEvents.emit('battle-opened', missionPrograms(3), 3); click('select-glutling'); click('text-mode'); type('glutling.attack();');
@@ -485,6 +504,6 @@ describe('Editorzustand und Arkan-Zuordnung', () => {
     expect(document.querySelector('[data-command="condition"] code')?.textContent).toBe('moosling.enemyAdjacent');
     click('select-glutling'); expect(document.getElementById('category-senses')).toBeNull();
     click('category-combat'); type(''); (document.querySelector('[data-command="attack"]') as HTMLButtonElement).click();
-    expect(text().value).toContain('glutling.attack()');
+    expect(text().value).toContain('glutling.flameStrike()');
   });
 });

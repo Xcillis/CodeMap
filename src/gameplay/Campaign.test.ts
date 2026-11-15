@@ -23,6 +23,22 @@ function forest(): Campaign { const c = tutorial(); win(c, 'q11-schleifenwache')
 afterEach(() => vi.useRealTimers());
 
 describe('Gebiete und unabhängige Aufgabenreihen', () => {
+  it('lehrt artspezifische Rollen schrittweise und erlaubt den aktiven Teamkampf erst nach den Einführungen', () => {
+    const c = forest(); c.apply('travel-valley'); c.visitGiver('brann'); win(c, 'q14-feuerprobe');
+    expect(c.snapshot.owned[0].learned).toContain('ignite'); expect(c.snapshot.owned[0].learned).not.toContain('healingMoss');
+    c.apply('travel-forest'); win(c, 'q05-aufmerksam'); c.apply('recruit-moosling'); c.visitGiver('tala');
+    const moosling = () => c.snapshot.owned.find((unit) => unit.speciesId === 'moosling')!;
+    expect(moosling().learned).not.toContain('ignite'); expect(moosling().learned).not.toContain('barkGuard');
+    win(c, 'q07-moosling'); expect(c.prepareMission('q17-teamrollen')).toContain('Voraussetzung');
+    win(c, 'q16-heilmoos'); expect(moosling().learned).toContain('healingMoss'); expect(moosling().learned).not.toContain('barkGuard');
+    win(c, 'q15-wurzelschutz'); win(c, 'q08-team'); win(c, 'q17-teamrollen');
+    expect(c.activeTeam.map((unit) => unit.speciesId)).toEqual(['glutling', 'moosling']);
+    expect(c.snapshot.owned.find((unit) => unit.speciesId === 'glutling')!.learned).not.toContain('barkGuard');
+    expect(moosling().learned).not.toContain('enemyBurning'); expect(moosling().learned).toContain('allyInjured');
+    const loaded = new Campaign(c.snapshot).snapshot;
+    expect(loaded.owned).toEqual(c.snapshot.owned); expect(loaded.team).toEqual(c.snapshot.team);
+    expect(new Set(loaded.completed)).toEqual(new Set(c.snapshot.completed));
+  });
   it('ergänzt fehlende Grundbewegungen bei beiden Arkana in bestehenden Spielständen', () => {
     const campaign = new Campaign({ version: 2, introduced: true, owned: [
       { speciesId: 'glutling', learned: ['moveRight', 'moveUp', 'attack'] }, { speciesId: 'moosling', learned: ['moveRight'] },

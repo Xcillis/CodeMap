@@ -9,7 +9,8 @@ import { SnapEditor } from './SnapEditor';
 import { ProgramDrag } from './ProgramDrag';
 import { isArkanId, type SkillId } from '../gameplay/ArkanaCatalog';
 import type { EncounterPresentation, QuestCompletion } from '../gameplay/WorldQuests';
-import { ACTIONS } from '../combat/ActionCatalog';
+import { ACTIONS, actionLabel } from '../combat/ActionCatalog';
+import { cooldownLabels, intentLabel, statusLabels } from '../combat/CombatPresentation';
 import { setLearningText } from './LearningText';
 import { QuestCompletionView } from './QuestCompletionView';
 import { QuestBriefingView } from './QuestBriefingView';
@@ -144,6 +145,7 @@ export class GameUi {
     this.mission = mission;
     this.skills = skills;
     this.presentation = presentation;
+    this.el('battle-intent').hidden = true; this.el('ability-state').hidden = true;
     this.el('lesson-trial').hidden = true;
     this.el('lesson-trial-summary').hidden = true; this.briefing.open(presentation);
     this.sources = {};
@@ -285,6 +287,11 @@ export class GameUi {
     if (trial) this.el('lesson-trial-summary').textContent = `Situation ${trial.current}/${trial.total} · ${trial.passed}/${trial.total} geschafft`;
     if (trial) setLearningText(this.el('lesson-trial'), `Situation ${trial.current}/${trial.total}: ${trial.title}. ${trial.passed}/${trial.total} geschafft. ${trial.message}`);
     setLearningText(this.feedback, feedback); this.el('battle-round').textContent = String(state.tick);
+    const intent = intentLabel(state); this.el('battle-intent').textContent = intent; this.el('battle-intent').hidden = !intent;
+    const descriptions = [state.player, state.companion, state.enemy].filter((unit) => Boolean(unit)).flatMap((unit) => {
+      if (!unit) return []; const labels = [...statusLabels(unit), ...cooldownLabels(unit)]; return labels.length ? [`${unit.name}: ${labels.join(' · ')}`] : [];
+    });
+    this.el('ability-state-text').textContent = descriptions.join('\n'); this.el('ability-state').hidden = !descriptions.length;
     for (const [prefix, actor] of [['player', state.player], ['companion', state.companion], ['enemy', state.enemy]] as const) {
       if (!actor) continue;
       const bar = this.el<HTMLProgressElement>(`${prefix}-health`); bar.max = actor.maxHp; bar.value = actor.hp;
@@ -340,8 +347,9 @@ export class GameUi {
     if (!frame) return;
     const name = frame.actor === 'moosling' ? 'Moosling' : frame.actor === 'glutling' ? 'Glutling' : 'Konstrukt';
     const loops = frame.trace?.loops.map((loop) => `Durchlauf ${loop.iteration} von ${loop.total}`).join(' · ');
-    const conditions = frame.trace?.conditions.map((condition) => `${condition.condition === 'pathRightClear' ? 'Weg rechts frei' : 'Gegner direkt daneben'}: ${condition.value ? 'ja' : 'nein'}`).join(' · ');
-    trace.textContent = [name, ACTIONS[frame.action].label, loops, conditions].filter(Boolean).join(' · ');
+    const queries = { pathRightClear: 'Weg rechts frei', enemyAdjacent: 'Gegner direkt daneben', allyInjured: 'Verbündeter verletzt', enemyBurning: 'Gegner brennt' };
+    const conditions = frame.trace?.conditions.map((condition) => `${queries[condition.condition ?? 'enemyAdjacent']}: ${condition.value ? 'ja' : 'nein'}`).join(' · ');
+    trace.textContent = [name, frame.periodic ? 'Anhaltende Wirkung' : frame.actor === 'konstrukt' ? ACTIONS[frame.action].label : actionLabel(frame.action, frame.actor), loops, conditions].filter(Boolean).join(' · ');
   }
 
   private highlightLine(): void {

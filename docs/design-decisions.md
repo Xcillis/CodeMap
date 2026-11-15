@@ -71,3 +71,11 @@ Die neue bevorzugte Referenz ist das [Low-Poly-Diorama von Square Glade Games](h
 **Status:** Nutzerentscheidung vom 14. November 2026; umgesetzt.
 
 Alle Quests bieten rechts, links, oben und unten an, selbst wenn einzelne Richtungen für ihre Lösung nicht erforderlich sind. Beide Arkana besitzen diese Bewegungen als Grundrepertoire. Das erweitert die frühere Startfreigabe für rechts und oben. Angriff, Schleifen und Abfragen werden weiterhin getrennt eingeführt. Block- und Textmodus behandeln dieselben Bewegungsmöglichkeiten; bestehende Spielstände erhalten die fehlenden Richtungen automatisch.
+
+## DD 008 Artspezifische Fähigkeiten und RPG-Teamrollen
+
+**Status:** Nutzerentscheidung vom 15. November 2026; erster spielbarer Ausbau umgesetzt.
+
+Arkana sollen als sammelbare RPG-Wesen eigene Typen und Fähigkeiten besitzen. Im Gesamtspiel entwickeln sich Rollen für Schaden, Heilung, Unterstützung und Tank/Schutz. Mehrere aktive Arkana kämpfen mit ihren eigenen Programmen zusammen. Die bisherige generische Angriffsbezeichnung wird durch artspezifischen Glutstoß und Rankenhieb ergänzt beziehungsweise in der Oberfläche ersetzt. Einfache Einstiegsquests behalten eine einzelne direkte Fähigkeit; zusätzliche Mechaniken werden schrittweise eingeführt.
+
+Glutling erlernt Brand, Moosling Ranken, Regeneration und Rindenschutz. Vier neue Quests führen diese Mechaniken ein und verbinden sie abschließend in einem aktiven Zweierkampf. Die Spielmechanik enthält tatsächliche Reichweiten, Abklingzeiten, Zustände, Zielumlenkung und ein Weiterkämpfen des überlebenden Teammitglieds. Die Rollen sind typübergreifende Teamaufgaben; spätere Arten können sich spezialisieren. Die Arkana-Übersicht und `CodeMap_Kampfsystem.md` beschreiben die Typen und den weiteren Ausbau. Eine Dreierformation, zusätzliche Arten und mehrere Gegner sind damit noch nicht implementiert.
