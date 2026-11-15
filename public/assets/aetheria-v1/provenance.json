@@ -1,0 +1,27 @@
+{
+  "generationTool": "built-in image_gen (kein API-/CLI-Fallback)",
+  "createdFor": "CodeMap – Die Chroniken von Aetheria",
+  "createdOn": "2026-11-15",
+  "origin": "Neue Generierung auf ausdrücklichen Nutzerauftrag; keine aus einem fremden Spiel kopierten Grafiken.",
+  "promptFile": "prompts.json",
+  "assets": {
+    "environment.png": {
+      "sourceOutput": "exec-e00b2756-aded-4c76-b12a-99b81ae0117d.png",
+      "bytes": 1242151,
+      "sha256": "0f2e380d05c69368ca60f92efebb52fb1fd069c6561102b36bc4b76b5ffddc48",
+      "processing": "PNG unverändert kopiert; Bildausschnitte über frames.json und Phaser-Texturframes."
+    },
+    "characters.png": {
+      "sourceOutput": "exec-f2d55cda-e322-427f-a92f-9387d46670e8.png",
+      "bytes": 1373444,
+      "sha256": "e9b64c0a35d1ee9909e500100f42a2914f8117c04f6554bc1c704bfe8efba401",
+      "processing": "PNG unverändert kopiert; Bildausschnitte über frames.json und Phaser-Texturframes."
+    },
+    "grass.png": {
+      "sourceOutput": "exec-6e5eef0c-71cc-4073-996f-151baffa910c.png",
+      "bytes": 1422533,
+      "sha256": "61dceb6dd92114f0dd34deb0977d5543662a1601596d6d716d60222b572bafe2",
+      "processing": "PNG unverändert kopiert; Bildausschnitte über frames.json und Phaser-Texturframes."
+    }
+  }
+}

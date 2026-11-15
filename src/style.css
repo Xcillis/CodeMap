@@ -129,6 +129,9 @@ button:focus-visible, select:focus-visible, textarea:focus-visible, summary:focu
 .moosling-avatar { background: radial-gradient(circle at 35% 30%, #9ad37a, #376d3d); }
 .glutling-avatar { background: radial-gradient(circle at 35% 30%, #ffd16b, #bd4a2e); }
 .felsbock-avatar { background: radial-gradient(circle at 35% 30%, #d6cbb3, #706655); }
+.arkana-portrait { display: block; width: 5rem; height: 5rem; flex: none; overflow: hidden; }
+.arkan-avatar .arkana-portrait { width: 100%; height: 100%; padding: .12rem; }
+.collection-card > .arkana-portrait, .team-card > .arkana-portrait { float: right; margin: 0 0 .4rem .7rem; }
 [data-program-actor='felsbock'] #program-owner { border-left-color: #c8b89a; }
 .arkan-name { font-weight: 800; }
 .arkan-selection-state { font-size: .7rem; }

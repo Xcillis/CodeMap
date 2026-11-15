@@ -1,0 +1,154 @@
+{
+  "environment": {
+    "file": "environment.png",
+    "width": 1774,
+    "height": 887,
+    "frames": {
+      "oak": {
+        "x": 33,
+        "y": 40,
+        "width": 384,
+        "height": 374
+      },
+      "pine": {
+        "x": 528,
+        "y": 21,
+        "width": 280,
+        "height": 393
+      },
+      "boulder": {
+        "x": 915,
+        "y": 171,
+        "width": 353,
+        "height": 211
+      },
+      "academy": {
+        "x": 1359,
+        "y": 20,
+        "width": 382,
+        "height": 399
+      },
+      "bridge": {
+        "x": 29,
+        "y": 560,
+        "width": 392,
+        "height": 232
+      },
+      "runestone": {
+        "x": 556,
+        "y": 528,
+        "width": 217,
+        "height": 279
+      },
+      "flowers": {
+        "x": 933,
+        "y": 611,
+        "width": 328,
+        "height": 178
+      },
+      "rubble": {
+        "x": 1361,
+        "y": 588,
+        "width": 376,
+        "height": 196
+      }
+    }
+  },
+  "characters": {
+    "file": "characters.png",
+    "width": 1254,
+    "height": 1254,
+    "frames": {
+      "hero-down": {
+        "x": 74,
+        "y": 17,
+        "width": 172,
+        "height": 282
+      },
+      "hero-up": {
+        "x": 380,
+        "y": 21,
+        "width": 170,
+        "height": 276
+      },
+      "hero-left": {
+        "x": 706,
+        "y": 20,
+        "width": 154,
+        "height": 282
+      },
+      "hero-right": {
+        "x": 1020,
+        "y": 19,
+        "width": 151,
+        "height": 284
+      },
+      "eldren": {
+        "x": 66,
+        "y": 326,
+        "width": 182,
+        "height": 281
+      },
+      "brann": {
+        "x": 358,
+        "y": 327,
+        "width": 228,
+        "height": 281
+      },
+      "mira": {
+        "x": 690,
+        "y": 334,
+        "width": 203,
+        "height": 281
+      },
+      "lyra": {
+        "x": 998,
+        "y": 331,
+        "width": 192,
+        "height": 283
+      },
+      "neria": {
+        "x": 71,
+        "y": 644,
+        "width": 189,
+        "height": 279
+      },
+      "tala": {
+        "x": 376,
+        "y": 643,
+        "width": 173,
+        "height": 286
+      },
+      "moosling": {
+        "x": 668,
+        "y": 673,
+        "width": 221,
+        "height": 234
+      },
+      "glutling": {
+        "x": 986,
+        "y": 644,
+        "width": 231,
+        "height": 268
+      },
+      "felsbock": {
+        "x": 42,
+        "y": 974,
+        "width": 246,
+        "height": 257
+      },
+      "konstrukt": {
+        "x": 358,
+        "y": 960,
+        "width": 228,
+        "height": 270
+      }
+    }
+  },
+  "grass": {
+    "file": "grass.png",
+    "width": 1254,
+    "height": 1254,
+    "frames": {}
+  }
+}

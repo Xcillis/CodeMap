@@ -15,6 +15,7 @@ import { cooldownLabels, intentLabel, statusLabels } from '../combat/CombatPrese
 import { setLearningText } from './LearningText';
 import { QuestCompletionView } from './QuestCompletionView';
 import { QuestBriefingView } from './QuestBriefingView';
+import { arkanaPortrait } from './ArkanaPortrait';
 
 type EditorMode = 'blocks' | 'text';
 
@@ -149,7 +150,7 @@ export class GameUi {
     this.el('arkan-tabs').replaceChildren(...order.map((actor) => {
       const button = document.createElement('button'); button.id = `select-${actor}`; button.type = 'button';
       button.dataset.actor = actor; button.hidden = this.sources[actor] === undefined;
-      const avatar = document.createElement('span'); avatar.className = `arkan-avatar ${actor}-avatar`; avatar.setAttribute('aria-hidden', 'true'); avatar.textContent = '✦';
+      const avatar = document.createElement('span'); avatar.className = `arkan-avatar ${actor}-avatar`; avatar.setAttribute('aria-hidden', 'true'); avatar.append(arkanaPortrait(actor));
       const name = document.createElement('span'); name.className = 'arkan-name'; name.textContent = ARKANA_SPECIES[actor].name;
       const state = document.createElement('span'); state.className = 'arkan-selection-state';
       button.append(avatar, name, state); return button;

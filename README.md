@@ -23,9 +23,9 @@ npm run dev
 
 NPCs öffnen ein Menü ihrer Aufgaben und Folgequests. Das **Questjournal** zeigt getrennt nach Gebiet, was entdeckt, bereit, gesperrt oder abgeschlossen ist und welche Voraussetzungen fehlen. Eine Quest aus einem anderen Gebiet verlangt zuerst die Reise dorthin.
 
-Das Tal folgt der bereitgestellten Landschaftsreferenz: begrünte Felswände, geschwungene Wege, ein Bach mit begehbarer Holzbrücke, ein Teich und unterschiedliche Bäume. Wasser und große Hindernisse besitzen passende Kollisionen. Alle Grafiken entstehen lokal mit Phaser; der [Grafikstil](docs/CodeMap_Grafikstil.md) beschreibt die vorläufige Umsetzung und die spätere Asset-Ausarbeitung.
+Das Tal folgt der bereitgestellten Landschaftsreferenz: begrünte Felswände, geschwungene Wege, ein Bach mit begehbarer Holzbrücke, ein Teich und unterschiedliche Bäume. Wasser und große Hindernisse besitzen passende Kollisionen. Das erste generierte Grafikset ersetzt die geometrischen Figuren und wesentliche Landschaftsobjekte durch lokale PNG-Sprites. Der [Grafikstil](docs/CodeMap_Grafikstil.md) und das [Asset-Paket mit Prompts](public/assets/aetheria-v1/README.md) dokumentieren die Umsetzung.
 
-Die statische Tallandschaft wird einmalig in wiederverwendbare Texturen umgewandelt. Beim Bewegen werden Terrain und Baumkronen als zwei Bildebenen angezeigt; aufwendige Vektorformen werden dabei nicht pro Frame erneut verarbeitet. Die bevorzugte Richtung für endgültige Assets ist inzwischen der im Grafikstil dokumentierte Low-Poly-Diorama-Look.
+Der erste Stil verbindet facettierte Diorama-Umgebung, vier Blickrichtungen der Spielfigur und eigene Porträts für Questgeber und Arkana. Tal, Wald, Arena und Sammlung verwenden die gleichen Atlanten. Eine kleine Bodenkachel und zwischengespeicherte Wege halten die Darstellung leicht; die Kollisionskörper bleiben unabhängig von den Bildern. Alle PNGs liegen unter `public/assets/aetheria-v1/` und werden ohne externen Dienst geladen. Fehlen die Grafiken, bleibt der prozedurale Fallback erhalten.
 
 ## Spielen und programmieren
 

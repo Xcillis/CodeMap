@@ -1,6 +1,8 @@
 import Phaser from 'phaser';
 import { WORLD_SIZE } from '../gameplay/WorldRegions';
 import { staticLandscape } from './StaticLandscape';
+import { ART_KEYS } from '../art/ArtCatalog';
+import { drawIllustratedValley } from './IllustratedValley';
 import {
   RIVER_POINTS, RIVER_WIDTH, VALLEY_BOULDERS, VALLEY_BORDERS, VALLEY_BRIDGE, VALLEY_PATHS,
   VALLEY_POND, VALLEY_TREES, riverX, valleyBlocked, type Obstacle, type Point, type ValleyTree,
@@ -163,6 +165,12 @@ function addMeadowDetail(g: Phaser.GameObjects.Graphics): void {
 
 /** Local, layered vector placeholders inspired by the supplied valley reference; no bitmap background. */
 export function drawValley(scene: Phaser.Scene): { landslide: Phaser.GameObjects.Container } {
+  if (scene.textures.exists(ART_KEYS.environment) && scene.textures.exists(ART_KEYS.groundTile)) {
+    const landslide = drawIllustratedValley(scene, (ground) => { drawPaths(ground); drawWater(ground); });
+    animateWater(scene);
+    scene.add.text(430, 100, 'TAL VON AETHERIA', { fontFamily: 'Georgia, serif', fontSize: '25px', color: '#fff3cc', stroke: '#354c34', strokeThickness: 5 }).setDepth(10000);
+    return { landslide };
+  }
   staticLandscape(scene, 'valley-terrain-v2', WORLD_SIZE.width, WORLD_SIZE.height, 0, (ground) => {
     const random = randomSource(21);
     ground.fillStyle(palette.grass).fillRect(0, 0, WORLD_SIZE.width, WORLD_SIZE.height);

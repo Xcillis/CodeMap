@@ -14,12 +14,16 @@ import { QUEST_GIVERS, giverLessons, isQuestGiverId, type QuestGiverId } from '.
 import { REGIONS, VALLEY_PASS, WORLD_SIZE } from '../gameplay/WorldRegions';
 import { VALLEY_OBSTACLES } from '../world/ValleyLayout';
 import { drawValley } from '../world/ValleyRenderer';
+import { ART_KEYS, groundDepth, heroFacing, type HeroFrame } from '../art/ArtCatalog';
+import { characterImage, environmentImage, preloadArt, registerArtFrames } from '../art/ArtSprites';
 
 const WORLD_WIDTH = WORLD_SIZE.width;
 const WORLD_HEIGHT = WORLD_SIZE.height;
 
 export class WorldScene extends Phaser.Scene {
   private player!: Phaser.GameObjects.Arc;
+  private playerArt?: Phaser.GameObjects.Image;
+  private playerFacing: HeroFrame = 'hero-down';
   private playerController!: PlayerController;
   private interactionController!: InteractionController;
   private readonly campaign = new Campaign(loadProgress().campaign);
@@ -71,8 +75,10 @@ export class WorldScene extends Phaser.Scene {
   constructor() {
     super('world');
   }
+  preload(): void { preloadArt(this); }
 
   create(data?: { fromTravel?: boolean }): void {
+    registerArtFrames(this); this.playerArt = undefined; this.playerFacing = 'hero-down';
     this.dialogActive = false; this.overlayActive = false; this.gateBody = undefined; this.gateRocks = undefined;
     this.encounterLabels.clear(); this.arkanaVisuals.clear();
     this.interactionHint = undefined;
@@ -120,6 +126,19 @@ export class WorldScene extends Phaser.Scene {
 
   update(): void {
     const interactionPressed = this.playerController.update(!this.dialogActive && !this.overlayActive);
+    if (this.playerArt) {
+      const velocity = (this.player.body as Phaser.Physics.Arcade.Body).velocity;
+      const facing = heroFacing(velocity.x, velocity.y, this.playerFacing);
+      if (facing !== this.playerFacing) {
+        this.playerFacing = facing;
+        // All four directions share a fixed on-screen height and one unchanged physics footprint.
+        const frame = this.textures.getFrame(ART_KEYS.characters, facing);
+        this.playerArt.setTexture(ART_KEYS.characters, facing).setDisplaySize(64 * frame.width / frame.height, 64);
+      }
+      const moving = velocity.lengthSq() > 0;
+      const bob = moving ? Math.sin(this.time.now / 85) * 1.5 : 0;
+      this.playerArt.setPosition(this.player.x, this.player.y + 15 + bob).setDepth(groundDepth(this.player.y + 15));
+    }
     const nearby = this.interactionController.nearestTo(this.player.x, this.player.y);
     this.showInteractionHint(nearby && !this.dialogActive && !this.overlayActive ? `E oder Leertaste: ${nearby.label}` : '');
 
@@ -172,10 +191,12 @@ export class WorldScene extends Phaser.Scene {
     if (isArkanId(id) && this.campaign.has(id)) return;
     const quest = !isArkanId(id);
     const shadow = this.add.ellipse(x, y + 18, 32, 10, 0x142c35, .3).setDepth(4);
-    const marker = quest
+    const art = isArkanId(id) ? characterImage(this, id, x, y + 18, 54) : environmentImage(this, 'runestone', x, y + 18, 32, 43);
+    if (art) art.setDepth(groundDepth(y + 18));
+    const marker = art ?? (quest
       ? this.add.rectangle(x, y, 24, 34, color).setStrokeStyle(3, 0x3d4a41).setDepth(5)
-      : this.add.circle(x, y, 17, color).setStrokeStyle(3, 0xf7efc2).setDepth(5);
-    const text = this.add.text(x, y - 40, label, { fontSize: '15px', color: '#fff1bd', stroke: '#243a30', strokeThickness: 4 }).setOrigin(.5).setDepth(6);
+      : this.add.circle(x, y, 17, color).setStrokeStyle(3, 0xf7efc2).setDepth(5));
+    const text = this.add.text(x, y - 50, label, { fontSize: '15px', color: '#fff1bd', stroke: '#243a30', strokeThickness: 4 }).setOrigin(.5).setDepth(10000);
     this.encounterLabels.set(id, text);
     if (isArkanId(id)) this.arkanaVisuals.set(id, [shadow, marker, text]);
   }
@@ -205,31 +226,41 @@ export class WorldScene extends Phaser.Scene {
     this.physics.add.existing(player);
     const body = player.body as Phaser.Physics.Arcade.Body;
     body.setCircle(14).setOffset(2, 2).setCollideWorldBounds(true);
+    this.playerArt = characterImage(this, 'hero-down', x, y + 15);
+    if (this.playerArt) { player.setAlpha(0); this.playerArt.setDepth(groundDepth(y + 15)); }
     return player;
   }
 
   private createNpc(id: QuestGiverId): void {
     const { x, y, name, color } = QUEST_GIVERS[id];
     this.add.ellipse(x, y + 20, 27, 9, 0x1d2a25, 0.3).setDepth(4);
-    this.add.circle(x, y, 17, color).setStrokeStyle(3, 0xf2d8ff).setDepth(5);
-    this.add.triangle(x, y - 15, -14, 11, 14, 11, 0, -19, 0x40245f).setDepth(6);
-    const label = this.add.text(x, y - 52, name, { fontFamily: 'Georgia, serif', fontSize: '16px', color: '#fff6d8', stroke: '#26352c', strokeThickness: 4, align: 'center' }).setOrigin(0.5).setDepth(7);
+    const art = characterImage(this, id, x, y + 19, 68);
+    if (art) art.setDepth(groundDepth(y + 19));
+    else {
+      this.add.circle(x, y, 17, color).setStrokeStyle(3, 0xf2d8ff).setDepth(5);
+      this.add.triangle(x, y - 15, -14, 11, 14, 11, 0, -19, 0x40245f).setDepth(6);
+    }
+    const label = this.add.text(x, y - 65, name, { fontFamily: 'Georgia, serif', fontSize: '16px', color: '#fff6d8', stroke: '#26352c', strokeThickness: 4, align: 'center' }).setOrigin(0.5).setDepth(10000);
     this.encounterLabels.set(`giver:${id}`, label);
   }
 
   private forestTrees(): number[][] { return [[170, 160], [350, 210], [500, 160], [780, 150], [950, 220], [1300, 150], [1470, 230], [240, 800], [440, 910], [650, 780], [790, 950], [1230, 940], [1500, 700], [1350, 650], [300, 350], [830, 650]]; }
   private drawForest(): void {
-    const ground = this.add.graphics(); ground.fillStyle(0x315d46).fillRect(0, 0, 1600, 1040);
-    for (let x = 0; x < 1600; x += 80) for (let y = 0; y < 1040; y += 80) if ((x + y) % 160 === 0) ground.fillStyle(0x46765a, .4).fillRect(x, y, 80, 80);
+    const illustrated = this.textures.exists(ART_KEYS.groundTile);
+    if (illustrated) this.add.tileSprite(0, 0, 1600, 1040, ART_KEYS.groundTile).setOrigin(0).setTileScale(1.4).setTint(0x8bbd9b);
+    const ground = this.add.graphics().setDepth(.1);
+    if (!illustrated) ground.fillStyle(0x315d46).fillRect(0, 0, 1600, 1040);
     ground.lineStyle(40, 0x93865d).beginPath().moveTo(100, 520).lineTo(600, 490).lineTo(1140, 390).strokePath();
     ground.beginPath().moveTo(600, 490).lineTo(1030, 800).lineTo(1450, 915).strokePath();
     for (const [x, y] of this.forestTrees()) this.drawTree(x, y);
     this.drawPond(980, 145);
-    this.add.text(160, 75, 'AETHERWALD', { fontSize: '28px', color: '#d4f6d9', stroke: '#183c30', strokeThickness: 5 });
-    this.add.text(160, 113, 'Bedingungen & Verzweigungen', { fontSize: '17px', color: '#c7decb' });
+    this.add.text(160, 75, 'AETHERWALD', { fontSize: '28px', color: '#d4f6d9', stroke: '#183c30', strokeThickness: 5 }).setDepth(10000);
+    this.add.text(160, 113, 'Bedingungen & Verzweigungen', { fontSize: '17px', color: '#c7decb' }).setDepth(10000);
   }
 
   private drawTree(x: number, y: number): void {
+    const art = environmentImage(this, 'oak', x, y + 26, 140);
+    if (art) { art.setDepth(groundDepth(y + 26)); return; }
     const tree = this.add.graphics().setDepth(2);
     tree.fillStyle(0x5b3d28).fillRect(x - 7, y, 14, 30);
     tree.fillStyle(0x284f32).fillCircle(x, y - 18, 31);
@@ -238,6 +269,12 @@ export class WorldScene extends Phaser.Scene {
   }
 
   private drawBuilding(x: number, y: number): void {
+    const art = environmentImage(this, 'academy', x, y + 150, 300, 310);
+    if (art) {
+      art.setDepth(groundDepth(y + 150));
+      this.add.text(x, y - 178, 'Akademie von Aetheria', { fontFamily: 'Georgia, serif', fontSize: '24px', color: '#fff1be', stroke: '#283928', strokeThickness: 5 }).setOrigin(.5).setDepth(10000);
+      return;
+    }
     const building = this.add.graphics().setDepth(1);
     building.fillStyle(0x75503d).fillRect(x - 135, y - 10, 270, 160);
     building.fillStyle(0x3b2a32).fillTriangle(x - 160, y - 10, x + 160, y - 10, x, y - 150);

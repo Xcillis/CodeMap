@@ -10,7 +10,8 @@ import { getLesson, lessonPrograms, type EncounterPresentation } from '../gamepl
 import { ARKANA_SPECIES } from '../gameplay/ArkanaCatalog';
 import { ACTIONS, actionLabel } from '../combat/ActionCatalog';
 import { isAbility } from '../combat/Abilities';
-import { statusLabels } from '../combat/CombatPresentation';
+import { ART_KEYS } from '../art/ArtCatalog';
+import { characterImage, registerArtFrames } from '../art/ArtSprites';
 
 const TILE = 72;
 const GRID_START_X = 110;
@@ -21,7 +22,7 @@ export class BattleScene extends Phaser.Scene {
   private grid!: Phaser.GameObjects.Graphics;
   private actors!: Phaser.GameObjects.Container;
   private effects!: Phaser.GameObjects.Container;
-  private visuals = new Map<Combatant['id'], { root: Phaser.GameObjects.Container; marker: Phaser.GameObjects.Arc; label: Phaser.GameObjects.Text }>();
+  private visuals = new Map<Combatant['id'], { root: Phaser.GameObjects.Container; marker: Phaser.GameObjects.Arc; figure: Phaser.GameObjects.Image | Phaser.GameObjects.Arc; label: Phaser.GameObjects.Text }>();
   private currentFrame?: ActionFrame<EncounterState>;
   private playback = new Playback<ActionFrame<EncounterState>>(
     (frame, duration) => this.animateFrame(frame, duration),
@@ -53,9 +54,11 @@ export class BattleScene extends Phaser.Scene {
   }
 
   create(encounter?: WorldEncounter): void {
+    registerArtFrames(this);
     this.encounter = encounter?.team ? encounter : { kind: 'training', mission: 1, team: ['moosling'], skills: { moosling: ARKANA_SPECIES.moosling.supported } };
     this.cameras.main.setBackgroundColor('#142c35');
     this.grid = this.add.graphics();
+    if (this.textures.exists(ART_KEYS.groundTile)) this.add.tileSprite(GRID_START_X - 8, GRID_START_Y - 8, TILE * 7 + 16, TILE * 7 + 16, ART_KEYS.groundTile).setOrigin(0).setTileScale(1.25).setTint(0x779a85).setDepth(-1);
     this.actors = this.add.container();
     this.effects = this.add.container().setDepth(20);
     this.heading = this.add.text(GRID_START_X, 52, '', { fontFamily: 'Georgia, serif', fontSize: '30px', color: '#fff0bd' });
@@ -138,7 +141,7 @@ export class BattleScene extends Phaser.Scene {
     for (let y = 0; y < 7; y += 1) {
       for (let x = 0; x < 7; x += 1) {
         const tileColor = (x + y) % 2 === 0 ? 0x35585a : 0x2b4b4e;
-        this.grid.fillStyle(tileColor).fillRect(GRID_START_X + x * TILE, GRID_START_Y + y * TILE, TILE - 3, TILE - 3);
+        this.grid.fillStyle(tileColor, this.textures.exists(ART_KEYS.groundTile) ? .42 : 1).fillRect(GRID_START_X + x * TILE, GRID_START_Y + y * TILE, TILE - 3, TILE - 3);
       }
     }
     this.goalLabel.setVisible('goal' in state);
@@ -165,16 +168,21 @@ export class BattleScene extends Phaser.Scene {
     const y = GRID_START_Y + actor.y * TILE + TILE / 2;
     let visual = this.visuals.get(actor.id);
     if (!visual || !visual.root.scene) {
-      const marker = this.add.circle(0, 0, 24, color).setStrokeStyle(2, 0xffffff);
+      const art = characterImage(this, actor.id, 0, 27, 48);
+      const marker = this.add.circle(0, 0, 24, color, art ? .13 : 1).setStrokeStyle(2, 0xffffff);
       if (actor.id !== 'konstrukt') marker.setInteractive({ useHandCursor: true }).on('pointerdown', () => gameEvents.emit('arkan-selected', actor.id));
-      const label = this.add.text(0, -42, '', { fontFamily: 'Georgia, serif', fontSize: '13px', align: 'center', color: textColor, stroke: '#142c35', strokeThickness: 3 }).setOrigin(0.5);
-      const root = this.add.container(x, y, [marker, label]); this.actors.add(root);
-      visual = { root, marker, label }; this.visuals.set(actor.id, visual);
+      if (art && actor.id !== 'konstrukt') art.setInteractive({ useHandCursor: true }).on('pointerdown', () => gameEvents.emit('arkan-selected', actor.id));
+      const label = this.add.text(0, -30, '', { fontFamily: 'Georgia, serif', fontSize: '9px', align: 'center', color: textColor, stroke: '#142c35', strokeThickness: 2 }).setOrigin(.5);
+      const root = this.add.container(x, y, [marker, ...(art ? [art] : []), label]); this.actors.add(root);
+      visual = { root, marker, figure: art ?? marker, label }; this.visuals.set(actor.id, visual);
     }
     visual.root.setPosition(x, y).setScale(1).setAlpha(actor.hp > 0 ? 1 : .3);
+    visual.figure.setScale(visual.figure instanceof Phaser.GameObjects.Image ? 48 / visual.figure.frame.height : 1).setAlpha(1);
     visual.marker.setScale(1).setAlpha(1).setStrokeStyle(actor.protection || actor.armor || actor.coveredBy ? 4 : 2, actor.protection || actor.armor || actor.coveredBy ? 0x8cc8e2 : 0xffffff);
-    visual.label.setText(`${actor.name}\n${actor.hp}/${actor.maxHp}${statusLabels(actor).length ? `\n${statusLabels(actor).join(' · ')}` : ''}`);
+    visual.label.setText(this.actorLabel(actor));
   }
+
+  private actorLabel(actor: Combatant): string { return `${actor.id === 'konstrukt' ? 'Konstrukt' : actor.name} ${actor.hp}/${actor.maxHp}`; }
 
   private animateFrame(frame: ActionFrame<EncounterState>, duration: number): void {
     this.currentFrame = frame;
@@ -193,7 +201,7 @@ export class BattleScene extends Phaser.Scene {
         const unit = units(frame.after).find((candidate) => candidate.id === effect.target); if (unit) this.drawActor(unit, unit.id === 'konstrukt' ? 0xc95e58 : ARKANA_SPECIES[unit.id].color, '#eff5dc');
         const text = this.add.text(target.root.x, target.root.y - 18, effect.kind === 'heal' ? `+${effect.amount} LP` : effect.kind === 'cover' ? `Deckung` : effect.kind === 'guard' ? `Schutz ${effect.amount}` : effect.kind === 'root' ? 'Festgehalten' : `−${effect.amount}`, { fontSize: '19px', color: effect.kind === 'heal' ? '#acf59b' : effect.kind === 'guard' || effect.kind === 'cover' ? '#aadfff' : effect.kind === 'root' ? '#b8e69d' : '#ffc179', stroke: '#142c35', strokeThickness: 4 }).setOrigin(.5);
         this.effects.add(text); this.tweens.add({ targets: text, y: text.y - 35, alpha: 0, duration: duration * .7 });
-        this.tweens.add({ targets: target.marker, alpha: .35, duration: duration * .13, repeat: 1, yoyo: true });
+        this.tweens.add({ targets: target.figure, alpha: .35, duration: duration * .13, repeat: 1, yoyo: true });
       }
       explanation = frame.effects.map((effect) => effect.text).join(' ');
     } else if (moved) {
@@ -201,15 +209,15 @@ export class BattleScene extends Phaser.Scene {
       explanation = ACTIONS[frame.action].label;
     } else if (isAbility(frame.action) || frame.action === 'WAIT') {
       explanation = frame.after.log.at(-1) ?? ACTIONS[frame.action].label;
-      this.tweens.add({ targets: visual.marker, scale: 1.15, duration: duration * .25, yoyo: true });
+      this.tweens.add({ targets: visual.root, scale: 1.08, duration: duration * .25, yoyo: true });
     } else if (frame.action === 'ATTACK') {
       const target = units(frame.after).find((actor) => actor.id !== frame.actor && actor.hp < (units(frame.before).find((old) => old.id === actor.id)?.hp ?? actor.hp));
       if (target) {
         const damage = units(frame.before).find((actor) => actor.id === target.id)!.hp - target.hp;
         const victim = this.visuals.get(target.id)!;
-        victim.label.setText(`${target.name}\n${target.hp}/${target.maxHp}`);
+        victim.label.setText(this.actorLabel(target));
         this.tweens.add({ targets: visual.root, x: visual.root.x + Math.sign(victim.root.x - visual.root.x) * 15, y: visual.root.y + Math.sign(victim.root.y - visual.root.y) * 15, duration: duration * .16, yoyo: true });
-        this.tweens.add({ targets: victim.marker, alpha: .25, duration: duration * .12, repeat: 2, yoyo: true });
+        this.tweens.add({ targets: victim.figure, alpha: .25, duration: duration * .12, repeat: 2, yoyo: true });
         const text = this.add.text(victim.root.x, victim.root.y - 20, `−${damage}`, { fontSize: '24px', color: '#ffe3a6', stroke: '#142c35', strokeThickness: 4 }).setOrigin(.5);
         this.effects.add(text); this.tweens.add({ targets: text, y: text.y - 40, alpha: 0, duration: duration * .7 });
         explanation = `${frame.actor === 'konstrukt' ? 'Angriff' : actionLabel('ATTACK', frame.actor)} trifft ${target.name} für ${damage} Schaden`;

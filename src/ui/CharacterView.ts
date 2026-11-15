@@ -3,6 +3,7 @@ import { actionLabel } from '../combat/ActionCatalog';
 import { Campaign } from '../gameplay/Campaign';
 import { learnedTerms } from '../gameplay/LearningTerms';
 import { setLearningText } from './LearningText';
+import { arkanaPortrait } from './ArkanaPortrait';
 
 export const CHARACTER_TABS = ['collection', 'team', 'glossary'] as const;
 export type CharacterTab = typeof CHARACTER_TABS[number];
@@ -25,6 +26,7 @@ export function renderCharacterView(content: HTMLElement, tab: CharacterTab, cam
     for (const owned of state.owned) {
       const species = ARKANA_SPECIES[owned.speciesId]; const index = state.team.indexOf(owned.id);
       const card = document.createElement('article'); card.className = `collection-card type-${species.type}`;
+      card.append(arkanaPortrait(species.id));
       card.append(heading(`${species.name} · ${ARKANA_TYPES[species.type].name}`),
         paragraph(`Teamrollen: ${species.roles.map((role) => ROLE_NAMES[role]).join(', ')}`),
         paragraph(`${species.maxHp} Lebenspunkte · ${owned.learned.includes('attack') ? `${species.attack} Angriffsschaden` : 'Angreifen noch nicht gelernt'}`),
@@ -41,6 +43,7 @@ export function renderCharacterView(content: HTMLElement, tab: CharacterTab, cam
     const active = document.createElement('ol'); active.id = 'team-active-members'; active.className = 'team-members';
     for (const [index, owned] of campaign.activeTeam.entries()) {
       const species = ARKANA_SPECIES[owned.speciesId]; const card = document.createElement('li'); card.className = `team-card type-${species.type}`;
+      card.append(arkanaPortrait(species.id));
       card.append(heading(`Platz ${index + 1}: ${species.name}`), paragraph(`${ARKANA_TYPES[species.type].name} · ${species.maxHp} Lebenspunkte · ${species.roles.map((role) => ROLE_NAMES[role]).join(', ')}`), teamButton(owned, 'Aus dem Team nehmen', actions)); active.append(card);
     }
     if (!state.team.length) section.append(paragraph('Dein Team ist noch leer. Wähle unten ein gesammeltes Arkana aus.'));
@@ -48,6 +51,7 @@ export function renderCharacterView(content: HTMLElement, tab: CharacterTab, cam
     const reserve = document.createElement('div'); reserve.id = 'team-reserve-members'; reserve.className = 'team-members';
     for (const owned of state.owned.filter((item) => !state.team.includes(item.id))) {
       const species = ARKANA_SPECIES[owned.speciesId]; const card = document.createElement('article'); card.className = 'team-card';
+      card.append(arkanaPortrait(species.id));
       card.append(heading(species.name), paragraph('In der Sammlung'), teamButton(owned, campaign.teamLimit === 1 ? 'Aktiv setzen' : 'Ins Team nehmen', actions)); reserve.append(card);
     }
     if (!reserve.childElementCount) reserve.append(paragraph(state.owned.length ? 'Alle gesammelten Arkana sind bereits im Team.' : 'Noch keine Arkana gesammelt.'));
