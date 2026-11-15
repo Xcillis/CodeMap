@@ -1,3 +1,4 @@
+import { partyMembers } from './Party';
 import { BattleEngine, type BattleOptions } from './BattleEngine';
 import { nodesToSource, programCost, compileActionPlan, CONDITION_PROGRAM, DEFAULT_PROGRAM, FORMATION_PROGRAM } from './DecisionProgram';
 import type { ActionFrame, ArkanId, GridPosition, ProgramSources, ProgramStep } from './types';
@@ -89,6 +90,6 @@ export class BattleSession {
   }
   private hasSteps(): boolean {
     const state = this.snapshot;
-    return this.actors.some((actor) => [state.player, state.companion].some((unit) => unit?.id === actor && unit.hp > 0) && !this.plans[actor]?.done);
+    return this.actors.some((actor) => partyMembers(state).some((unit) => unit?.id === actor && unit.hp > 0) && !this.plans[actor]?.done);
   }
 }

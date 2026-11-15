@@ -79,3 +79,9 @@ Alle Quests bieten rechts, links, oben und unten an, selbst wenn einzelne Richtu
 Arkana sollen als sammelbare RPG-Wesen eigene Typen und Fähigkeiten besitzen. Im Gesamtspiel entwickeln sich Rollen für Schaden, Heilung, Unterstützung und Tank/Schutz. Mehrere aktive Arkana kämpfen mit ihren eigenen Programmen zusammen. Die bisherige generische Angriffsbezeichnung wird durch artspezifischen Glutstoß und Rankenhieb ergänzt beziehungsweise in der Oberfläche ersetzt. Einfache Einstiegsquests behalten eine einzelne direkte Fähigkeit; zusätzliche Mechaniken werden schrittweise eingeführt.
 
 Glutling erlernt Brand, Moosling Ranken, Regeneration und Rindenschutz. Vier neue Quests führen diese Mechaniken ein und verbinden sie abschließend in einem aktiven Zweierkampf. Die Spielmechanik enthält tatsächliche Reichweiten, Abklingzeiten, Zustände, Zielumlenkung und ein Weiterkämpfen des überlebenden Teammitglieds. Die Rollen sind typübergreifende Teamaufgaben; spätere Arten können sich spezialisieren. Die Arkana-Übersicht und `CodeMap_Kampfsystem.md` beschreiben die Typen und den weiteren Ausbau. Eine Dreierformation, zusätzliche Arten und mehrere Gegner sind damit noch nicht implementiert.
+
+## DD 009 Felsbock sammeln und drei Arkana koordinieren
+
+**Status:** Beauftragter nächster Ausbau umgesetzt.
+
+Felsbock ist nach dem Räumen des Steinrutschs im Tal auffindbar. Es wird nicht automatisch vergeben. Nach den bisherigen Rollenquests führt Mira Steinpanzer und anschließend Deckung für Glutling ein. Die erfolgreiche Koordinationsquest öffnet den dritten Teamplatz; die Einführung allein tut das nicht. Danach verbindet Tala Glutlings Schaden, Mooslings Heilung und Felsbocks Schutz in einem Dreierkampf mit drei eigenen Programmen. Die feste Ausführungsreihenfolge ist sichtbar, die gewählte Figur bestimmt nur den bearbeiteten Entwurf. Mehrere Gegner und freie Zielauswahl bleiben spätere Schritte.

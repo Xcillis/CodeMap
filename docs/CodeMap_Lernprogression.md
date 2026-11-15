@@ -56,3 +56,9 @@ Ein alter Stand mit bereits abgeschlossener Q05-Einführung erhält eine gekennz
 ## Ausbau nach diesen Gebieten
 
 Artspezifische Rätselaktionen aus der Arkana-Übersicht, Variablen, Funktionen und Ereignisse erhalten eigene spätere Einführungen. Die erste Fassung bleibt vollständig lokal; Backend, NOVA und Kompetenzbewertung werden nicht vorausgesetzt. Regionale Freigaben sind Spielregeln, keine vorgezogene schulische Bewertung.
+
+## Erweiterung: Schutz und drei Objektprogramme
+
+Nach Q17 kann Felsbocks Schutz bei Mira im Tal vertieft werden. Felsbock ist nach Q12 am geräumten Pass auffindbar, muss aber selbst aufgenommen werden. Q18 lässt Steinpanzer an echten Treffern beobachten. Q19 erklärt zuerst das Übernehmen eines Treffers für Glutling und führt dann das Wort **Deckung** ein. Das Glossar erhält nach dem Abschluss ein passendes Beispiel. Erst danach ist Teamplatz 3 frei.
+
+Q20 bei Tala verbindet drei bekannte Rollen mit getrennten Programmen: Feuer-/Brandschaden, Heilung von Glutling sowie Deckung und Schaden abfangen. Einzelschritt und Gesamtprogramm müssen dieselben Wirkungen und Zustände liefern. Bloßer Sieg ohne die verlangten realen Wirkungen bleibt eine offene Übung. Der dritte Akteur erhöht weder die Zahl gegnerischer Reaktionen noch das Tempo von Zuständen und Abklingzeiten.

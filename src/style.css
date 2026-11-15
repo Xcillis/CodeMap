@@ -126,6 +126,8 @@ button:focus-visible, select:focus-visible, textarea:focus-visible, summary:focu
 .arkan-avatar { display: grid; place-items: center; width: 1.6rem; height: 1.6rem; border-radius: .4rem; color: white; font-size: 1.1rem; }
 .moosling-avatar { background: radial-gradient(circle at 35% 30%, #9ad37a, #376d3d); }
 .glutling-avatar { background: radial-gradient(circle at 35% 30%, #ffd16b, #bd4a2e); }
+.felsbock-avatar { background: radial-gradient(circle at 35% 30%, #d6cbb3, #706655); }
+[data-program-actor='felsbock'] #program-owner { border-left-color: #c8b89a; }
 .arkan-name { font-weight: 800; }
 .arkan-selection-state { font-size: .7rem; }
 .trial-summary { margin: 0; color: #d9c8ed; font-size: .75rem; }
@@ -217,3 +219,5 @@ button:focus-visible, select:focus-visible, textarea:focus-visible, summary:focu
   #battle-panel { top: .5rem; right: .5rem; bottom: .5rem; left: auto; width: 66vw; height: auto; }
   .battle-footer { max-height: 14dvh; }
 }
+
+@media (min-width: 701px) { .battle-status.trio-status { grid-template-columns: auto repeat(4, minmax(0, 1fr)); } }

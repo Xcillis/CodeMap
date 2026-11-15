@@ -21,4 +21,14 @@ export const QUEST_SOLUTIONS: Record<LessonId, ProgramSources> = {
     glutling: 'glutling.ignite(); glutling.wait(); glutling.moveRight(); glutling.moveUp(); glutling.ignite(); glutling.flameStrike(); glutling.flameStrike();',
     moosling: 'moosling.vineSnare(); moosling.healingMoss(); moosling.moveDown(); moosling.barkGuard(); moosling.vineStrike(); moosling.healingMoss(); moosling.vineStrike();',
   },
+  'q18-steinpanzer': { felsbock: 'felsbock.stoneArmor(); repeat(3, () => { felsbock.stoneStrike(); });' },
+  'q19-deckung': {
+    glutling: 'glutling.wait(); glutling.flameStrike(); glutling.flameStrike();',
+    felsbock: 'felsbock.coverAlly(); felsbock.stoneArmor(); felsbock.wait();',
+  },
+  'q20-dreiklang': {
+    glutling: 'glutling.ignite(); repeat(4, () => { glutling.flameStrike(); });',
+    moosling: 'moosling.healingMoss(); moosling.wait(); moosling.wait(); moosling.healingMoss(); moosling.wait();',
+    felsbock: 'felsbock.coverAlly(); felsbock.stoneArmor(); felsbock.wait(); felsbock.coverAlly(); felsbock.wait();',
+  },
 };

@@ -28,7 +28,7 @@ const record = (value: unknown): Record<string, unknown> => value && typeof valu
 const legacyIds = (value: unknown): MissionId[] => Array.isArray(value) ? ([1, 2, 3] as const).filter((id) => value.includes(id)) : [];
 const lessonIds = (value: unknown): LessonId[] => Array.isArray(value) ? LESSON_IDS.filter((id) => value.includes(id)) : [];
 const teamCapacity = (completed: readonly LessonId[], introductions: readonly LessonId[], legacy: readonly MissionId[]): number =>
-  legacy.includes(2) || (completed.includes('q07-moosling') && introductions.includes('q08-team')) ? 2 : 1;
+  completed.includes('q19-deckung') ? 3 : legacy.includes(2) || (completed.includes('q07-moosling') && introductions.includes('q08-team')) ? 2 : 1;
 
 /** New quest IDs never reinterpret old victories or overwrite numeric editor slots. */
 export function normalizeCampaign(value: unknown, legacyIntroduction = false): CampaignState {
@@ -70,10 +70,13 @@ export class Campaign {
     if (this.region === 'valley') {
       if (!this.state.completed.includes('q01-glutspur')) return 'Bewegungstutorial: Sprich mit Eldren an der Talakademie.';
       if (!this.state.completed.includes('q02-basisangriff')) return 'Angriffstutorial: Kehre zu Eldren an der Talakademie zurück.';
+      if (this.forestUnlocked && !this.has('felsbock')) return 'Der Ostpass ist frei. Neben dem geräumten Steinrutsch kannst du Felsbock finden. Mira zeigt dir seinen Schutz nach Talas Rollenkampf.';
       if (this.forestUnlocked) return 'Der Ostpass zum Aetherwald ist frei. Reise zum Wald oder wähle weitere Talaufgaben bei Eldren, Brann und Mira.';
       if (requirementsMet('q12-steinrutsch', this.state.completed)) return 'Mira am Ostpass bietet die Runenwinde zum Freiräumen des Steinrutschs an. Andere Talaufgaben bleiben frei wählbar.';
       return 'Wähle eine Schleifen-Aufgabenreihe: Runenrätsel bei Eldren, Kampf bei Brann oder verschachtelte Schleifen bei Mira am Ostpass.';
     }
+    if (this.state.completed.includes('q19-deckung') && !this.state.completed.includes('q20-dreiklang')) return 'Tala bietet „Drei Arkana, ein Plan“ im Wald an. Glutling, Moosling und Felsbock können jetzt gemeinsam aktiv sein.';
+    if (this.state.completed.includes('q17-teamrollen') && !this.state.completed.includes('q19-deckung')) return 'Kehre ins Tal zurück: Finde Felsbock am geräumten Ostpass und lerne bei Mira Steinpanzer und Deckung für den dritten Teamplatz.';
     if (!this.state.completed.includes('q05-aufmerksam')) return 'Waldeinführung: Sprich zuerst mit Waldhüterin Lyra über Bedingungen und Entscheidungen.';
     return this.has('moosling') ? 'Wähle Waldaufgaben bei Lyra, Neria oder Tala in beliebiger Reihenfolge. Der Rückweg ins Tal bleibt offen.' : 'Wähle Waldaufgaben bei Lyra oder Neria. Im südöstlichen Hain kannst du außerdem Moosling finden und bei Tala kennenlernen.';
   }
@@ -104,6 +107,7 @@ export class Campaign {
     if (route.region !== this.region) return `Reise zuerst in das Gebiet ${REGIONS[route.region].name}.`;
     if (!this.state.discovered.includes(id)) return `Entdecke diese Aufgabe bei ${QUEST_GIVERS[route.giver].name} in der Spielwelt.`;
     if (!this.has('glutling')) return 'Finde zuerst Glutling am westlichen Akademieweg. Sprich es dort an und wähle „In Sammlung aufnehmen“.';
+    if (lessonActors(getLesson(id)).includes('felsbock') && !this.has('felsbock')) return 'Finde Felsbock am geräumten Ostpass im Tal und nimm es in deine Sammlung auf.';
     if (lessonActors(getLesson(id)).includes('moosling') && !this.has('moosling')) return 'Finde zuerst Moosling im südöstlichen Hain. Sprich es dort an und wähle „In Sammlung aufnehmen“.';
   }
   missionError(id: LessonId): string | undefined {
@@ -111,7 +115,7 @@ export class Campaign {
     const team = this.activeTeam; const actors = lessonActors(getLesson(id));
     if (team.length !== actors.length || actors.some((actor, index) => team[index]?.speciesId !== actor)) return actors.length === 1
       ? `Wähle ${ARKANA_SPECIES[actors[0]].name} als einziges aktives Arkana unter Charakter → Aktuelles Team.`
-      : `Diese Aufgabe benötigt ${ARKANA_SPECIES[actors[0]].name} zuerst und ${ARKANA_SPECIES[actors[1]].name} danach. Mit „Team wählen & Quest starten“ setzt du beide aktiv.`;
+      : `Diese Aufgabe benötigt ${actors.map((actor) => ARKANA_SPECIES[actor].name).join(' → ')} in dieser Reihenfolge. Mit „Team wählen & Quest starten“ setzt du alle aktiv.`;
   }
   lessonOffer(id: LessonId): Pick<CampaignDialog, 'action' | 'actionLabel'> {
     if (this.active || this.lessonPrerequisiteError(id)) return {};
@@ -139,7 +143,8 @@ export class Campaign {
   beginTraining(mission: MissionId, team: readonly ArkanId[]): WorldEncounter | string {
     if (this.active) return 'Eine Begegnung läuft bereits.';
     if (![1, 2, 3].includes(mission)) return 'Unbekannte Trainingsaufgabe.';
-    if (team.length !== (mission === 3 ? 2 : 1) || new Set(team).size !== team.length) return mission === 3 ? 'Wähle zwei unterschiedliche gesammelte Arkana für das Duo-Training.' : 'Wähle ein gesammeltes Arkana für das Solo-Training.';
+    if ((mission === 3 ? team.length < 2 || team.length > 3 : team.length !== 1) || new Set(team).size !== team.length) return mission === 3 ? 'Wähle zwei oder drei unterschiedliche gesammelte Arkana für das Team-Training.' : 'Wähle ein gesammeltes Arkana für das Solo-Training.';
+    if (team.length === 3 && this.teamLimit < 3) return 'Den dritten Teamplatz erhältst du nach Miras Koordinationsquest „Felsbock hält die Stellung“.';
     if (team.some((id) => !this.has(id))) return 'Du kannst nur gesammelte Arkana zum Training mitnehmen.';
     this.active = { kind: 'training', mission, team: [...team], skills: Object.fromEntries(team.map((id) => [id, [...ARKANA_SPECIES[id].supported]])) };
     return structuredClone(this.active);
@@ -163,11 +168,12 @@ export class Campaign {
       this.state.region = action === 'travel-forest' ? 'forest' : 'valley'; return `Du reist nach ${REGIONS[this.region].name}.`;
     }
     if (action === 'meet-eldren') { this.state.introduced = true; return 'Eldren zeigt dir Glutlings Fundort am westlichen Akademieweg.'; }
-    if (action === 'recruit-moosling' || action === 'recruit-glutling') {
-      const species = action === 'recruit-moosling' ? 'moosling' : 'glutling';
+    if (action.startsWith('recruit-')) {
+      const species = action.slice(8);
+      if (!isArkanId(species)) return 'Unbekanntes Arkana.';
       if (this.has(species)) return `${ARKANA_SPECIES[species].name} ist bereits in deiner Sammlung.`;
       if (!this.state.introduced) return 'Sprich zuerst mit Arkanist Eldren. Er hilft dir, dein erstes Arkana zu finden.';
-      if (!encounterUnlocked(this.state, species)) return 'Moosling wartet im südöstlichen Waldhain nach Lyras Einführung. Reise zuerst in den Wald und lerne dort die Bedingungen kennen.';
+      if (!encounterUnlocked(this.state, species)) return species === 'felsbock' ? 'Felsbock erscheint im Tal erst nach dem Räumen des Steinrutschs. Suche es dann neben dem Ostpass.' : 'Moosling wartet im südöstlichen Waldhain nach Lyras Einführung. Reise zuerst in den Wald und lerne dort die Bedingungen kennen.';
       const owned: OwnedArkana = { id: instanceId(species), speciesId: species, learned: [...new Set([...startingSkills(), ...this.state.introductions.flatMap((id) => getLesson(id).introduces)])].filter((skill) => ARKANA_SPECIES[species].supported.includes(skill)) };
       this.state.owned.push(owned);
       if (this.state.team.length < this.teamLimit) this.state.team.push(owned.id);
@@ -181,7 +187,7 @@ export class Campaign {
       : this.forestUnlocked ? { speaker: 'OSTPASS', text: 'Der Pass ist frei. Im Wald wartet zuerst Lyra mit der Einführung in Bedingungen. Talaufgaben bleiben weiterhin spielbar.', action: 'travel-forest', actionLabel: 'In den Wald reisen' }
       : { speaker: 'STEINRUTSCH', text: 'Die Felsen blockieren den einzigen Waldzugang. Mira am Ostpass hilft dir mit der Runenwinde.' };
     if (target === 'landslide') return this.questDialog('q12-steinrutsch');
-    if (target === 'training') return { speaker: 'FREIE TRAININGSARENA', text: 'Hier sind alle implementierten Befehle zum Experimentieren verfügbar. Das Training schaltet keine Weltquest und keine Lernfähigkeit frei. Wähle ein Solo- oder Duo-Training mit gesammelten Arkana.', action: 'open-training', actionLabel: 'Training vorbereiten' };
+    if (target === 'training') return { speaker: 'FREIE TRAININGSARENA', text: 'Hier sind alle implementierten Befehle zum Experimentieren verfügbar. Das Training schaltet keine Weltquest und keine Lernfähigkeit frei. Wähle Solo- oder Teamtraining mit gesammelten Arkana. Drei Plätze erhältst du erst nach Miras Koordinationsquest.', action: 'open-training', actionLabel: 'Training vorbereiten' };
     const giverId = target === 'arkanist-eldren' ? 'eldren' : target.startsWith('giver:') ? target.slice(6) : undefined;
     if (isQuestGiverId(giverId)) {
       const giver = QUEST_GIVERS[giverId];
@@ -194,8 +200,8 @@ export class Campaign {
       const species = ARKANA_SPECIES[target];
       if (this.has(target)) return { speaker: species.name.toUpperCase(), text: 'Dieses Arkana ist bereits Teil deiner Sammlung.' };
       if (!this.state.introduced) return { speaker: 'AETHERIA', text: 'Sprich zuerst mit Arkanist Eldren. Danach kannst du Glutling als erstes Arkana aufnehmen.' };
-      if (!encounterUnlocked(this.state, target)) return { speaker: 'AETHERIA', text: 'Dieses Arkana ist hier noch nicht verfügbar. Moosling findest du im Wald nach Lyras Einführung.' };
-      return { speaker: species.name.toUpperCase(), text: `Du hast ${species.name} gefunden! ${species.strength} ${species.weakness} Nimm es auf und lerne seine Befehle Schritt für Schritt.`, action: target === 'moosling' ? 'recruit-moosling' : 'recruit-glutling', actionLabel: 'In Sammlung aufnehmen' };
+      if (!encounterUnlocked(this.state, target)) return { speaker: 'AETHERIA', text: 'Dieses Arkana ist hier noch nicht verfügbar. Moosling findest du im Wald nach Lyras Einführung, Felsbock am Ostpass nach dem Räumen des Steinrutschs.' };
+      return { speaker: species.name.toUpperCase(), text: `Du hast ${species.name} gefunden! ${species.strength} ${species.weakness} Nimm es auf und lerne seine Befehle Schritt für Schritt.`, action: `recruit-${target}`, actionLabel: 'In Sammlung aufnehmen' };
     }
     const id = target.startsWith('lesson:') ? target.slice(7) : undefined;
     return isLessonId(id) ? this.questDialog(id) : { speaker: 'AETHERIA', text: this.objective };
@@ -210,9 +216,9 @@ export class Campaign {
     const name = this.preparationName(id);
     const explanation = needsTeam ? lessonActors(quest).length === 1
       ? `Für diese Aufgabe spielt ${name} allein. Mit „${name} wählen & Quest starten“ wird es dein einziges aktives Arkana und die Aufgabe beginnt. Deine anderen Arkana bleiben in der Sammlung.`
-      : `Mit „Team wählen & Quest starten“ wird ${ARKANA_SPECIES[lessonActors(quest)[0]].name} zuerst und ${ARKANA_SPECIES[lessonActors(quest)[1]].name} danach aktiv gesetzt. Beide behalten ihre eigenen Programme.` : error;
+      : `Mit „Team wählen & Quest starten“ wird ${lessonActors(quest).map((actor) => ARKANA_SPECIES[actor].name).join(' → ')} in dieser Reihenfolge aktiv gesetzt. Alle behalten ihre eigenen Programme.` : error;
     return { speaker: quest.title.toUpperCase(), text: `${ready && this.state.introduced && this.has('glutling') ? quest.introduction : 'Hier wartet eine Lernaufgabe auf dich.'}${explanation ? `\n\n${explanation}` : ''}`,
-      actionLabel: !this.state.introduced ? 'Zur Spielwelt: Eldren aufsuchen' : !this.has('glutling') ? 'Zur Spielwelt: Glutling suchen' : ready && lessonActors(quest).includes('moosling') && !this.has('moosling') ? 'Zur Spielwelt: Moosling suchen' : 'Zur Spielwelt', ...offer };
+      actionLabel: ready && lessonActors(quest).includes('felsbock') && !this.has('felsbock') ? 'Zur Spielwelt: Felsbock suchen' : !this.state.introduced ? 'Zur Spielwelt: Eldren aufsuchen' : !this.has('glutling') ? 'Zur Spielwelt: Glutling suchen' : ready && lessonActors(quest).includes('moosling') && !this.has('moosling') ? 'Zur Spielwelt: Moosling suchen' : 'Zur Spielwelt', ...offer };
   }
   private preparationName(id: LessonId): string { const actors = lessonActors(getLesson(id)); return actors.length === 1 ? ARKANA_SPECIES[actors[0]].name : 'Team'; }
 }

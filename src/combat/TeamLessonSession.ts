@@ -1,3 +1,4 @@
+import { ARKANA_SPECIES } from '../gameplay/ArkanaCatalog';
 import { BattleSession } from './BattleSession';
 import type { WorldQuest } from '../gameplay/WorldQuests';
 import { lessonActors } from '../gameplay/WorldQuests';
@@ -14,7 +15,7 @@ export class TeamLessonSession {
   private readonly abilities = new AbilityProgress();
   constructor(private readonly lesson: Extract<WorldQuest, { kind: 'combat' }>, skills: Partial<Record<ArkanId, readonly SkillId[]>>) {
     this.actors = lessonActors(lesson);
-    const spawns = { [this.actors[0]]: lesson.start, ...(this.actors[1] ? { [this.actors[1]]: lesson.companion ?? { x: 1, y: 2 } } : {}), konstrukt: lesson.enemy };
+    const spawns = { ...Object.fromEntries(this.actors.map((actor, index) => [actor, lesson.allySpawns?.[actor] ?? (index === 0 ? lesson.start : index === 1 ? lesson.companion ?? { x: 1, y: 2 } : { x: 1, y: 4 })])), konstrukt: lesson.enemy };
     const allowed = Object.fromEntries(this.actors.map((actor) => [actor, (skills[actor] ?? []).filter((skill) => lesson.allowed.includes(skill))]));
     this.battle = new BattleSession(3, this.actors, allowed, { spawns, enemyHp: lesson.enemyHp, enemyActive: lesson.enemyActive ?? false, enemyAttackPower: lesson.enemyAttackPower, initialHp: lesson.initialHp });
   }
@@ -35,7 +36,7 @@ export class TeamLessonSession {
     if (!this.actionFrames.length) return state.outcome === 'incomplete' && feedback.startsWith('Sieg!') ? this.missingContribution() : feedback;
     if (state.outcome === 'victory') return this.lesson.abilityGoals?.length ? 'Questziel erreicht! Deine Fähigkeiten haben ihre verlangten Wirkungen gezeigt.' : 'Questziel erreicht! Beide Arkana haben mit ihren eigenen Programmen wirksam getroffen.';
     if (state.outcome === 'incomplete') return this.missingContribution();
-    const contributions = this.actors.map((actor) => `${actor === 'moosling' ? 'Moosling' : 'Glutling'}: ${this.contributors.has(actor) ? 'Treffer beigetragen' : 'Treffer noch offen'}`).join(' · ');
+    const contributions = this.actors.map((actor) => `${ARKANA_SPECIES[actor].name}: ${this.contributors.has(actor) ? 'Treffer beigetragen' : 'Treffer noch offen'}`).join(' · ');
     return `${feedback} ${this.lesson.abilityGoals?.length ? this.missingContribution() : contributions}`;
   }
   private present(raw: Readonly<BattleState>): BattleState {
@@ -46,7 +47,7 @@ export class TeamLessonSession {
   }
   private missingContribution(): string {
     if (this.lesson.abilityGoals?.length) {
-      const names = { burn: 'Brandschaden', root: 'Bewegung durch Ranken verhindert', heal: 'Lebenspunkte geheilt', guard: 'Schaden mit Rindenwacht abgefangen' };
+      const names = { burn: 'Brandschaden', root: 'Bewegung durch Ranken verhindert', heal: 'Lebenspunkte geheilt', guard: 'Schaden mit Schutz abgefangen', cover: 'Treffer für einen Verbündeten übernommen' };
       const missing = this.abilities.missing(this.lesson.abilityGoals);
       return missing.length ? `Fähigkeitsziele noch offen: ${missing.map((goal) => names[goal]).join(' · ')}.` : 'Alle Fähigkeitswirkungen gezeigt. Besiege jetzt das Konstrukt.';
     }

@@ -1,3 +1,4 @@
+import { partyMembers } from '../combat/Party';
 import { gameEvents, type DialogPayload } from '../game/events';
 import { touchInput, type TouchDirection } from '../input/TouchInput';
 import { loadProgress, saveProgress, saveProgramDraft } from '../gameplay/LocalProgress';
@@ -7,7 +8,7 @@ import type { PlaybackState } from '../combat/Playback';
 import { availableCommands, COMMAND_CATEGORIES, commandSource, type CommandCategory } from '../combat/CommandCatalog';
 import { SnapEditor } from './SnapEditor';
 import { ProgramDrag } from './ProgramDrag';
-import { isArkanId, type SkillId } from '../gameplay/ArkanaCatalog';
+import { ARKANA_IDS, ARKANA_SPECIES, isArkanId, type SkillId } from '../gameplay/ArkanaCatalog';
 import type { EncounterPresentation, QuestCompletion } from '../gameplay/WorldQuests';
 import { ACTIONS, actionLabel } from '../combat/ActionCatalog';
 import { cooldownLabels, intentLabel, statusLabels } from '../combat/CombatPresentation';
@@ -94,8 +95,10 @@ export class GameUi {
     gameEvents.on('battle-trace-clear', () => { this.activeFrame = undefined; this.showTrace(); });
     gameEvents.on('battle-next-available', (available: boolean) => { this.el('battle-next-mission').hidden = !available; });
     gameEvents.on('arkan-selected', (actor: ArkanId) => this.selectActor(actor));
-    this.click('select-moosling', () => this.selectActor('moosling'));
-    this.click('select-glutling', () => this.selectActor('glutling'));
+    this.el('arkan-tabs').addEventListener('click', (event) => {
+      const button = event.target instanceof Element ? event.target.closest<HTMLElement>('[data-actor]') : null;
+      if (isArkanId(button?.dataset.actor)) this.selectActor(button.dataset.actor);
+    });
     this.click('blocks-mode', () => this.setMode('blocks'));
     this.click('text-mode', () => this.setMode('text'));
     this.click('battle-step', () => this.execute('battle-step'));
@@ -138,6 +141,30 @@ export class GameUi {
 
   private key(): string { return `${this.mission}:${this.selectedActor}`; }
 
+  private renderActors(): void {
+    const order = [...Object.keys(this.sources).filter(isArkanId), ...ARKANA_IDS.filter((id) => this.sources[id] === undefined)];
+    this.el('arkan-tabs').replaceChildren(...order.map((actor) => {
+      const button = document.createElement('button'); button.id = `select-${actor}`; button.type = 'button';
+      button.dataset.actor = actor; button.hidden = this.sources[actor] === undefined;
+      const avatar = document.createElement('span'); avatar.className = `arkan-avatar ${actor}-avatar`; avatar.setAttribute('aria-hidden', 'true'); avatar.textContent = '✦';
+      const name = document.createElement('span'); name.className = 'arkan-name'; name.textContent = ARKANA_SPECIES[actor].name;
+      const state = document.createElement('span'); state.className = 'arkan-selection-state';
+      button.append(avatar, name, state); return button;
+    }));
+  }
+
+  private renderAdditionalHealth(state: EncounterState): void {
+    this.el('battle-status').querySelectorAll('[data-additional-health]').forEach((element) => element.remove());
+    for (const unit of state.additionalAllies ?? []) {
+      const label = document.createElement('label'); label.dataset.additionalHealth = unit.id;
+      label.id = `${unit.id}-health-status`; label.htmlFor = `${unit.id}-health`;
+      const name = document.createElement('span'); name.textContent = unit.name;
+      const text = document.createElement('span'); text.textContent = `${unit.hp}/${unit.maxHp}`;
+      const bar = document.createElement('progress'); bar.id = `${unit.id}-health`; bar.max = unit.maxHp; bar.value = unit.hp; bar.textContent = `${unit.hp} von ${unit.maxHp}`;
+      label.append(name, text, bar); this.el('enemy-health-status').before(label);
+    }
+  }
+
   private open(programs: ProgramSources, mission: number | string, skills?: Partial<Record<ArkanId, readonly SkillId[]>>, presentation?: EncounterPresentation): void {
     this.setExpanded(false);
     this.completion.clear(); this.el('battle-exit').textContent = 'Zur Erkundung';
@@ -150,7 +177,7 @@ export class GameUi {
     this.el('lesson-trial-summary').hidden = true; this.briefing.open(presentation);
     this.sources = {};
     const progress = loadProgress();
-    for (const actor of ['moosling', 'glutling'] as const) if (programs[actor] !== undefined) {
+    for (const actor of Object.keys(programs).filter(isArkanId)) if (programs[actor] !== undefined) {
       const key = `${mission}:${actor}`;
       this.sources[actor] = this.drafts[key] ?? progress.programs[key] ?? programs[actor];
       const saved = this.workspaceDrafts[key] ?? progress.blockWorkspaces[key];
@@ -160,8 +187,7 @@ export class GameUi {
       } catch { this.loose[key] = true; }
     }
     this.selectedActor = Object.keys(programs).find(isArkanId) ?? 'moosling';
-    this.el('select-moosling').hidden = programs.moosling === undefined;
-    this.el('select-glutling').hidden = programs.glutling === undefined;
+    this.renderActors();
     this.el('battle-title').textContent = `${presentation?.mode === 'lesson' ? 'LERNQUEST' : 'FREIES TRAINING'} – ${presentation?.title.toUpperCase() ?? 'RUNENSKRIPT'}`;
     this.el('battle-next-mission').hidden = true;
     this.loadActor(); this.resize();
@@ -178,10 +204,10 @@ export class GameUi {
     const parsed = compileActionPlan(this.text.value, this.selectedActor);
     const mode = parsed.nodes ? loadProgress().editorMode : 'text';
     this.setMode(mode, true);
-    this.el('program-owner').textContent = `Du programmierst gerade: ${this.selectedActor === 'moosling' ? 'Moosling' : 'Glutling'}`;
+    this.el('program-owner').textContent = `Du programmierst gerade: ${ARKANA_SPECIES[this.selectedActor].name}`;
     this.el('program-help').textContent = `Jeder Textbefehl gehört zum ausgewählten Arkana, z. B. ${this.selectedActor}.${this.presentation?.mode === 'lesson' ? 'moveRight' : 'moveForward'}(). Höchstens zwölf ausgeführte Aktionen. Verfügbare Befehle stehen in der Bibliothek.`;
     this.panel.dataset.programActor = this.selectedActor;
-    for (const actor of ['moosling', 'glutling'] as const) {
+    for (const actor of Object.keys(this.sources).filter(isArkanId)) {
       this.el(`select-${actor}`).setAttribute('aria-pressed', String(actor === this.selectedActor));
       this.el(`select-${actor}`).classList.toggle('editor-mode-active', actor === this.selectedActor);
       const state = this.el(`select-${actor}`).querySelector('.arkan-selection-state');
@@ -288,7 +314,7 @@ export class GameUi {
     if (trial) setLearningText(this.el('lesson-trial'), `Situation ${trial.current}/${trial.total}: ${trial.title}. ${trial.passed}/${trial.total} geschafft. ${trial.message}`);
     setLearningText(this.feedback, feedback); this.el('battle-round').textContent = String(state.tick);
     const intent = intentLabel(state); this.el('battle-intent').textContent = intent; this.el('battle-intent').hidden = !intent;
-    const descriptions = [state.player, state.companion, state.enemy].filter((unit) => Boolean(unit)).flatMap((unit) => {
+    const descriptions = [...partyMembers(state), state.enemy].filter((unit) => Boolean(unit)).flatMap((unit) => {
       if (!unit) return []; const labels = [...statusLabels(unit), ...cooldownLabels(unit)]; return labels.length ? [`${unit.name}: ${labels.join(' · ')}`] : [];
     });
     this.el('ability-state-text').textContent = descriptions.join('\n'); this.el('ability-state').hidden = !descriptions.length;
@@ -298,9 +324,11 @@ export class GameUi {
       this.el(`${prefix}-health-text`).textContent = `${actor.hp}/${actor.maxHp}`;
       if (prefix !== 'enemy') this.el(`${prefix}-health-name`).textContent = actor.name;
     }
+    this.renderAdditionalHealth(state);
     this.el('companion-health-status').hidden = !state.companion;
     this.el('enemy-health-status').hidden = !state.enemy;
     this.el('battle-status').classList.toggle('puzzle-status', !state.enemy);
+    this.el('battle-status').classList.toggle('trio-status', partyMembers(state).length > 2);
     this.el<HTMLButtonElement>('battle-step').disabled = state.outcome !== 'ongoing';
     this.applyPlaybackState();
     this.el('battle-log').replaceChildren(...state.log.map((line) => { const item = document.createElement('li'); item.textContent = line; return item; }));
@@ -345,7 +373,7 @@ export class GameUi {
     }
     this.highlightLine();
     if (!frame) return;
-    const name = frame.actor === 'moosling' ? 'Moosling' : frame.actor === 'glutling' ? 'Glutling' : 'Konstrukt';
+    const name = frame.actor === 'konstrukt' ? 'Konstrukt' : ARKANA_SPECIES[frame.actor].name;
     const loops = frame.trace?.loops.map((loop) => `Durchlauf ${loop.iteration} von ${loop.total}`).join(' · ');
     const queries = { pathRightClear: 'Weg rechts frei', enemyAdjacent: 'Gegner direkt daneben', allyInjured: 'Verbündeter verletzt', enemyBurning: 'Gegner brennt' };
     const conditions = frame.trace?.conditions.map((condition) => `${queries[condition.condition ?? 'enemyAdjacent']}: ${condition.value ? 'ja' : 'nein'}`).join(' · ');

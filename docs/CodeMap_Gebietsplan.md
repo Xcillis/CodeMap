@@ -1,6 +1,6 @@
 # Gebiets- und Questplan: Tal und Aetherwald
 
-Stand: 15. November 2026. Die Gebietsstruktur und der Ausbau auf 17 Quests ersetzen den früheren linearen Durchlauf. Laufzeitdaten stehen in `WorldRegions.ts` und `QuestNetwork.ts`; Aufgabenziele und Lerntexte in `WorldQuests.ts`.
+Stand: 15. November 2026. Die Gebietsstruktur und der Ausbau auf 20 Quests ersetzen den früheren linearen Durchlauf. Laufzeitdaten stehen in `WorldRegions.ts` und `QuestNetwork.ts`; Aufgabenziele und Lerntexte in `WorldQuests.ts`.
 
 ## Tal von Aetheria
 
@@ -72,3 +72,15 @@ Moosling erscheint nach Q05 im südöstlichen Waldhain `(1450, 915)`. Es wird ni
 - Der Lichtpfad prüft Steine, Kartenränder und belegte Nachbarfelder tatsächlich. Dieselbe Verzweigung muss beide Antworten mit passenden Bewegungen zeigen.
 - Bestehende Abschlüsse und Entwürfe bleiben unter ihren IDs erhalten. Frühere Spielstände mit bereits abgeschlossener Bedingungseinführung behalten den Waldzugang über eine ausdrücklich gekennzeichnete Übergangsfreigabe. Neue Talquests werden dadurch **nicht** als bestanden markiert.
 - Neue Spielstände beginnen im gesperrten Tal. Für einen vollständigen neuen Einstieg gibt es weiterhin **Charakter → Sammlung → Neues Abenteuer**, einschließlich Sicherung des bisherigen Stands.
+
+## Felsbock und der dritte Teamplatz
+
+Felsbock erscheint nach Q12 neben dem geräumten Ostpass bei `(1260, 560)`. Es muss ausdrücklich aufgenommen werden und verschwindet danach dauerhaft aus der Welt. Es kann zunächst als Solo-Arkana oder innerhalb des vorhandenen Zweierteams gewählt werden; der Fund öffnet keinen zusätzlichen Platz.
+
+| Questgeber | Aufgabe | Voraussetzung | Ergebnis |
+| --- | --- | --- | --- |
+| Mira im Tal | Q18 Felsbocks Steinpanzer | Q17, Felsbock aufgenommen | Eigene Schutzfähigkeit im Solokampf |
+| Mira im Tal | Q19 Felsbock hält die Stellung | Q18 | Deckung für Glutling, dritter Teamplatz nach sichtbarem Erfolg |
+| Tala im Wald | Q20 Drei Arkana, ein Plan | Q19, alle drei aufgenommen | Glutling, Moosling und Felsbock mit eigenen Programmen gegen einen aktiven Wächter |
+
+Der Rückweg ins Tal verbindet die fortgeschrittenen Waldquests mit Felsbocks Fundort. Alte Spielstände behalten zwei Plätze, bis Q19 tatsächlich abgeschlossen wurde. Eine angenommene Einführung oder ein freies Training genügt dafür nicht.

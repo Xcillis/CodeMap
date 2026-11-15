@@ -6,7 +6,7 @@ import { ABILITIES, type AbilityAction } from './Abilities';
 
 export type { SkillId } from '../gameplay/ArkanaCatalog';
 export type CommandCategory = 'movement' | 'combat' | 'senses' | 'flow' | 'healing' | 'support' | 'tank';
-export type CommandId = 'move' | 'attack' | 'condition' | 'pathCondition' | 'repeat' | 'moveRight' | 'moveLeft' | 'moveUp' | 'moveDown' | 'ignite' | 'vineSnare' | 'healingMoss' | 'barkGuard' | 'wait' | 'allyInjured' | 'enemyBurning';
+export type CommandId = 'move' | 'attack' | 'condition' | 'pathCondition' | 'repeat' | 'moveRight' | 'moveLeft' | 'moveUp' | 'moveDown' | 'ignite' | 'vineSnare' | 'healingMoss' | 'barkGuard' | 'wait' | 'allyInjured' | 'enemyBurning' | 'stoneArmor' | 'coverAlly';
 
 export const COMMAND_CATEGORIES: readonly { id: CommandCategory; label: string; color: string }[] = [
   { id: 'movement', label: 'Bewegung', color: '#559cf0' },
@@ -30,6 +30,7 @@ export const ARKAN_SKILLS: Record<ArkanId, {
       { mission: 2, skills: ['enemyAdjacent'] },
     ],
   },
+  felsbock: { supported: ARKANA_SPECIES.felsbock.supported, lessons: [{ mission: 3, skills: ['moveForward', 'attack', 'repeat'] }] },
   glutling: {
     supported: ARKANA_SPECIES.glutling.supported,
     lessons: [{ mission: 3, skills: ['moveForward', 'attack', 'repeat'] }],

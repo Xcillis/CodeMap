@@ -1,6 +1,6 @@
 # CodeMap – lokaler RPG-Prototyp
 
-Phaser-/TypeScript-RPG mit zwei verbundenen Gebieten, 17 spielbaren Lernquests, sammelbaren Arkana und einem Block-/Texteditor. Alles funktioniert lokal. Der [Gebietsplan](docs/CodeMap_Gebietsplan.md) beschreibt Questgeber, Voraussetzungen und Reisewege; die [Lernprogression](docs/CodeMap_Lernprogression.md) erklärt die didaktische Struktur.
+Phaser-/TypeScript-RPG mit zwei verbundenen Gebieten, 20 spielbaren Lernquests, sammelbaren Arkana und einem Block-/Texteditor. Alles funktioniert lokal. Der [Gebietsplan](docs/CodeMap_Gebietsplan.md) beschreibt Questgeber, Voraussetzungen und Reisewege; die [Lernprogression](docs/CodeMap_Lernprogression.md) erklärt die didaktische Struktur.
 
 ## Lokal starten
 
@@ -50,16 +50,17 @@ Die bekannte Abfrage `enemyAdjacent` prüft direkte Gegnernachbarschaft. Nerias 
 
 ## Sammlung, Team und Spielstände
 
-Neue Abenteuer beginnen **ohne Arkana**. Glutling und Moosling müssen in der Welt aufgenommen werden. Aufgenommene Arkana verschwinden samt Beschriftung und Interaktion; sie bleiben nach dem Entfernen aus dem aktiven Team in der Sammlung. Moosling hat vorläufig 5 LP und 1 Rankenhieb-Schaden, Glutling 4 LP und 2 Glutstoß-Schaden. Die [Arkana-Übersicht](docs/CodeMap_Arkana_Uebersicht.md) bleibt Grundlage für die Typen. Elementmultiplikatoren sind noch nicht implementiert.
+Neue Abenteuer beginnen **ohne Arkana**. Glutling, Moosling und Felsbock müssen in der Welt aufgenommen werden. Felsbock erscheint am geräumten Ostpass im Tal nach Q12; sein Fund schaltet weder Fähigkeiten noch den dritten Teamplatz automatisch frei. Aufgenommene Arkana verschwinden samt Beschriftung und Interaktion; sie bleiben nach dem Entfernen aus dem aktiven Team in der Sammlung. Moosling hat vorläufig 5 LP und 1 Rankenhieb-Schaden, Glutling 4 LP und 2 Glutstoß-Schaden. Die [Arkana-Übersicht](docs/CodeMap_Arkana_Uebersicht.md) bleibt Grundlage für die Typen. Elementmultiplikatoren sind noch nicht implementiert.
 
 ## Artspezifische Kampfrollen
 
 - **Glutling / Schaden:** Entzünden verursacht sofortigen Feuer- und anhaltenden Brandschaden. Brann führt die Fähigkeit nach dem Angriffstutorial in **Glutlings Feuerprobe** ein.
 - **Moosling / Unterstützung und Tank:** Rankenfessel verhindert Bewegung; Rindenwacht zieht gegnerische Angriffe auf Moosling und fängt Schaden ab. Tala bietet nach Mooslings Soloquest **Mooslings Wurzelschutz** an.
 - **Moosling / Heilung:** Heilmoos stellt verlorene LP über mehrere Programmschritte wieder her. **Mooslings heilendes Moos** ist unabhängig vom Wurzelschutz wählbar.
+- **Felsbock / Tank:** 8 LP, Steinstoß für 1 Schaden. `felsbock.stoneArmor()` fängt Schaden ab; `felsbock.coverAlly()` übernimmt Treffer für ein anderes Arkana in Reichweite. Die beiden Fähigkeiten werden getrennt bei Mira eingeführt.
 - **Aktiver Teamkampf:** Nach den Fähigkeitseinführungen und Q08 bietet Tala **Feuer und Wurzeln im Team** an. Glutling und Moosling benötigen zwei abgestimmte Programme gegen einen aktiven Wächter. Nachgewiesen werden Brand, tatsächliche Rankenwirkung, Heilung von Glutling und abgefangener Schaden.
 
-Besuche Brann beziehungsweise Tala und öffne **Aufgaben ansehen**, um die neuen Quests zu entdecken. Bestehende Spielstände brauchen keinen Reset. Zustände, Abklingzeiten und gegnerische Angriffsabsicht erscheinen in der Arena. Die neuen Abfragen `glutling.enemyBurning` und `moosling.allyInjured` werden bei der Teamrollen-Einführung freigegeben. Fähigkeiten werden nur für passende Arten gelernt. Mehrere Gegner, weitere Arten und Dreierteams folgen später. Regeln, Werte und Ausbauplan stehen im [Kampfsystem](docs/CodeMap_Kampfsystem.md).
+Besuche Brann beziehungsweise Tala und öffne **Aufgaben ansehen**, um die neuen Quests zu entdecken. Bestehende Spielstände brauchen keinen Reset. Zustände, Abklingzeiten und gegnerische Angriffsabsicht erscheinen in der Arena. Die neuen Abfragen `glutling.enemyBurning` und `moosling.allyInjured` werden bei der Teamrollen-Einführung freigegeben. Fähigkeiten werden nur für passende Arten gelernt. Nach Q17 zeigt Mira im Tal Felsbocks **Steinpanzer** (Q18) und **Deckung für Glutling** (Q19). Erst der bestätigte Q19-Erfolg öffnet Teamplatz 3. Danach bietet Tala **Drei Arkana, ein Plan** (Q20) mit drei eigenen Programmen an. Auch das freie Teamtraining erlaubt dann drei gesammelte Arkana. Mehrere Gegner und frei wählbare Ziele folgen später. Regeln, Werte und Ausbauplan stehen im [Kampfsystem](docs/CodeMap_Kampfsystem.md).
 
 Sammlung, Fähigkeiten, Gebiet, Questabschlüsse sowie Text- und Blockly-Entwürfe werden lokal gespeichert. Alte IDs und numerische Trainingsplätze bleiben erhalten. Unabhängige Questabschlüsse werden anhand ihrer tatsächlichen Voraussetzungen validiert und nicht mehr als linearer Präfix abgeschnitten.
 

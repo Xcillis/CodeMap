@@ -1,3 +1,4 @@
+import { ARKANA_IDS } from '../gameplay/ArkanaCatalog';
 import Phaser from 'phaser';
 import { gameEvents } from '../game/events';
 import { InteractionController, type InteractionTarget } from '../gameplay/InteractionController';
@@ -128,7 +129,7 @@ export class WorldScene extends Phaser.Scene {
     gameEvents.emit('campaign-updated', state);
     gameEvents.emit('quest-updated', this.campaign.objective, WORLD_QUESTS.every((quest) => state.completed.includes(quest.id)));
     const encounters = this.campaign.availableEncounters;
-    for (const id of ['moosling', 'glutling'] as const) {
+    for (const id of ARKANA_IDS) {
       if (encounters.some((encounter) => encounter.id === id)) continue;
       const visuals = this.arkanaVisuals.get(id);
       if (visuals) {

@@ -1,3 +1,4 @@
+import { isArkanId } from '../gameplay/ArkanaCatalog';
 import type { ActionPlanResult, ArkanId, CombatAction, ProgramBlock, ProgramNode, ProgramStep } from './types';
 import { actionForCommand, actionMethod } from './ActionCatalog';
 
@@ -33,7 +34,7 @@ export function compileActionPlan(source: string, expectedActor?: ArkanId): Acti
     };
     const owner = () => {
       const name = tokens[cursor++];
-      if (name !== 'moosling' && name !== 'glutling') throw new Error('Befehle müssen einem Arkan zugeordnet sein.');
+      if (!isArkanId(name)) throw new Error('Befehle müssen einem Arkan zugeordnet sein.');
       actor ??= name;
       if (name !== actor) throw new Error(`Dieses Programm gehört zu ${actor}. Befehle anderer Arkane sind hier nicht erlaubt.`);
       take('.');

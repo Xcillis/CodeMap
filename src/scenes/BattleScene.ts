@@ -1,3 +1,4 @@
+import { partyMembers } from '../combat/Party';
 import Phaser from 'phaser';
 import { BattleSession, missionPrograms } from '../combat/BattleSession';
 import { LessonSession } from '../combat/LessonSession';
@@ -81,11 +82,11 @@ export class BattleScene extends Phaser.Scene {
       this.session = new LessonSession(lesson, encounter.skills);
       programs = lessonPrograms(lesson); key = lesson.id;
       presentation = { title: lesson.title, instructions: lesson.introduction, objective: lesson.objective, hints: lesson.hints, mode: 'lesson' };
-      this.subtitle.setText(encounter.team.length === 2 ? `Reihenfolge: ${encounter.team.map((id) => ARKANA_SPECIES[id].name).join(' → ')} · ${lesson.kind === 'combat' && lesson.enemyActive ? 'Aktiver Wächter' : 'Beide Programme tragen bei'}` : lesson.kind === 'puzzle' ? 'Goldene Rune: Ziel · Graue Steine: Hindernisse' : lesson.adaptiveTrials || lesson.enemyActive ? 'Aktiver Wächter: reagiert auf eure Programme.' : 'Das Konstrukt bleibt passiv. Plane deine Fähigkeiten.');
+      this.subtitle.setText(encounter.team.length > 1 ? `Reihenfolge: ${encounter.team.map((id) => ARKANA_SPECIES[id].name).join(' → ')} · ${lesson.kind === 'combat' && lesson.enemyActive ? 'Aktiver Wächter' : 'Beide Programme tragen bei'}` : lesson.kind === 'puzzle' ? 'Goldene Rune: Ziel · Graue Steine: Hindernisse' : lesson.adaptiveTrials || lesson.enemyActive ? 'Aktiver Wächter: reagiert auf eure Programme.' : 'Das Konstrukt bleibt passiv. Plane deine Fähigkeiten.');
     } else {
       this.session = new BattleSession(encounter.mission, encounter.team, encounter.skills);
       programs = missionPrograms(encounter.mission, encounter.team); key = encounter.mission;
-      presentation = { title: encounter.mission === 3 ? 'Duo-Training' : encounter.mission === 2 ? 'Aktives Konstrukt' : 'Passives Konstrukt', mode: 'training',
+      presentation = { title: encounter.mission === 3 ? encounter.team.length === 3 ? 'Trio-Training' : 'Duo-Training' : encounter.mission === 2 ? 'Aktives Konstrukt' : 'Passives Konstrukt', mode: 'training',
         objective: 'Experimentiere mit allen implementierten Befehlen und besiege das Konstrukt.', hints: [],
         instructions: 'Freie Trainingsarena: Alle implementierten Befehle sind verfügbar. Dieses Training vergibt keine Lernfreigaben und schließt keine Weltquest ab. Gespeicherte Programme der bisherigen Arena bleiben hier verfügbar.' };
       this.subtitle.setText(`Freies Training · Reihenfolge: ${encounter.team.join(' → ')}`);
@@ -151,10 +152,9 @@ export class BattleScene extends Phaser.Scene {
     }
     this.tweens.killAll();
     this.effects.removeAll(true);
-    const ids = [state.player.id, ...(state.enemy ? [state.enemy.id] : []), ...(state.companion ? [state.companion.id] : [])];
+    const ids = [...partyMembers(state).map((unit) => unit.id), ...(state.enemy ? [state.enemy.id] : [])];
     for (const [id, visual] of this.visuals) if (!ids.includes(id)) { visual.root.destroy(); this.visuals.delete(id); }
-    this.drawActor(state.player, state.player.id === 'glutling' ? 0xf29b4b : 0x63b76b, '#e8ffe4');
-    if (state.companion) this.drawActor(state.companion, state.companion.id === 'glutling' ? 0xf29b4b : 0x63b76b, '#fff0d8');
+    for (const unit of partyMembers(state)) this.drawActor(unit, unit.id === 'konstrukt' ? 0xc95e58 : ARKANA_SPECIES[unit.id].color, '#e8ffe4');
     if (state.enemy) this.drawActor(state.enemy, 0xc95e58, '#ffe8db');
   }
 
@@ -170,7 +170,7 @@ export class BattleScene extends Phaser.Scene {
       visual = { root, marker, label }; this.visuals.set(actor.id, visual);
     }
     visual.root.setPosition(x, y).setScale(1).setAlpha(actor.hp > 0 ? 1 : .3);
-    visual.marker.setScale(1).setAlpha(1).setStrokeStyle(actor.protection ? 4 : 2, actor.protection ? 0x8cc8e2 : 0xffffff);
+    visual.marker.setScale(1).setAlpha(1).setStrokeStyle(actor.protection || actor.armor || actor.coveredBy ? 4 : 2, actor.protection || actor.armor || actor.coveredBy ? 0x8cc8e2 : 0xffffff);
     visual.label.setText(`${actor.name}\n${actor.hp}/${actor.maxHp}${statusLabels(actor).length ? `\n${statusLabels(actor).join(' · ')}` : ''}`);
   }
 
@@ -178,7 +178,7 @@ export class BattleScene extends Phaser.Scene {
     this.currentFrame = frame;
     this.render(frame.before);
     gameEvents.emit('battle-frame', frame);
-    const units = (state: EncounterState) => [state.player, state.companion, state.enemy].filter((actor): actor is Combatant => Boolean(actor));
+    const units = (state: EncounterState) => [...partyMembers(state), state.enemy].filter((actor): actor is Combatant => Boolean(actor));
     const before = units(frame.before).find((actor) => actor.id === frame.actor)!;
     const after = units(frame.after).find((actor) => actor.id === frame.actor)!;
     const visual = this.visuals.get(frame.actor)!;
@@ -188,8 +188,8 @@ export class BattleScene extends Phaser.Scene {
     if (frame.effects?.length) {
       for (const effect of frame.effects) {
         const target = this.visuals.get(effect.target); if (!target) continue;
-        const unit = units(frame.after).find((candidate) => candidate.id === effect.target); if (unit) this.drawActor(unit, unit.id === 'glutling' ? 0xf29b4b : unit.id === 'konstrukt' ? 0xc95e58 : 0x63b76b, '#eff5dc');
-        const text = this.add.text(target.root.x, target.root.y - 18, effect.kind === 'heal' ? `+${effect.amount} LP` : effect.kind === 'guard' ? `Schutz ${effect.amount}` : effect.kind === 'root' ? 'Festgehalten' : `−${effect.amount}`, { fontSize: '19px', color: effect.kind === 'heal' ? '#acf59b' : effect.kind === 'guard' ? '#aadfff' : effect.kind === 'root' ? '#b8e69d' : '#ffc179', stroke: '#142c35', strokeThickness: 4 }).setOrigin(.5);
+        const unit = units(frame.after).find((candidate) => candidate.id === effect.target); if (unit) this.drawActor(unit, unit.id === 'konstrukt' ? 0xc95e58 : ARKANA_SPECIES[unit.id].color, '#eff5dc');
+        const text = this.add.text(target.root.x, target.root.y - 18, effect.kind === 'heal' ? `+${effect.amount} LP` : effect.kind === 'cover' ? `Deckung` : effect.kind === 'guard' ? `Schutz ${effect.amount}` : effect.kind === 'root' ? 'Festgehalten' : `−${effect.amount}`, { fontSize: '19px', color: effect.kind === 'heal' ? '#acf59b' : effect.kind === 'guard' || effect.kind === 'cover' ? '#aadfff' : effect.kind === 'root' ? '#b8e69d' : '#ffc179', stroke: '#142c35', strokeThickness: 4 }).setOrigin(.5);
         this.effects.add(text); this.tweens.add({ targets: text, y: text.y - 35, alpha: 0, duration: duration * .7 });
         this.tweens.add({ targets: target.marker, alpha: .35, duration: duration * .13, repeat: 1, yoyo: true });
       }

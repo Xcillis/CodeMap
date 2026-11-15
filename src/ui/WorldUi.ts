@@ -86,7 +86,7 @@ export class WorldUi {
     const character = isCharacterTab(this.tab);
     this.el('world-panel-title').textContent = character ? 'Charakter' : this.tab === 'journal' ? 'Questjournal' : this.tab === 'giver' && this.giver ? QUEST_GIVERS[this.giver].name : 'Freie Trainingsarena';
     const intro = this.tab === 'collection' ? `${state.owned.length} von ${Object.keys(ARKANA_SPECIES).length} Arkana-Arten gesammelt. Hier findest du ihre Eigenschaften und gelernten Fähigkeiten.`
-      : this.tab === 'team' ? `${team.length} von ${this.campaign.teamLimit} Teamplätzen belegt. Die Einführung jeder Lernquest nennt das benötigte Team. Im freien Training sind bereits Solo und Duo möglich.`
+      : this.tab === 'team' ? `${team.length} von ${this.campaign.teamLimit} Teamplätzen belegt. Die Einführung jeder Lernquest nennt das benötigte Team. Im freien Training sind Solo und Team möglich; drei Arkana erst nach Freischaltung des dritten Platzes.`
       : this.tab === 'glossary' ? `${learnedTerms(state.completed).length} Fachbegriffe gelernt. Lies Erklärungen und probiere die Beispiele mit den bereits gelernten Befehlen aus.`
       : this.tab === 'journal' ? this.campaign.objective : this.tab === 'giver' && this.giver ? `${QUEST_GIVERS[this.giver].description} Wähle eine bereite Aufgabe. Folgequests haben eigene Voraussetzungen.` : 'Alle implementierten Befehle sind hier verfügbar. Das Training verändert weder Lernfreigaben noch Questabschlüsse. Alte Arena-Entwürfe bleiben in den entsprechenden Trainingsaufgaben erhalten.';
     setLearningText(this.el('world-panel-intro'), intro);
@@ -122,7 +122,7 @@ export class WorldUi {
     const form = document.createElement('form'); form.className = 'training-setup';
     const label = document.createElement('label'); label.htmlFor = 'training-preset'; label.textContent = 'Trainingsaufgabe';
     const preset = document.createElement('select'); preset.id = 'training-preset';
-    for (const [value, title] of [['1', 'Solo · passives Konstrukt'], ['2', 'Solo · aktives Konstrukt'], ['3', 'Duo · passives Konstrukt']]) {
+    for (const [value, title] of [['1', 'Solo · passives Konstrukt'], ['2', 'Solo · aktives Konstrukt'], ['3', 'Team · passives Konstrukt']]) {
       const option = document.createElement('option'); option.value = value; option.textContent = title; preset.append(option);
     }
     const roster = document.createElement('fieldset'); const legend = document.createElement('legend'); legend.textContent = 'Arkana für diesen Versuch'; roster.append(legend);
@@ -134,11 +134,12 @@ export class WorldUi {
     }
     const button = document.createElement('button'); button.type = 'submit'; button.id = 'training-launch'; button.textContent = 'Training starten';
     const feedback = this.paragraph(''); feedback.setAttribute('role', 'status');
-    form.append(label, preset, roster, this.paragraph('Solo: ein Arkana auswählen. Duo: beide auswählen; sie handeln in der oben angezeigten Reihenfolge.'), button, feedback);
+    form.append(label, preset, roster, this.paragraph('Solo: ein Arkana auswählen. Team: zwei oder drei auswählen; sie handeln in der oben angezeigten Reihenfolge.'), button, feedback);
     form.addEventListener('submit', (event) => {
       event.preventDefault(); const team = picks.filter((pick) => pick.input.checked).map((pick) => pick.actor);
       const mission = Number(preset.value);
-      if (team.length !== (mission === 3 ? 2 : 1)) { feedback.textContent = mission === 3 ? 'Wähle zwei Arkana für das Duo-Training.' : 'Wähle genau ein Arkana für das Solo-Training.'; return; }
+      if ((mission === 3 ? team.length < 2 || team.length > 3 : team.length !== 1)) { feedback.textContent = mission === 3 ? 'Wähle zwei oder drei Arkana für das Team-Training.' : 'Wähle genau ein Arkana für das Solo-Training.'; return; }
+      if (team.length === 3 && this.campaign.teamLimit < 3) { feedback.textContent = 'Teamplatz 3 wird nach Miras Koordinationsquest freigeschaltet.'; return; }
       this.close(); gameEvents.emit('training-start', mission, team);
     });
     content.append(form);

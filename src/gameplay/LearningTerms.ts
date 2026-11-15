@@ -65,6 +65,9 @@ export function learnedTerms(completed: readonly LessonId[]): readonly LearningT
 }
 
 export const COMBAT_TERMS: readonly LearningTerm[] = [
+  { id: 'cover', label: 'Deckung', aliases: ['Deckung', 'deckt'], lesson: 'q19-deckung', category: 'Spielwelt',
+    explanation: 'Felsbock übernimmt einen Treffer, der sonst ein anderes Arkana treffen würde. Das heißt Deckung. Es deckt zwei Schritte lang ein anderes lebendes Arkana in Reichweite 3. Ein Steinpanzer kann den übernommenen Schaden verringern.',
+    example: 'Glutling wartet im ersten Schritt. Felsbock deckt es. Im zweiten Schritt greift Glutling an und Felsbock aktiviert seinen Steinpanzer.', code: 'felsbock.coverAlly();\nfelsbock.stoneArmor();' },
   { id: 'status', label: 'Zustand', aliases: ['Zustand', 'Zustände'], lesson: 'q14-feuerprobe', alsoLessons: ['q15-wurzelschutz', 'q16-heilmoos'], category: 'Spielwelt',
     explanation: 'Ein entzündetes Konstrukt verliert auch nach dem Zaubern noch Lebenspunkte. Eine solche anhaltende Eigenschaft heißt Zustand. Brand, Ranken, Heilmoos und Rindenschutz haben eine begrenzte Dauer.', example: 'Der Brand zieht am Ende dreier Programmschritte je einen Lebenspunkt ab.', code: 'glutling.ignite();\nglutling.wait();' },
   { id: 'cooldown', label: 'Abklingzeit', aliases: ['Abklingzeit', 'Abklingzeiten'], lesson: 'q14-feuerprobe', alsoLessons: ['q15-wurzelschutz', 'q16-heilmoos'], category: 'Spielwelt',

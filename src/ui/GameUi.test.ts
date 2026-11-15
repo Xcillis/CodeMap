@@ -142,6 +142,25 @@ describe('Platz für das Programm bei allen Aufgaben', () => {
 });
 
 describe('Editorzustand und Arkan-Zuordnung', () => {
+  it('trennt drei Arkana-Entwürfe, zeigt alle LP und bewahrt die Programme nach dem Wiederöffnen', () => {
+    const quest = getLesson('q20-dreiklang'); const actors = lessonActors(quest);
+    const skills = Object.fromEntries(actors.map((actor) => [actor, quest.allowed]));
+    const open = () => gameEvents.emit('battle-opened', lessonPrograms(quest), quest.id, skills);
+    open(); click('text-mode'); type('glutling.ignite();'); click('select-moosling'); click('text-mode'); type('moosling.healingMoss();');
+    click('select-felsbock'); click('text-mode'); type('felsbock.coverAlly(); felsbock.stoneArmor();');
+    expect(document.getElementById('program-owner')!.textContent).toContain('Felsbock'); click('category-tank');
+    expect(document.querySelector('[data-command="coverAlly"]')).not.toBeNull(); expect(document.querySelector('[data-command="barkGuard"]')).toBeNull();
+    const session = new LessonSession(quest, skills); gameEvents.emit('battle-updated', session.snapshot, 'Bereit');
+    expect(document.getElementById('felsbock-health-status')!.textContent).toContain('Felsbock');
+    expect((document.getElementById('felsbock-health') as HTMLProgressElement).max).toBe(8);
+    let sources: unknown; gameEvents.on('battle-run-program', (value: unknown) => { sources = value; }); click('battle-run-program');
+    expect(sources).toEqual({ glutling: 'glutling.ignite();', moosling: 'moosling.healingMoss();', felsbock: 'felsbock.coverAlly(); felsbock.stoneArmor();' });
+    gameEvents.emit('battle-closed'); open(); click('select-felsbock'); click('text-mode'); expect(text().value).toContain('felsbock.coverAlly()');
+    gameEvents.emit('battle-closed'); gameEvents.emit('battle-opened', { glutling: '' }, 'q01-glutspur');
+    expect(button('select-felsbock').hidden).toBe(true);
+    const single = new LessonSession(getLesson('q01-glutspur'), getLesson('q01-glutspur').allowed); gameEvents.emit('battle-updated', single.snapshot, 'Bereit');
+    expect(document.getElementById('felsbock-health-status')).toBeNull();
+  });
   it('zeigt artspezifische Rollenbibliotheken, Abklingzeiten und die durch Schutz geänderte Zielabsicht', () => {
     const lesson = getLesson('q17-teamrollen');
     gameEvents.emit('battle-opened', QUEST_SOLUTIONS[lesson.id], lesson.id,
@@ -237,7 +256,7 @@ describe('Editorzustand und Arkan-Zuordnung', () => {
     expect(document.getElementById('lesson-trial')!.hidden).toBe(true);
   });
   for (const [index, lesson] of WORLD_QUESTS.entries()) it(`${lesson.id}: zeigt den bestätigten Abschluss in der Arena und kehrt ohne Welt-Abschlussdialog zurück`, () => {
-    const campaign = new Campaign({ version: 2, worldVersion: 1, region: QUEST_ROUTES[lesson.id].region, legacyForestAccess: true, introduced: true, completed: LESSON_IDS.slice(0, index), owned: [{ speciesId: 'glutling' }, { speciesId: 'moosling' }], team: [] });
+    const campaign = new Campaign({ version: 2, worldVersion: 1, region: QUEST_ROUTES[lesson.id].region, legacyForestAccess: true, introduced: true, completed: LESSON_IDS.slice(0, index), owned: [{ speciesId: 'glutling' }, { speciesId: 'moosling' }, { speciesId: 'felsbock' }], team: [] });
     campaign.interact(`lesson:${lesson.id}`); campaign.prepareMission(lesson.id);
     const presentation = { title: lesson.title, mode: 'lesson', instructions: lesson.introduction, objective: lesson.objective, hints: lesson.hints };
     gameEvents.emit('battle-opened', lessonPrograms(lesson), lesson.id, Object.fromEntries(lessonActors(lesson).map((actor) => [actor, lesson.allowed])), presentation);

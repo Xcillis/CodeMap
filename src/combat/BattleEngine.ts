@@ -31,7 +31,7 @@ export class BattleEngine {
     if (this.state.outcome !== 'ongoing') return this.snapshot;
     let acted = false;
     const frames: ActionFrame[] = []; const emit = (frame: ActionFrame) => frames.push(frame);
-    for (const actor of [this.state.player, this.state.companion]) {
+    for (const actor of allies(this.state)) {
       if (!actor || actor.hp === 0 || this.state.outcome !== 'ongoing') continue;
       const entry = programs[actor.id as ArkanId];
       const step = typeof entry === 'function' ? entry(this.areAdjacent(actor, this.state.enemy)) : entry;
@@ -67,7 +67,7 @@ export class BattleEngine {
 
   private initialState(withCompanion = false, enemyHp = 3, team?: readonly ArkanId[]): BattleState {
     const roster: readonly ArkanId[] = team ?? (withCompanion ? ['moosling', 'glutling'] : ['moosling']);
-    if (!roster.length || roster.length > 2 || new Set(roster).size !== roster.length) throw new Error('Wähle ein Team aus ein oder zwei unterschiedlichen Arkanen.');
+    if (!roster.length || roster.length > 3 || new Set(roster).size !== roster.length) throw new Error('Wähle ein Team aus ein bis drei unterschiedlichen Arkanen.');
     const ally = (id: ArkanId, y: number): Combatant => {
       const species = ARKANA_SPECIES[id];
       return { id, name: species.name, hp: Math.max(1, Math.min(species.maxHp, this.options.initialHp?.[id] ?? species.maxHp)), maxHp: species.maxHp, attackPower: species.attack, x: 1, y, guarding: false };
@@ -80,7 +80,8 @@ export class BattleEngine {
       enemy: { id: 'konstrukt', name: 'Übungskonstrukt', hp: enemyHp, maxHp: enemyHp, x: 5, y: 3, guarding: false, ...(this.options.enemyAttackPower ? { attackPower: this.options.enemyAttackPower } : {}) },
       log: ['Trainingsarena bereit. Das Konstrukt beobachtet deinen Aktionsplan.'],
     };
-    for (const actor of [state.player, state.companion, state.enemy]) {
+    if (roster.length > 2) state.additionalAllies = roster.slice(2).map((id, index) => ally(id, 4 + index));
+    for (const actor of [...allies(state), state.enemy]) {
       if (actor && this.spawns?.[actor.id]) Object.assign(actor, this.spawns[actor.id]);
     }
     if (this.options.enemyActive) state.enemyIntent = { target: state.player.id as ArkanId, damage: state.enemy.attackPower ?? 1 };
@@ -111,9 +112,16 @@ export class BattleEngine {
       this.addLog(`${actor.name} ist noch außer Reichweite.`);
       return;
     }
+    const cover = target.coveredBy && allies(this.state).find((unit) => unit.id === target.coveredBy!.source && unit.hp > 0 && Math.abs(unit.x - target.x) + Math.abs(unit.y - target.y) <= 3);
+    if (actor.id === 'konstrukt' && cover) {
+      const text = `${cover.name} übernimmt den Treffer für ${target.name}.`;
+      this.effects.push({ kind: 'cover', source: cover.id as ArkanId, target: target.id, amount: Math.min(actor.attackPower ?? 1, cover.hp), text });
+      this.addLog(text); target = cover;
+    }
     const power = actor.attackPower ?? 1;
-    const damage = Math.min(target.hp, target.protection ? Math.max(0, power - 2) : target.guarding ? 0 : power);
-    if (target.protection && power > damage) this.effects.push({ kind: 'guard', source: target.protection.source, target: target.id, amount: Math.min(2, power), text: `${target.name}: Rindenwacht fängt ${Math.min(2, power)} Schaden ab.` });
+    const damage = Math.min(target.hp, target.protection || target.armor ? Math.max(0, power - 2) : target.guarding ? 0 : power);
+    const shield = target.armor ?? target.protection;
+    if (shield && power > damage) this.effects.push({ kind: 'guard', source: shield.source, target: target.id, amount: Math.min(2, power), text: `${target.name}: ${target.armor ? 'Steinpanzer' : 'Rindenwacht'} fängt ${Math.min(2, power)} Schaden ab.` });
     target.hp = Math.max(0, target.hp - damage);
     this.addLog(damage === 0 ? `${target.name} blockt den Angriff.` : `${actor.name} trifft ${target.name} für ${damage} Schaden.`);
     this.checkOutcome();
@@ -141,7 +149,7 @@ export class BattleEngine {
       const text = `${actor.name}: Ranken verhindern die Bewegung.`; this.addLog(text);
       this.effects.push({ kind: 'root', source: actor.rooted.source, target: actor.id, amount: 1, text }); return;
     }
-    const occupant = [this.state.player, this.state.companion, this.state.enemy].find((unit) => unit && unit.id !== actor.id && unit.x === nextX && unit.y === nextY);
+    const occupant = [...allies(this.state), this.state.enemy].find((unit) => unit && unit.id !== actor.id && unit.x === nextX && unit.y === nextY);
     if (occupant || nextX < 0 || nextX >= GRID_SIZE || nextY < 0 || nextY >= GRID_SIZE) {
       this.addLog(`${actor.name}: Bewegung blockiert${occupant ? ` – Feld von ${occupant.name} belegt` : ' – Kartenrand'}.`);
       return;
@@ -162,8 +170,9 @@ export class BattleEngine {
   }
   private checkOutcome(): void {
     for (const unit of [...allies(this.state), this.state.enemy]) if (unit.hp <= 0) {
-      delete unit.burning; delete unit.regeneration; delete unit.rooted; delete unit.protection; unit.guarding = false;
+      delete unit.burning; delete unit.regeneration; delete unit.rooted; delete unit.protection; delete unit.armor; delete unit.coveredBy; unit.guarding = false;
     }
+    for (const unit of allies(this.state)) if (unit.coveredBy && !allies(this.state).some((source) => source.id === unit.coveredBy!.source && source.hp > 0)) delete unit.coveredBy;
     if (this.state.enemy.hp <= 0) { this.state.outcome = 'victory'; this.addLog('Sieg! Das Konstrukt ist ausgeschaltet.'); }
     else if (allies(this.state).every((unit) => unit.hp <= 0)) { this.state.outcome = 'defeat'; this.addLog('Niederlage. Du kannst sofort neu starten.'); }
   }

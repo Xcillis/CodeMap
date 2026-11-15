@@ -1,4 +1,5 @@
 import type { ArkanId, CombatAction, GridPosition } from './types';
+import { ARKANA_IDS, ARKANA_SPECIES } from '../gameplay/ArkanaCatalog';
 
 export const ACTIONS = {
   MOVE_TOWARD: { method: 'moveForward', block: 'cm_move', label: 'zum nächsten Gegner gehen' },
@@ -12,15 +13,17 @@ export const ACTIONS = {
   HEALING_MOSS: { method: 'healingMoss', block: 'cm_healing_moss', label: 'Heilmoos' },
   BARK_GUARD: { method: 'barkGuard', block: 'cm_bark_guard', label: 'Rindenwacht' },
   WAIT: { method: 'wait', block: 'cm_wait', label: 'warten' },
+  STONE_ARMOR: { method: 'stoneArmor', block: 'cm_stone_armor', label: 'Steinpanzer' },
+  COVER_ALLY: { method: 'coverAlly', block: 'cm_cover_ally', label: 'Verbündeten decken' },
 } as const satisfies Record<CombatAction, { method: string; block: string; label: string }>;
 
 export function actionForCommand(command: string, actor?: ArkanId): CombatAction | undefined {
-  if (command === 'flameStrike') return actor === 'glutling' ? 'ATTACK' : undefined;
-  if (command === 'vineStrike') return actor === 'moosling' ? 'ATTACK' : undefined;
+  const owner = ARKANA_IDS.find((id) => ARKANA_SPECIES[id].basicAttack.method === command);
+  if (owner) return actor === owner ? 'ATTACK' : undefined;
   return (Object.keys(ACTIONS) as CombatAction[]).find((action) => ACTIONS[action].method === command);
 }
-export const actionMethod = (action: CombatAction, actor: ArkanId): string => action === 'ATTACK' ? actor === 'glutling' ? 'flameStrike' : 'vineStrike' : ACTIONS[action].method;
-export const actionLabel = (action: CombatAction, actor: ArkanId): string => action === 'ATTACK' ? actor === 'glutling' ? 'Glutstoß' : 'Rankenhieb' : ACTIONS[action].label;
+export const actionMethod = (action: CombatAction, actor: ArkanId): string => action === 'ATTACK' ? ARKANA_SPECIES[actor].basicAttack.method : ACTIONS[action].method;
+export const actionLabel = (action: CombatAction, actor: ArkanId): string => action === 'ATTACK' ? ARKANA_SPECIES[actor].basicAttack.label : ACTIONS[action].label;
 export function actionForBlock(block: string): CombatAction | undefined {
   return (Object.keys(ACTIONS) as CombatAction[]).find((action) => ACTIONS[action].block === block);
 }

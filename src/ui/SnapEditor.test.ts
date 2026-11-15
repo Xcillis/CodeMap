@@ -8,6 +8,19 @@ import { getLesson, WORLD_QUESTS } from '../gameplay/WorldQuests';
 import { LessonSession } from '../combat/LessonSession';
 
 describe('Echte Blockly-Verbindungen', () => {
+  it('bietet nur Felsbocks gelernte Schutzblöcke und erhält deren Verbindungen beim Textwechsel', () => {
+    const quest = getLesson('q19-deckung');
+    const learned = JSON.stringify(snapToolbox('felsbock', 0, quest.allowed));
+    expect(learned).toContain('cm_stone_armor'); expect(learned).toContain('cm_cover_ally'); expect(learned).toContain('Steinstoß');
+    expect(learned).not.toContain('cm_healing_moss'); expect(learned).not.toContain('cm_ignite');
+    expect(JSON.stringify(snapToolbox('felsbock', 0, ['moveRight']))).not.toContain('cm_cover_ally');
+    const workspace = new Blockly.Workspace();
+    try {
+      const nodes = compileActionPlan('repeat(2, () => { felsbock.coverAlly(); felsbock.stoneArmor(); });', 'felsbock').nodes!;
+      loadNodes(workspace, nodes, 'felsbock'); expect(workspaceNodes(workspace)).toEqual(nodes);
+      expect(compileActionPlan(nodesToSource(workspaceNodes(workspace), 'felsbock'), 'felsbock').nodes).toEqual(nodes);
+    } finally { workspace.dispose(); }
+  });
   it('zeigt nur gelernte artspezifische Fähigkeiten und erhält neue Zustandsfragen beim Moduswechsel', () => {
     const lesson = getLesson('q17-teamrollen');
     const fire = JSON.stringify(snapToolbox('glutling', 0, lesson.allowed));

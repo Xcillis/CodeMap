@@ -23,6 +23,32 @@ function forest(): Campaign { const c = tutorial(); win(c, 'q11-schleifenwache')
 afterEach(() => vi.useRealTimers());
 
 describe('Gebiete und unabhängige Aufgabenreihen', () => {
+  it('findet Felsbock am freien Pass und verdient den dritten Platz erst mit dem Koordinationsabschluss', () => {
+    const fresh = tutorial(); expect(fresh.availableEncounters.some((item) => item.id === 'felsbock')).toBe(false);
+    expect(fresh.apply('recruit-felsbock')).toContain('Steinrutsch');
+    const c = new Campaign({ version: 2, worldVersion: 1, region: 'valley', introduced: true,
+      completed: LESSON_IDS.slice(0, 17), owned: [{ speciesId: 'glutling' }, { speciesId: 'moosling' }], team: [instanceId('glutling'), instanceId('moosling')] });
+    expect(c.teamLimit).toBe(2); expect(c.availableEncounters.map((item) => item.id)).toEqual(['felsbock']);
+    c.interact('lesson:q18-steinpanzer'); expect(c.prepareMission('q18-steinpanzer')).toContain('Finde Felsbock');
+    expect(c.interact('felsbock').action).toBe('recruit-felsbock'); c.apply('recruit-felsbock'); c.apply('recruit-felsbock');
+    expect(c.snapshot.owned).toHaveLength(3); expect(c.availableEncounters).toEqual([]);
+    expect(c.activeTeam.map((unit) => unit.speciesId)).toEqual(['glutling', 'moosling']);
+    expect(c.snapshot.owned[2].learned).not.toContain('stoneArmor'); expect(c.snapshot.owned[2].learned).not.toContain('healingMoss');
+    expect(c.beginTraining(3, ['glutling', 'moosling', 'felsbock'])).toContain('dritten Teamplatz');
+    win(c, 'q18-steinpanzer'); expect(c.teamLimit).toBe(2);
+    const session = begin(c, 'q19-deckung'); expect(c.teamLimit).toBe(2); expect(new Campaign(c.snapshot).teamLimit).toBe(2);
+    session.execute(QUEST_SOLUTIONS['q19-deckung'], true); expect(session.snapshot.outcome).toBe('victory');
+    expect(c.teamLimit).toBe(2); c.finishMission('q19-deckung'); c.leaveMission(); expect(c.teamLimit).toBe(3);
+    expect(new Campaign(c.snapshot).teamLimit).toBe(3);
+    expect(c.snapshot.owned.find((unit) => unit.speciesId === 'felsbock')!.learned).toContain('coverAlly');
+    expect(c.snapshot.owned.find((unit) => unit.speciesId === 'glutling')!.learned).not.toContain('coverAlly');
+    c.apply('travel-forest'); win(c, 'q20-dreiklang');
+    const loaded = new Campaign(c.snapshot); expect(loaded.activeTeam.map((unit) => unit.speciesId)).toEqual(['glutling', 'moosling', 'felsbock']);
+    expect(new Set(loaded.snapshot.completed)).toEqual(new Set(c.snapshot.completed));
+    loaded.apply('travel-valley'); expect(loaded.availableEncounters).toEqual([]);
+    const before = loaded.snapshot; expect(loaded.beginTraining(3, ['felsbock', 'glutling', 'moosling'])).toMatchObject({ kind: 'training', team: ['felsbock', 'glutling', 'moosling'] });
+    loaded.leaveMission(); expect(loaded.snapshot).toEqual(before);
+  });
   it('lehrt artspezifische Rollen schrittweise und erlaubt den aktiven Teamkampf erst nach den Einführungen', () => {
     const c = forest(); c.apply('travel-valley'); c.visitGiver('brann'); win(c, 'q14-feuerprobe');
     expect(c.snapshot.owned[0].learned).toContain('ignite'); expect(c.snapshot.owned[0].learned).not.toContain('healingMoss');
@@ -89,7 +115,7 @@ describe('Gebiete und unabhängige Aufgabenreihen', () => {
     const c = forest(); expect(c.availableEncounters).toEqual([]); expect(c.apply('recruit-moosling')).toContain('Wald');
     win(c, 'q05-aufmerksam'); expect(c.availableEncounters.map((e) => e.id)).toEqual(['moosling']); expect(c.interact('moosling').action).toBe('recruit-moosling');
     c.apply('recruit-moosling'); c.apply('recruit-moosling'); expect(c.snapshot.owned).toHaveLength(2); expect(c.snapshot.owned[1].learned).toEqual(expect.arrayContaining(['repeat', 'attack', 'enemyAdjacent']));
-    c.toggleTeam(instanceId('glutling')); expect(c.availableEncounters).toEqual([]); expect(new Campaign(c.snapshot).availableEncounters).toEqual([]); c.apply('travel-valley'); expect(c.availableEncounters).toEqual([]);
+    c.toggleTeam(instanceId('glutling')); expect(c.availableEncounters).toEqual([]); expect(new Campaign(c.snapshot).availableEncounters).toEqual([]); c.apply('travel-valley'); expect(c.availableEncounters.map((encounter) => encounter.id)).toEqual(['felsbock']);
   });
   it('öffnet zwei Teamplätze erst mit der Team-Einführung nach Mooslings Soloquest', () => {
     const c = forest(); win(c, 'q05-aufmerksam'); c.visitGiver('tala'); expect(c.prepareMission('q07-moosling')).toContain('Finde zuerst Moosling'); c.apply('recruit-moosling');
