@@ -55,10 +55,10 @@ Neue Abenteuer beginnen **ohne Arkana**. Glutling, Moosling und Felsbock müssen
 ## Artspezifische Kampfrollen
 
 - **Glutling / Schaden:** Entzünden verursacht sofortigen Feuer- und anhaltenden Brandschaden. Brann führt die Fähigkeit nach dem Angriffstutorial in **Glutlings Feuerprobe** ein.
-- **Moosling / Unterstützung und Tank:** Rankenfessel verhindert Bewegung; Rindenwacht zieht gegnerische Angriffe auf Moosling und fängt Schaden ab. Tala bietet nach Mooslings Soloquest **Mooslings Wurzelschutz** an.
-- **Moosling / Heilung:** Heilmoos stellt verlorene LP über mehrere Programmschritte wieder her. **Mooslings heilendes Moos** ist unabhängig vom Wurzelschutz wählbar.
+- **Moosling / Unterstützung:** Rankenfessel verhindert gegnerische Bewegung. Tala bietet nach Mooslings Soloquest **Mooslings Rankenhilfe** an. Moosling übernimmt Heilung und Unterstützung; die Tankrolle gehört Felsbock.
+- **Moosling / Heilung:** Heilmoos stellt verlorene LP über mehrere Programmschritte wieder her. **Mooslings heilendes Moos** ist unabhängig von der Rankenhilfe wählbar.
 - **Felsbock / Tank:** 8 LP, Steinstoß für 1 Schaden. `felsbock.stoneArmor()` fängt Schaden ab; `felsbock.coverAlly()` übernimmt Treffer für ein anderes Arkana in Reichweite. Die beiden Fähigkeiten werden getrennt bei Mira eingeführt.
-- **Aktiver Teamkampf:** Nach den Fähigkeitseinführungen und Q08 bietet Tala **Feuer und Wurzeln im Team** an. Glutling und Moosling benötigen zwei abgestimmte Programme gegen einen aktiven Wächter. Nachgewiesen werden Brand, tatsächliche Rankenwirkung, Heilung von Glutling und abgefangener Schaden.
+- **Aktiver Teamkampf:** Nach den Fähigkeitseinführungen und Q08 bietet Tala **Feuer und Wurzeln im Team** an. Glutling und Moosling benötigen zwei abgestimmte Programme gegen einen aktiven Wächter. Nachgewiesen werden Brand, tatsächliche Rankenwirkung und Heilung von Glutling.
 
 Besuche Brann beziehungsweise Tala und öffne **Aufgaben ansehen**, um die neuen Quests zu entdecken. Bestehende Spielstände brauchen keinen Reset. Zustände, Abklingzeiten und gegnerische Angriffsabsicht erscheinen in der Arena. Die neuen Abfragen `glutling.enemyBurning` und `moosling.allyInjured` werden bei der Teamrollen-Einführung freigegeben. Fähigkeiten werden nur für passende Arten gelernt. Nach Q17 zeigt Mira im Tal Felsbocks **Steinpanzer** (Q18) und **Deckung für Glutling** (Q19). Erst der bestätigte Q19-Erfolg öffnet Teamplatz 3. Danach bietet Tala **Drei Arkana, ein Plan** (Q20) mit drei eigenen Programmen an. Auch das freie Teamtraining erlaubt dann drei gesammelte Arkana. Mehrere Gegner und frei wählbare Ziele folgen später. Regeln, Werte und Ausbauplan stehen im [Kampfsystem](docs/CodeMap_Kampfsystem.md).
 
@@ -71,3 +71,5 @@ Für einen frischen Talstart: **C → Sammlung → Neues Abenteuer → Sichern &
 Blockly und seine Mediendateien werden lokal ausgeliefert; ein CDN ist nicht erforderlich. Der Parser wertet kein JavaScript aus. Grenzen: 1–6 Wiederholungen pro Schleife, zwölf Aktionen im längsten möglichen Ablauf, acht Verschachtelungsebenen und 150 Blöcke im Editor. Backend, NOVA und die vollständige Kompetenzengine bleiben spätere Vorhaben.
 
 Technische Entscheidungen stehen in [architecture.md](docs/architecture.md), Nutzerbeschlüsse in [design-decisions.md](docs/design-decisions.md).
+
+Alle Kampffähigkeiten stehen in Block- und Textbibliothek unter **Kampf**: Angriffe, Heilung, Unterstützung und Schutz. Mooslings frühere Rindenwacht ist nicht mehr freigegeben. Alte Programme und Abschlüsse bleiben erhalten; ersetze einen enthaltenen `moosling.barkGuard()`-Befehl im Editor durch einen passenden Heil-, Ranken- oder Wartebefehl. Ein Spielstand-Reset ist nicht nötig.

@@ -49,9 +49,9 @@ Der Wald besitzt eine andere Bodengestaltung, mehr Baumgruppen, Waldpfade und ei
 | Neria, Runenlichtung `(1140, 390)` | Q13 Nerias Lichtpfad | Q05 | Frei wählbares Rätsel mit der Abfrage „Weg rechts frei?“ |
 | Tala, Hainlager `(1030, 800)` | Q07 Mooslings eigener Weg | Q05 und aufgenommenes Moosling | Frei wählbare Objekt-/Arteneinführung, passiver Kampf |
 | Tala | Q08 Zwei Programme, ein Ziel | Q07, beide Arkana gesammelt | Team-Einführung und Folge-Kampf |
-| Tala | Q15 Mooslings Wurzelschutz | Q07 | Aktiver Kampf mit Ranken und Tank-Schutz |
+| Tala | Q15 Mooslings Rankenhilfe | Q07 | Aktiver Kampf mit Ranken als Unterstützung |
 | Tala | Q16 Mooslings heilendes Moos | Q07 | Heilung über Zeit; unabhängig von Q15 |
-| Tala | Q17 Feuer und Wurzeln im Team | Q08, Q14, Q15, Q16 | Aktiver Zweierkampf mit vier Rollen |
+| Tala | Q17 Feuer und Wurzeln im Team | Q08, Q14, Q15, Q16 | Aktiver Zweierkampf mit Schaden, Heilung und Unterstützung |
 
 ```mermaid
 flowchart LR

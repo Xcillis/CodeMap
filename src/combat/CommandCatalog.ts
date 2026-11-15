@@ -5,14 +5,12 @@ import { ACTIONS, actionLabel, actionMethod } from './ActionCatalog';
 import { ABILITIES, type AbilityAction } from './Abilities';
 
 export type { SkillId } from '../gameplay/ArkanaCatalog';
-export type CommandCategory = 'movement' | 'combat' | 'senses' | 'flow' | 'support' | 'tank';
+export type CommandCategory = 'movement' | 'combat' | 'senses' | 'flow';
 export type CommandId = 'move' | 'attack' | 'condition' | 'pathCondition' | 'repeat' | 'moveRight' | 'moveLeft' | 'moveUp' | 'moveDown' | 'ignite' | 'vineSnare' | 'healingMoss' | 'barkGuard' | 'wait' | 'allyInjured' | 'enemyBurning' | 'stoneArmor' | 'coverAlly';
 
 export const COMMAND_CATEGORIES: readonly { id: CommandCategory; label: string; color: string }[] = [
   { id: 'movement', label: 'Bewegung', color: '#559cf0' },
   { id: 'combat', label: 'Kampf', color: '#db7767' },
-  { id: 'support', label: 'Unterstützung', color: '#8bafcc' },
-  { id: 'tank', label: 'Schutz', color: '#b59d72' },
   { id: 'senses', label: 'Wahrnehmung', color: '#ad8aeb' },
   { id: 'flow', label: 'Ablauf', color: '#e1b64e' },
 ];
@@ -60,7 +58,7 @@ export const COMMANDS: readonly CommandDefinition[] = [
   { id: 'repeat', category: 'flow', label: 'Wiederhole … mal', description: 'Führt die Befehle im Inneren 1 bis 6 Mal aus. Lege zum Beispiel einen Bewegungsbefehl hinein und wähle die Anzahl.', requires: ['repeat'], syntax: () => 'repeat(2, () => { … });', block: () => ({ kind: 'action', count: 2, action: 'MOVE_TOWARD' }) },
   ...(Object.keys(ABILITIES) as AbilityAction[]).map((action): CommandDefinition => {
     const rule = ABILITIES[action];
-    return { id: rule.skill as CommandId, category: rule.role === 'damage' || rule.role === 'healing' ? 'combat' : rule.role,
+    return { id: rule.skill as CommandId, category: 'combat',
       label: ACTIONS[action].label, description: rule.description, requires: [rule.skill], syntax: (actor) => `${actor}.${ACTIONS[action].method}()`, block: () => ({ kind: 'action', count: 1, action }) };
   }),
   { id: 'wait', category: 'flow', label: 'Einen Schritt warten', description: 'Wartet einen Programmschritt. Zustände und Abklingzeiten laufen weiter; Gegner handeln weiterhin.', requires: ['wait'], syntax: (actor) => `${actor}.wait()`, block: () => ({ kind: 'action', count: 1, action: 'WAIT' }) },
@@ -93,6 +91,7 @@ export function nodesCapabilityError(nodes: readonly ProgramNode[], actor: Arkan
   };
   visit(nodes);
   for (const skill of required) {
+    if (actor === 'moosling' && skill === 'barkGuard') return 'Rindenwacht ist für Moosling nicht mehr freigegeben. Entferne diesen alten Befehl; Moosling nutzt Rankenfessel und Heilmoos. Schutz übernimmt Felsbock.';
     if (!supported.includes(skill) || !learned.includes(skill)) return `${actor}: „${skill}“ ist hier noch nicht gelernt oder für diese Aufgabe nicht freigegeben.`;
   }
 }

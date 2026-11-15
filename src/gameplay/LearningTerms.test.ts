@@ -7,7 +7,8 @@ describe('Gelernte Fachbegriffe', () => {
   it('öffnet Zustände und Rollen erst nach der jeweiligen Fähigkeitseinführung mit konkretem Beispiel', () => {
     expect(learnedTerms(['q02-basisangriff']).some((term) => term.id === 'cooldown')).toBe(false);
     expect(learnedTerms(['q14-feuerprobe']).map((term) => term.id)).toEqual(expect.arrayContaining(['status', 'cooldown']));
-    expect(learnedTerms(['q15-wurzelschutz']).find((term) => term.id === 'tank')?.code).toContain('moosling.barkGuard()');
+    expect(learnedTerms(['q15-wurzelschutz']).some((term) => term.id === 'tank')).toBe(false);
+    expect(learnedTerms(['q18-steinpanzer']).find((term) => term.id === 'tank')?.code).toContain('felsbock.stoneArmor()');
     expect(learnedTerms(['q16-heilmoos']).find((term) => term.id === 'regeneration')?.code).toContain('moosling.healingMoss()');
   });
   it('öffnet Einträge stufenweise durch Questabschlüsse und erhält sie nach dem Laden', () => {

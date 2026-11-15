@@ -10,8 +10,10 @@ import { LessonSession } from '../combat/LessonSession';
 describe('Echte Blockly-Verbindungen', () => {
   it('bietet nur Felsbocks gelernte Schutzblöcke und erhält deren Verbindungen beim Textwechsel', () => {
     const quest = getLesson('q19-deckung');
-    const learned = JSON.stringify(snapToolbox('felsbock', 0, quest.allowed));
-    expect(learned).toContain('cm_stone_armor'); expect(learned).toContain('cm_cover_ally'); expect(learned).toContain('Steinstoß');
+    const toolbox = snapToolbox('felsbock', 0, quest.allowed) as Blockly.utils.toolbox.ToolboxInfo;
+    const learned = JSON.stringify(toolbox);
+    const combat = toolbox.contents.find((category) => 'name' in category && category.name === 'Kampf');
+    expect(JSON.stringify(combat)).toContain('cm_stone_armor'); expect(JSON.stringify(combat)).toContain('cm_cover_ally'); expect(learned).toContain('Steinstoß');
     expect(learned).not.toContain('cm_healing_moss'); expect(learned).not.toContain('cm_ignite');
     expect(JSON.stringify(snapToolbox('felsbock', 0, ['moveRight']))).not.toContain('cm_cover_ally');
     const workspace = new Blockly.Workspace();
@@ -26,16 +28,16 @@ describe('Echte Blockly-Verbindungen', () => {
     const fire = JSON.stringify(snapToolbox('glutling', 0, lesson.allowed));
     const nature = JSON.stringify(snapToolbox('moosling', 0, lesson.allowed));
     expect(fire).toContain('cm_ignite'); expect(fire).toContain('Glutstoß'); expect(fire).not.toContain('cm_healing_moss');
-    expect(nature).toContain('cm_healing_moss'); expect(nature).toContain('cm_bark_guard'); expect(nature).toContain('cm_vine_snare'); expect(nature).toContain('Rankenhieb'); expect(nature).not.toContain('cm_ignite');
+    expect(nature).toContain('cm_healing_moss'); expect(nature).not.toContain('cm_bark_guard'); expect(nature).toContain('cm_vine_snare'); expect(nature).toContain('Rankenhieb'); expect(nature).not.toContain('cm_ignite');
     expect(nature).toContain('cm_if_injured'); expect(fire).toContain('cm_if_burning');
     const categories = (snapToolbox('moosling', 0, lesson.allowed) as Blockly.utils.toolbox.ToolboxInfo).contents;
     const combat = categories.find((category) => category.kind === 'category' && 'name' in category && category.name === 'Kampf');
-    expect(JSON.stringify(combat)).toContain('cm_healing_moss');
-    expect(categories.some((category) => category.kind === 'category' && 'name' in category && category.name === 'Heilung')).toBe(false);
+    expect(JSON.stringify(combat)).toContain('cm_healing_moss'); expect(JSON.stringify(combat)).toContain('cm_vine_snare');
+    expect(categories.some((category) => category.kind === 'category' && 'name' in category && ['Heilung', 'Unterstützung', 'Schutz'].includes(String(category.name)))).toBe(false);
     for (const actor of ['glutling', 'moosling'] as const) {
       const workspace = new Blockly.Workspace();
       try {
-        const source = actor === 'glutling' ? 'if (glutling.enemyBurning) { glutling.flameStrike(); } else { glutling.ignite(); }' : 'if (moosling.allyInjured) { moosling.healingMoss(); } else { moosling.barkGuard(); }';
+        const source = actor === 'glutling' ? 'if (glutling.enemyBurning) { glutling.flameStrike(); } else { glutling.ignite(); }' : 'if (moosling.allyInjured) { moosling.healingMoss(); } else { moosling.vineSnare(); }';
         const nodes = compileActionPlan(source, actor).nodes!; loadNodes(workspace, nodes, actor);
         expect(workspaceNodes(workspace)).toEqual(nodes); expect(compileActionPlan(nodesToSource(workspaceNodes(workspace), actor), actor).nodes).toEqual(nodes);
       } finally { workspace.dispose(); }

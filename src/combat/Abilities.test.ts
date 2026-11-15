@@ -38,15 +38,16 @@ describe('Artspezifische RPG-Fähigkeiten', () => {
     engine.runStep('MOVE_RIGHT', true); expect(engine.snapshot.player.hp).toBe(4); expect(engine.snapshot.enemy.rooted).toBeUndefined();
     engine.runStep('MOVE_LEFT', true); expect(engine.snapshot.enemy.x).toBe(2);
   });
-  it('zieht Angriffe mit Rindenwacht um und fängt Schaden nur während der Schutzdauer ab', () => {
-    const engine = new BattleEngine({ konstrukt: { x: 2, y: 2 } }, { enemyActive: true, enemyAttackPower: 2 }); engine.reset(true, 20, ['glutling', 'moosling']);
-    expect(engine.snapshot.enemyIntent?.target).toBe('glutling'); const frames: ActionFrame[] = [];
-    engine.runTick(duo('WAIT', 'BARK_GUARD'), true, (frame) => frames.push(frame));
-    expect(frames.at(-1)?.after).toEqual(engine.snapshot);
-    expect(engine.snapshot.enemyIntent?.target).toBe('moosling'); expect(engine.snapshot.companion?.hp).toBe(5);
-    expect(frames.flatMap((frame) => frame.effects ?? []).some((effect) => effect.kind === 'guard' && effect.amount === 2)).toBe(true);
-    frames.length = 0; engine.runTick(duo('WAIT', 'WAIT'), true, (frame) => frames.push(frame)); expect(engine.snapshot.companion?.protection).toBeUndefined(); expect(engine.snapshot.enemyIntent?.target).toBe('glutling');
-    expect(frames.at(-1)?.after).toEqual(engine.snapshot);
+  it('weist Mooslings frühere Tankfähigkeit auch bei alten Programmen und direkter Engine-Nutzung zurück', () => {
+    expect(ARKANA_SPECIES.moosling.roles).toEqual(['healing', 'support']);
+    const engine = new BattleEngine({ konstrukt: { x: 2, y: 2 } }, { enemyActive: true }); engine.reset(true, 20, ['glutling', 'moosling']);
+    engine.runTick(duo('WAIT', 'BARK_GUARD'), true);
+    expect(engine.snapshot.companion?.protection).toBeUndefined(); expect(engine.snapshot.companion?.guarding).toBe(false);
+    expect(engine.snapshot.enemyIntent?.target).toBe('glutling');
+    const session = new BattleSession(3, ['glutling', 'moosling'], { glutling: ARKANA_SPECIES.glutling.supported, moosling: ARKANA_SPECIES.moosling.supported });
+    const before = session.snapshot;
+    expect(session.execute({ glutling: '', moosling: 'moosling.barkGuard();' }, true)).toContain('nicht mehr freigegeben');
+    expect(session.snapshot).toEqual(before); expect(session.frames).toEqual([]);
   });
   it('heilt den niedrigsten lebenden LP-Anteil, niemals über das Maximum und nicht sofort komplett', () => {
     const engine = new BattleEngine(undefined, { initialHp: { glutling: 1, moosling: 2 } }); engine.reset(true, 20, ['glutling', 'moosling']);

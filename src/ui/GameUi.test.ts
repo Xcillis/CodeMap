@@ -188,7 +188,7 @@ describe('Editorzustand und Arkan-Zuordnung', () => {
     const open = () => gameEvents.emit('battle-opened', lessonPrograms(quest), quest.id, skills);
     open(); click('text-mode'); type('glutling.ignite();'); click('select-moosling'); click('text-mode'); type('moosling.healingMoss();');
     click('select-felsbock'); click('text-mode'); type('felsbock.coverAlly(); felsbock.stoneArmor();');
-    expect(document.getElementById('program-owner')!.textContent).toContain('Felsbock'); click('category-tank');
+    expect(document.getElementById('program-owner')!.textContent).toContain('Felsbock'); click('category-combat');
     expect(document.querySelector('[data-command="coverAlly"]')).not.toBeNull(); expect(document.querySelector('[data-command="barkGuard"]')).toBeNull();
     const session = new LessonSession(quest, skills); gameEvents.emit('battle-updated', session.snapshot, 'Bereit');
     expect(document.getElementById('felsbock-health-status')!.textContent).toContain('Felsbock');
@@ -201,7 +201,7 @@ describe('Editorzustand und Arkan-Zuordnung', () => {
     const single = new LessonSession(getLesson('q01-glutspur'), getLesson('q01-glutspur').allowed); gameEvents.emit('battle-updated', single.snapshot, 'Bereit');
     expect(document.getElementById('felsbock-health-status')).toBeNull();
   });
-  it('zeigt artspezifische Rollenbibliotheken, Abklingzeiten und die durch Schutz geänderte Zielabsicht', () => {
+  it('zeigt Mooslings Heilung und Unterstützung unter Kampf ohne Tankfähigkeit', () => {
     const lesson = getLesson('q17-teamrollen');
     gameEvents.emit('battle-opened', QUEST_SOLUTIONS[lesson.id], lesson.id,
       { glutling: lesson.allowed, moosling: lesson.allowed }, { title: lesson.title, mode: 'lesson', instructions: lesson.introduction, objective: lesson.objective, hints: lesson.hints });
@@ -212,10 +212,13 @@ describe('Editorzustand und Arkan-Zuordnung', () => {
     expect(document.querySelector('[data-command="ignite"]')).toBeNull(); expect(document.getElementById('category-healing')).toBeNull();
     expect(document.querySelector('[data-command="healingMoss"] code')?.textContent).toBe('moosling.healingMoss()');
     const session = new LessonSession(lesson, lesson.allowed); session.execute(QUEST_SOLUTIONS[lesson.id], true);
-    const guard = session.frames.find((frame) => frame.action === 'BARK_GUARD')!;
-    gameEvents.emit('battle-updated', guard.after, 'Schutz aktiv');
-    expect(document.getElementById('battle-intent')!.textContent).toContain('Moosling');
-    expect(document.getElementById('ability-state-text')!.textContent).toContain('Rindenschutz');
+    expect(document.querySelector('[data-command="vineSnare"]')).not.toBeNull();
+    expect(document.querySelector('[data-command="barkGuard"]')).toBeNull();
+    expect(document.getElementById('category-tank')).toBeNull(); expect(document.getElementById('category-support')).toBeNull();
+    const healing = session.frames.find((frame) => frame.action === 'HEALING_MOSS')!;
+    gameEvents.emit('battle-updated', healing.after, 'Heilung aktiv');
+    expect(document.getElementById('battle-intent')!.textContent).toContain('Glutling');
+    expect(document.getElementById('ability-state-text')!.textContent).toContain('Heilmoos');
     gameEvents.emit('battle-playback', 'running'); gameEvents.emit('battle-frame', session.frames.find((frame) => frame.periodic)!);
     expect(text().dataset.activeLine).toBeUndefined(); expect(document.getElementById('execution-trace')!.textContent).toContain('Anhaltende Wirkung');
   });

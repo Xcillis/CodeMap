@@ -23,6 +23,13 @@ function forest(): Campaign { const c = tutorial(); win(c, 'q11-schleifenwache')
 afterEach(() => vi.useRealTimers());
 
 describe('Gebiete und unabhängige Aufgabenreihen', () => {
+  it('entfernt Mooslings alte Tankfreigabe beim Laden ohne abgeschlossene Quests zu verlieren', () => {
+    const campaign = new Campaign({ version: 2, worldVersion: 1, region: 'forest', introduced: true,
+      completed: LESSON_IDS.slice(0, 17), owned: [{ speciesId: 'moosling', learned: ['barkGuard', 'healingMoss', 'vineSnare'] }] });
+    expect(campaign.snapshot.owned[0].learned).toEqual(expect.arrayContaining(['healingMoss', 'vineSnare']));
+    expect(campaign.snapshot.owned[0].learned).not.toContain('barkGuard'); expect(campaign.snapshot.completed).toContain('q15-wurzelschutz');
+    expect(campaign.snapshot.completed).toContain('q17-teamrollen'); expect(campaign.teamLimit).toBe(2);
+  });
   it('startet nach bestätigtem Erfolg eine Folgequest desselben Gebers ohne Welt-Rückkehr', () => {
     const c = start(); const session = begin(c, 'q01-glutspur'); const before = c.snapshot;
     expect(c.continueMission('q02-basisangriff')).toContain('noch nicht verfügbar'); expect(c.snapshot).toEqual(before);

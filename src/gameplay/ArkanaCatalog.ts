@@ -41,10 +41,10 @@ export const ARKANA_SPECIES: Record<ArkanId, ArkanaSpecies> = {
   moosling: {
     id: 'moosling', name: 'Moosling', type: 'nature', maxHp: 5, attack: 1,
     basicAttack: { method: 'vineStrike', label: 'Rankenhieb' }, color: 0x63b76b,
-    strength: 'Mit 5 Lebenspunkten widerstandsfähiger als Glutling.',
-    weakness: 'Sein Rankenhieb verursacht nur 1 Schaden; Heilung und Schutz brauchen Zeit.',
-    roles: ['healing', 'support', 'tank'], plannedAbilities: ['Rankenbrücken in der Spielwelt'],
-    supported: ['moveForward', 'moveRight', 'moveLeft', 'moveUp', 'moveDown', 'attack', 'repeat', 'enemyAdjacent', 'pathRightClear', 'vineSnare', 'healingMoss', 'barkGuard', 'wait', 'allyInjured'],
+    strength: 'Unterstützt das Team mit Rankenfessel und Heilung über Zeit.',
+    weakness: 'Nur 1 Rankenhieb-Schaden und kein Panzerschutz. Ranken verhindern keine benachbarten Angriffe.',
+    roles: ['healing', 'support'], plannedAbilities: ['Rankenbrücken in der Spielwelt'],
+    supported: ['moveForward', 'moveRight', 'moveLeft', 'moveUp', 'moveDown', 'attack', 'repeat', 'enemyAdjacent', 'pathRightClear', 'vineSnare', 'healingMoss', 'wait', 'allyInjured'],
   },
   glutling: {
     id: 'glutling', name: 'Glutling', type: 'fire', maxHp: 4, attack: 2,

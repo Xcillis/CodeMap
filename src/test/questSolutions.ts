@@ -15,11 +15,11 @@ export const QUEST_SOLUTIONS: Record<LessonId, ProgramSources> = {
   'q12-steinrutsch': { glutling: 'repeat(2, () => { repeat(2, () => { glutling.moveRight(); }); glutling.moveUp(); });' },
   'q13-lichtpfad': { glutling: 'repeat(4, () => { if (glutling.pathRightClear) { glutling.moveRight(); } else { glutling.moveUp(); } });' },
   'q14-feuerprobe': { glutling: 'glutling.ignite(); glutling.moveRight(); glutling.flameStrike(); glutling.flameStrike();' },
-  'q15-wurzelschutz': { moosling: 'moosling.vineSnare(); moosling.moveRight(); moosling.barkGuard(); repeat(3, () => { moosling.vineStrike(); });' },
+  'q15-wurzelschutz': { moosling: 'moosling.vineSnare(); moosling.moveRight(); repeat(3, () => { moosling.vineStrike(); });' },
   'q16-heilmoos': { moosling: 'moosling.healingMoss(); repeat(3, () => { moosling.vineStrike(); });' },
   'q17-teamrollen': {
     glutling: 'glutling.ignite(); glutling.wait(); glutling.moveRight(); glutling.moveUp(); glutling.ignite(); glutling.flameStrike(); glutling.flameStrike();',
-    moosling: 'moosling.vineSnare(); moosling.healingMoss(); moosling.moveDown(); moosling.barkGuard(); moosling.vineStrike(); moosling.healingMoss(); moosling.vineStrike();',
+    moosling: 'moosling.vineSnare(); moosling.healingMoss(); moosling.moveDown(); moosling.wait(); moosling.vineStrike(); moosling.healingMoss(); moosling.vineStrike();',
   },
   'q18-steinpanzer': { felsbock: 'felsbock.stoneArmor(); repeat(3, () => { felsbock.stoneStrike(); });' },
   'q19-deckung': {
