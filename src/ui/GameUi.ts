@@ -9,7 +9,7 @@ import { availableCommands, COMMAND_CATEGORIES, commandSource, type CommandCateg
 import { SnapEditor } from './SnapEditor';
 import { ProgramDrag } from './ProgramDrag';
 import { ARKANA_IDS, ARKANA_SPECIES, isArkanId, type SkillId } from '../gameplay/ArkanaCatalog';
-import type { EncounterPresentation, QuestCompletion } from '../gameplay/WorldQuests';
+import type { EncounterPresentation, LessonId, QuestCompletion } from '../gameplay/WorldQuests';
 import { ACTIONS, actionLabel } from '../combat/ActionCatalog';
 import { cooldownLabels, intentLabel, statusLabels } from '../combat/CombatPresentation';
 import { setLearningText } from './LearningText';
@@ -33,7 +33,9 @@ export class GameUi {
   private readonly text = this.el<HTMLTextAreaElement>('program-source');
   private readonly feedback = this.el<HTMLElement>('battle-feedback');
   private readonly drag: ProgramDrag;
-  private readonly completion = new QuestCompletionView(() => gameEvents.emit('battle-exit'));
+  private readonly completion = new QuestCompletionView(() => gameEvents.emit('battle-exit'), (id: LessonId) => {
+    this.capture(); gameEvents.emit('quest-continue', id);
+  });
   private readonly briefing = new QuestBriefingView(() => this.resize(), () => {
     const target = this.editorMode === 'text' ? this.text : this.el('program-area-title'); target.focus({ preventScroll: true });
   });
@@ -82,6 +84,7 @@ export class GameUi {
       if (this.panel.hidden || this.presentation?.mode !== 'lesson' || completion.lesson !== this.mission) return;
       this.drag.cancel(); this.snap?.closeTransientUi(); this.el('editor-tooltip').hidden = true; this.completion.show(completion);
     });
+    gameEvents.on('quest-continue-error', (message: string) => this.completion.error(message));
     gameEvents.on('battle-updated', (state: EncounterState, feedback: string) => this.update(state, feedback));
     gameEvents.on('battle-playback', (state: PlaybackState) => {
       if (state === 'running') { this.briefing.workStarted(); this.setExpanded(false); }
@@ -166,6 +169,8 @@ export class GameUi {
   }
 
   private open(programs: ProgramSources, mission: number | string, skills?: Partial<Record<ArkanId, readonly SkillId[]>>, presentation?: EncounterPresentation): void {
+    const continued = !this.panel.hidden;
+    if (continued) this.capture();
     this.setExpanded(false);
     this.completion.clear(); this.el('battle-exit').textContent = 'Zur Erkundung';
     this.drag.cancel(); this.panel.hidden = false; this.exploration(false);
@@ -191,6 +196,7 @@ export class GameUi {
     this.el('battle-title').textContent = `${presentation?.mode === 'lesson' ? 'LERNQUEST' : 'FREIES TRAINING'} – ${presentation?.title.toUpperCase() ?? 'RUNENSKRIPT'}`;
     this.el('battle-next-mission').hidden = true;
     this.loadActor(); this.resize();
+    if (continued) this.el('briefing-ready').focus();
   }
 
   private selectActor(actor: ArkanId): void {

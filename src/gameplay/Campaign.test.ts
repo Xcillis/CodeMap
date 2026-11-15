@@ -23,6 +23,50 @@ function forest(): Campaign { const c = tutorial(); win(c, 'q11-schleifenwache')
 afterEach(() => vi.useRealTimers());
 
 describe('Gebiete und unabhängige Aufgabenreihen', () => {
+  it('startet nach bestätigtem Erfolg eine Folgequest desselben Gebers ohne Welt-Rückkehr', () => {
+    const c = start(); const session = begin(c, 'q01-glutspur'); const before = c.snapshot;
+    expect(c.continueMission('q02-basisangriff')).toContain('noch nicht verfügbar'); expect(c.snapshot).toEqual(before);
+    session.execute(QUEST_SOLUTIONS['q01-glutspur'], true);
+    expect(c.followUpQuests('q01-glutspur')).toEqual([]); // Simulation alone is not the saved visible success.
+    const completion = c.finishMission('q01-glutspur');
+    expect(completion?.followUps).toEqual([{ lesson: 'q02-basisangriff', title: getLesson('q02-basisangriff').title }]);
+    const saved = c.snapshot; expect(saved.introductions).not.toContain('q02-basisangriff');
+    expect(c.continueMission('q14-feuerprobe')).toContain('noch nicht verfügbar'); expect(c.snapshot).toEqual(saved);
+    const next = c.continueMission('q02-basisangriff');
+    expect(next).toMatchObject({ kind: 'lesson', lesson: 'q02-basisangriff', team: ['glutling'] });
+    expect(c.snapshot.completed).toEqual(['q01-glutspur']); expect(c.snapshot.introductions).toContain('q02-basisangriff');
+    expect(c.snapshot.owned[0].learned).toContain('attack'); expect(c.snapshot.region).toBe(saved.region);
+    const active = c.snapshot; expect(c.continueMission('q03-wiederkehr')).toContain('noch nicht verfügbar'); expect(c.snapshot).toEqual(active);
+  });
+  it('bietet mehrere offene Aufgaben des Gebers an, auch wenn sie noch nicht einzeln entdeckt wurden', () => {
+    const c = tutorial(); const session = begin(c, 'q09-schachtelpfad'); session.execute(QUEST_SOLUTIONS['q09-schachtelpfad'], true);
+    expect(c.snapshot.discovered).not.toContain('q10-schachtelkampf');
+    const options = c.finishMission('q09-schachtelpfad')?.followUps?.map((quest) => quest.lesson);
+    expect(options).toEqual(['q10-schachtelkampf', 'q12-steinrutsch']);
+    expect(c.continueMission('q12-steinrutsch')).toMatchObject({ kind: 'lesson', lesson: 'q12-steinrutsch' });
+    expect(c.snapshot.discovered).toContain('q12-steinrutsch'); expect(c.snapshot.completed).not.toContain('q12-steinrutsch');
+  });
+  it('bereitet für die Folgequest das nötige Team vor und vergibt keine Wiederholung als neue Quest', () => {
+    const c = forest(); win(c, 'q05-aufmerksam'); c.apply('recruit-moosling');
+    const solo = begin(c, 'q07-moosling'); solo.execute(QUEST_SOLUTIONS['q07-moosling'], true);
+    const options = c.finishMission('q07-moosling')?.followUps?.map((quest) => quest.lesson);
+    expect(options).toEqual(['q08-team', 'q15-wurzelschutz', 'q16-heilmoos']); expect(c.teamLimit).toBe(1);
+    expect(c.continueMission('q08-team')).toMatchObject({ team: ['moosling', 'glutling'] }); expect(c.teamLimit).toBe(2);
+    expect(c.snapshot.completed).not.toContain('q08-team');
+    c.leaveMission(); const repeat = begin(c, 'q07-moosling');
+    expect(c.followUpQuests('q07-moosling')).toEqual([]); expect(c.continueMission('q15-wurzelschutz')).toContain('noch nicht verfügbar');
+    repeat.execute(QUEST_SOLUTIONS['q07-moosling'], true);
+    expect(c.finishMission('q07-moosling')?.followUps?.some((quest) => quest.lesson === 'q07-moosling')).toBe(false);
+  });
+  it('überspringt weder Gebiet, fehlende Arkana noch Voraussetzungen und bietet im Training keine Fortsetzung', () => {
+    const c = forest(); const session = begin(c, 'q05-aufmerksam'); session.execute(QUEST_SOLUTIONS['q05-aufmerksam'], true);
+    expect(c.finishMission('q05-aufmerksam')?.followUps?.map((quest) => quest.lesson)).toEqual(['q06-waechter']);
+    expect(c.continueMission('q07-moosling')).toContain('noch nicht verfügbar');
+    c.leaveMission(); c.beginTraining(1, ['glutling']); expect(c.followUpQuests('q05-aufmerksam')).toEqual([]);
+    expect(c.continueMission('q06-waechter')).toContain('noch nicht verfügbar');
+    const withoutFelsbock = new Campaign({ version: 2, worldVersion: 1, region: 'valley', introduced: true, completed: LESSON_IDS.slice(0, 17), owned: [{ speciesId: 'glutling' }, { speciesId: 'moosling' }] });
+    begin(withoutFelsbock, 'q12-steinrutsch'); expect(withoutFelsbock.finishMission('q12-steinrutsch')?.followUps).toEqual([]);
+  });
   it('findet Felsbock am freien Pass und verdient den dritten Platz erst mit dem Koordinationsabschluss', () => {
     const fresh = tutorial(); expect(fresh.availableEncounters.some((item) => item.id === 'felsbock')).toBe(false);
     expect(fresh.apply('recruit-felsbock')).toContain('Steinrutsch');

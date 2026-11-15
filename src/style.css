@@ -85,6 +85,8 @@ button { font: inherit; touch-action: none; }
 .quest-completion-actions { position: sticky; bottom: -.1rem; display: flex; flex-wrap: wrap; gap: .65rem; padding: .65rem 0; background: #182e30; }
 .quest-completion-actions button { min-height: 2.75rem; padding: .65rem 1rem; border: 1px solid #e3c775; border-radius: .35rem; color: #f7f1dc; background: #305050; font: inherit; font-weight: 700; cursor: pointer; touch-action: manipulation; }
 #quest-completion-exit { color: #162c30; background: #ecd075; }
+#quest-completion-follow-ups { display: flex; flex: 1 0 100%; flex-wrap: wrap; gap: .5rem; }
+#quest-completion-follow-ups button { color: #162c30; background: #ecd075; max-width: 100%; text-align: left; overflow-wrap: anywhere; }
 #quest-completion-status { flex: none; margin: 0; padding: .4rem; border: 1px solid #b6ce85; border-left: 4px solid #b6ce85; border-radius: .3rem; color: #f2eccb; background: #284638; font-weight: 800; font-size: .8rem; }
 .editor-columns { display: grid; grid-template-columns: minmax(12rem, .85fr) minmax(0, 1.5fr); flex: 1 1 0; min-height: 12rem; overflow: hidden; border: 1px solid #527c79; border-radius: .4rem; }
 .library-shell { display: grid; grid-template-columns: 4.8rem minmax(0, 1fr); min-height: 0; min-width: 0; }

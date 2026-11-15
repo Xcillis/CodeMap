@@ -142,6 +142,46 @@ describe('Platz für das Programm bei allen Aufgaben', () => {
 });
 
 describe('Editorzustand und Arkan-Zuordnung', () => {
+  it('wechselt per Abschlussbutton direkt zur Folgequest und erhält den vorherigen Entwurf', () => {
+    const campaign = new Campaign({ version: 2, worldVersion: 1, introduced: true, owned: [{ speciesId: 'glutling' }], team: [instanceId('glutling')] });
+    const open = (id: typeof LESSON_IDS[number]) => {
+      const quest = getLesson(id);
+      gameEvents.emit('battle-opened', lessonPrograms(quest), id, { glutling: quest.allowed }, { title: quest.title, mode: 'lesson', instructions: quest.introduction, objective: quest.objective, hints: quest.hints });
+    };
+    campaign.interact('lesson:q01-glutspur'); campaign.prepareMission('q01-glutspur'); open('q01-glutspur');
+    click('text-mode'); type(QUEST_SOLUTIONS['q01-glutspur'].glutling!);
+    let exits = 0; let continued = '';
+    gameEvents.on('battle-exit', () => { exits++; }); gameEvents.on('world-returned', () => { exits++; });
+    gameEvents.on('quest-continue', (id: typeof LESSON_IDS[number]) => {
+      const next = campaign.continueMission(id); if (typeof next === 'string' || next.kind !== 'lesson') throw new Error('Folgequest erwartet');
+      continued = id; open(id);
+    });
+    gameEvents.emit('quest-completed', campaign.finishMission('q01-glutspur'));
+    expect(document.activeElement?.id).toBe('quest-continue-q02-basisangriff');
+    click('quest-continue-q02-basisangriff'); expect(continued).toBe('q02-basisangriff'); expect(exits).toBe(0);
+    expect(document.getElementById('battle-panel')!.hidden).toBe(false); expect(document.getElementById('quest-completion')!.hidden).toBe(true);
+    expect(document.getElementById('battle-title')!.textContent).toContain(getLesson('q02-basisangriff').title.toUpperCase());
+    expect((document.getElementById('encounter-goals') as HTMLDetailsElement).open).toBe(true); expect((document.getElementById('lesson-hints') as HTMLDetailsElement).open).toBe(false);
+    expect(document.activeElement?.id).toBe('briefing-ready'); expect(document.getElementById('battle-card')!.inert).toBe(false);
+    click('text-mode'); expect(text().value).toBe(getLesson('q02-basisangriff').starter);
+    expect(document.getElementById('category-combat')).not.toBeNull();
+    open('q01-glutspur'); click('text-mode'); expect(text().value).toBe(QUEST_SOLUTIONS['q01-glutspur'].glutling);
+  });
+  it('zeigt mehrere Fortsetzungen, hält den Tastaturfokus im Dialog und meldet abgewiesene Starts dort', () => {
+    const quest = getLesson('q09-schachtelpfad');
+    gameEvents.emit('battle-opened', lessonPrograms(quest), quest.id, { glutling: quest.allowed }, { title: quest.title, mode: 'lesson', instructions: quest.introduction, objective: quest.objective, hints: quest.hints });
+    gameEvents.emit('quest-completed', { lesson: quest.id, title: quest.title, text: quest.reward, nextObjective: '', repeated: false,
+      followUps: (['q10-schachtelkampf', 'q12-steinrutsch'] as const).map((id) => ({ lesson: id, title: getLesson(id).title })) });
+    expect(document.querySelectorAll('#quest-completion-follow-ups button')).toHaveLength(2);
+    expect(button('quest-continue-q10-schachtelkampf').textContent).toContain(getLesson('q10-schachtelkampf').title);
+    button('quest-completion-review').focus();
+    const tab = new KeyboardEvent('keydown', { key: 'Tab', bubbles: true, cancelable: true }); button('quest-completion-review').dispatchEvent(tab);
+    expect(tab.defaultPrevented).toBe(true); expect(document.activeElement?.id).toBe('quest-continue-q10-schachtelkampf');
+    gameEvents.on('quest-continue', () => gameEvents.emit('quest-continue-error', 'Voraussetzung noch offen.'));
+    click('quest-continue-q12-steinrutsch'); expect(document.getElementById('quest-completion')!.hidden).toBe(false);
+    expect(document.getElementById('quest-completion-feedback')!.textContent).toBe('Voraussetzung noch offen.');
+    gameEvents.emit('battle-closed'); expect(document.querySelectorAll('#quest-completion-follow-ups button')).toHaveLength(0);
+  });
   it('trennt drei Arkana-Entwürfe, zeigt alle LP und bewahrt die Programme nach dem Wiederöffnen', () => {
     const quest = getLesson('q20-dreiklang'); const actors = lessonActors(quest);
     const skills = Object.fromEntries(actors.map((actor) => [actor, quest.allowed]));
@@ -267,7 +307,7 @@ describe('Editorzustand und Arkan-Zuordnung', () => {
     expect(document.getElementById('quest-completion-text')!.textContent).toBe(lesson.reward);
     expect(document.getElementById('quest-completion-next')!.textContent).toBe(campaign.objective);
     expect(document.getElementById('dialog')!.hidden).toBe(true);
-    expect(document.activeElement?.id).toBe('quest-completion-exit'); expect(document.getElementById('battle-card')!.inert).toBe(true);
+    expect(document.activeElement).toBe(document.querySelector('#quest-completion-follow-ups button') ?? button('quest-completion-exit')); expect(document.getElementById('battle-card')!.inert).toBe(true);
     let exits = 0; gameEvents.on('battle-exit', () => { exits++; gameEvents.emit('battle-closed'); });
     click('quest-completion-exit'); expect(exits).toBe(1); expect(document.getElementById('battle-panel')!.hidden).toBe(true);
     expect(dialog.hidden).toBe(true); expect(document.getElementById('game')!.inert).toBe(false);
@@ -306,7 +346,7 @@ describe('Editorzustand und Arkan-Zuordnung', () => {
     button('battle-run-program').focus(); gameEvents.emit('quest-completed', campaign.finishMission(lesson.id));
     expect(snap.popupsClosed).toBe(closed + 1);
     const tab = new KeyboardEvent('keydown', { key: 'Tab', shiftKey: true, bubbles: true, cancelable: true });
-    button('quest-completion-exit').dispatchEvent(tab); expect(tab.defaultPrevented).toBe(true);
+    button('quest-continue-q02-basisangriff').dispatchEvent(tab); expect(tab.defaultPrevented).toBe(true);
     expect(document.activeElement?.id).toBe('quest-completion-review');
     click('quest-completion-review'); expect(document.getElementById('quest-completion')!.hidden).toBe(true);
     expect(document.getElementById('quest-completion-status')!.hidden).toBe(false);

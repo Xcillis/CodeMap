@@ -38,6 +38,7 @@ export class BattleScene extends Phaser.Scene {
   private readonly onRunProgram = (sources: ProgramSources) => this.execute(sources, true);
   private readonly onRestart = () => this.restart();
   private readonly onExit = () => this.exit();
+  private readonly onContinued = (encounter: WorldEncounter) => { this.encounter = encounter; this.startEncounter(); };
   private readonly onPause = () => this.playback.state === 'paused' ? this.playback.resume() : this.playback.pause();
   private readonly onSpeed = (speed: number) => this.playback.setSpeed(speed);
   private readonly onViewport = ({ width, height }: { width: number; height: number }) => {
@@ -64,6 +65,7 @@ export class BattleScene extends Phaser.Scene {
     gameEvents.on('battle-run-program', this.onRunProgram);
     gameEvents.on('battle-restart', this.onRestart);
     gameEvents.on('battle-exit', this.onExit);
+    gameEvents.on('battle-continued', this.onContinued);
     gameEvents.on('battle-viewport', this.onViewport);
     gameEvents.on('battle-pause', this.onPause);
     gameEvents.on('battle-speed', this.onSpeed);
@@ -226,6 +228,7 @@ export class BattleScene extends Phaser.Scene {
     gameEvents.off('battle-run-program', this.onRunProgram);
     gameEvents.off('battle-restart', this.onRestart);
     gameEvents.off('battle-exit', this.onExit);
+    gameEvents.off('battle-continued', this.onContinued);
     gameEvents.off('battle-viewport', this.onViewport);
     gameEvents.off('battle-pause', this.onPause);
     gameEvents.off('battle-speed', this.onSpeed);

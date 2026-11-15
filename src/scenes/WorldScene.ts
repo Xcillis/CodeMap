@@ -59,6 +59,11 @@ export class WorldScene extends Phaser.Scene {
     const completion = this.campaign.finishMission(id);
     if (completion) { this.publishCampaign(); gameEvents.emit('quest-completed', completion); }
   };
+  private readonly onContinue = (id: LessonId) => {
+    const encounter = isLessonId(id) ? this.campaign.continueMission(id) : 'Unbekannte Folgequest.';
+    if (typeof encounter === 'string') { gameEvents.emit('quest-continue-error', encounter); return; }
+    this.publishCampaign(); this.clearInput(); gameEvents.emit('battle-continued', encounter);
+  };
   private readonly onReturned = () => {
     this.campaign.leaveMission(); this.publishCampaign(); this.clearInput();
   };
@@ -99,12 +104,14 @@ export class WorldScene extends Phaser.Scene {
     gameEvents.on('campaign-action', this.onCampaignAction);
     gameEvents.on('training-start', this.onTraining);
     gameEvents.on('world-quest-victory', this.onVictory);
+    gameEvents.on('quest-continue', this.onContinue);
     gameEvents.on('world-returned', this.onReturned);
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
       gameEvents.off('dialog-closed', this.onDialogClosed); gameEvents.off('world-overlay', this.onOverlay);
       gameEvents.off('team-toggle', this.onTeamToggle); gameEvents.off('campaign-action', this.onCampaignAction);
       gameEvents.off('training-start', this.onTraining);
       gameEvents.off('world-quest-victory', this.onVictory); gameEvents.off('world-returned', this.onReturned);
+      gameEvents.off('quest-continue', this.onContinue);
       this.encounterLabels.clear();
       this.arkanaVisuals.clear();
     });

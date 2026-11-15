@@ -1,7 +1,7 @@
 import type { ArkanId } from '../combat/types';
 import type { MissionId } from '../combat/BattleSession';
 import { ARKANA_SPECIES, instanceId, isArkanId, startingSkills, type OwnedArkana, type SkillId } from './ArkanaCatalog';
-import { LESSON_IDS, getLesson, isLessonId, lessonActors, type LessonId, type CampaignAction, type CampaignDialog, type QuestCompletion } from './WorldQuests';
+import { LESSON_IDS, getLesson, isLessonId, lessonActors, type LessonId, type CampaignAction, type CampaignDialog, type QuestCompletion, type QuestFollowUp } from './WorldQuests';
 import { availableArkanaEncounters, encounterUnlocked } from './ArkanaEncounters';
 import { QUEST_GIVERS, QUEST_ROUTES, forestAccessible, giverLessons, isQuestGiverId, normalizeCompletions, requirementsMet, type QuestGiverId } from './QuestNetwork';
 import { REGIONS, isRegionId, type RegionId } from './WorldRegions';
@@ -57,6 +57,7 @@ export function normalizeCampaign(value: unknown, legacyIntroduction = false): C
 export class Campaign {
   private state: CampaignState;
   private active?: WorldEncounter;
+  private finishedActive?: LessonId;
   constructor(saved?: unknown, legacyIntroduction = false) { this.state = normalizeCampaign(saved, legacyIntroduction); }
   get snapshot(): CampaignState { return structuredClone(this.state); }
   get region(): RegionId { return this.state.region; }
@@ -96,7 +97,7 @@ export class Campaign {
     else return 'Dein Team ist voll. Nimm zuerst ein Arkana aus dem Team.';
     return `${ARKANA_SPECIES[found.speciesId].name}: Team aktualisiert.`;
   }
-  private lessonPrerequisiteError(id: LessonId): string | undefined {
+  private lessonPrerequisiteError(id: LessonId, requireDiscovery = true): string | undefined {
     if (!this.state.introduced) return 'Sprich zuerst mit Arkanist Eldren.';
     const route = QUEST_ROUTES[id];
     if (route.region === 'forest' && !this.forestUnlocked) return 'Der Steinrutsch versperrt den Wald. Löse Miras Gebietsaufgabe „Die Runenwinde am Steinrutsch“.';
@@ -105,7 +106,7 @@ export class Campaign {
       return `Voraussetzung: ${all.join(', ')}${route.any && !route.any.some((prior) => this.state.completed.includes(prior)) ? `${all.length ? '; zusätzlich ' : ''}eine dieser Aufgaben: ${route.any.map((prior) => getLesson(prior).title).join(' oder ')}` : ''}.`;
     }
     if (route.region !== this.region) return `Reise zuerst in das Gebiet ${REGIONS[route.region].name}.`;
-    if (!this.state.discovered.includes(id)) return `Entdecke diese Aufgabe bei ${QUEST_GIVERS[route.giver].name} in der Spielwelt.`;
+    if (requireDiscovery && !this.state.discovered.includes(id)) return `Entdecke diese Aufgabe bei ${QUEST_GIVERS[route.giver].name} in der Spielwelt.`;
     if (!this.has('glutling')) return 'Finde zuerst Glutling am westlichen Akademieweg. Sprich es dort an und wähle „In Sammlung aufnehmen“.';
     if (lessonActors(getLesson(id)).includes('felsbock') && !this.has('felsbock')) return 'Finde Felsbock am geräumten Ostpass im Tal und nimm es in deine Sammlung auf.';
     if (lessonActors(getLesson(id)).includes('moosling') && !this.has('moosling')) return 'Finde zuerst Moosling im südöstlichen Hain. Sprich es dort an und wähle „In Sammlung aufnehmen“.';
@@ -138,6 +139,7 @@ export class Campaign {
     const actors = lessonActors(lesson);
     const skills = Object.fromEntries(actors.map((actor) => [actor, this.state.owned.find((item) => item.speciesId === actor)!.learned.filter((skill) => lesson.allowed.includes(skill))]));
     this.active = { kind: 'lesson', lesson: id, team: [...actors], skills };
+    this.finishedActive = undefined;
     return structuredClone(this.active);
   }
   beginTraining(mission: MissionId, team: readonly ArkanId[]): WorldEncounter | string {
@@ -147,6 +149,7 @@ export class Campaign {
     if (team.length === 3 && this.teamLimit < 3) return 'Den dritten Teamplatz erhältst du nach Miras Koordinationsquest „Felsbock hält die Stellung“.';
     if (team.some((id) => !this.has(id))) return 'Du kannst nur gesammelte Arkana zum Training mitnehmen.';
     this.active = { kind: 'training', mission, team: [...team], skills: Object.fromEntries(team.map((id) => [id, [...ARKANA_SPECIES[id].supported]])) };
+    this.finishedActive = undefined;
     return structuredClone(this.active);
   }
   completeMission(id: LessonId): string | undefined {
@@ -157,10 +160,29 @@ export class Campaign {
     if (this.active?.kind !== 'lesson' || this.active.lesson !== id) return;
     const repeated = this.state.completed.includes(id);
     this.completeMission(id);
+    this.finishedActive = id;
     const quest = getLesson(id);
-    return { lesson: id, title: quest.title, text: quest.reward, nextObjective: this.objective, repeated };
+    return { lesson: id, title: quest.title, text: quest.reward, nextObjective: this.objective, repeated, followUps: this.followUpQuests(id) };
   }
-  leaveMission(): void { this.active = undefined; }
+  /** The current giver can offer other ready quests without another world interaction. */
+  followUpQuests(id: LessonId): QuestFollowUp[] {
+    if (this.active?.kind !== 'lesson' || this.active.lesson !== id || this.finishedActive !== id || !this.state.completed.includes(id)) return [];
+    const directlyFollows = (next: LessonId): number => Number(QUEST_ROUTES[next].all.includes(id) || Boolean(QUEST_ROUTES[next].any?.includes(id)));
+    return giverLessons(QUEST_ROUTES[id].giver)
+      .filter((next) => !this.state.completed.includes(next) && !this.lessonPrerequisiteError(next, false))
+      .sort((first, second) => directlyFollows(second) - directlyFollows(first))
+      .map((next) => ({ lesson: next, title: getLesson(next).title }));
+  }
+  continueMission(id: LessonId): WorldEncounter | string {
+    if (this.active?.kind !== 'lesson' || !this.followUpQuests(this.active.lesson).some((quest) => quest.lesson === id)) return 'Diese Folgequest ist hier noch nicht verfügbar. Dein aktueller Abschluss bleibt erhalten.';
+    const previous = this.snapshot; const active = this.active; const finished = this.finishedActive;
+    this.state.discovered = [...new Set([...this.state.discovered, id])];
+    this.active = undefined;
+    const encounter = this.prepareMission(id);
+    if (typeof encounter === 'string') { this.state = previous; this.active = active; this.finishedActive = finished; }
+    return encounter;
+  }
+  leaveMission(): void { this.active = undefined; this.finishedActive = undefined; }
   apply(action: CampaignAction): string {
     if (this.active) return 'Beende zuerst die aktuelle Begegnung.';
     if (action === 'travel-forest' || action === 'travel-valley') {
