@@ -28,6 +28,10 @@ describe('Echte Blockly-Verbindungen', () => {
     expect(fire).toContain('cm_ignite'); expect(fire).toContain('Glutstoß'); expect(fire).not.toContain('cm_healing_moss');
     expect(nature).toContain('cm_healing_moss'); expect(nature).toContain('cm_bark_guard'); expect(nature).toContain('cm_vine_snare'); expect(nature).toContain('Rankenhieb'); expect(nature).not.toContain('cm_ignite');
     expect(nature).toContain('cm_if_injured'); expect(fire).toContain('cm_if_burning');
+    const categories = (snapToolbox('moosling', 0, lesson.allowed) as Blockly.utils.toolbox.ToolboxInfo).contents;
+    const combat = categories.find((category) => category.kind === 'category' && 'name' in category && category.name === 'Kampf');
+    expect(JSON.stringify(combat)).toContain('cm_healing_moss');
+    expect(categories.some((category) => category.kind === 'category' && 'name' in category && category.name === 'Heilung')).toBe(false);
     for (const actor of ['glutling', 'moosling'] as const) {
       const workspace = new Blockly.Workspace();
       try {

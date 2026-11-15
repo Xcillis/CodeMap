@@ -209,7 +209,7 @@ describe('Editorzustand und Arkan-Zuordnung', () => {
     expect(document.querySelector('[data-command="attack"] strong')?.textContent).toBe('Glutstoß');
     expect(document.querySelector('[data-command="ignite"]')).not.toBeNull(); expect(document.getElementById('category-healing')).toBeNull();
     click('select-moosling'); click('category-combat'); expect(document.querySelector('[data-command="attack"] strong')?.textContent).toBe('Rankenhieb');
-    expect(document.querySelector('[data-command="ignite"]')).toBeNull(); click('category-healing');
+    expect(document.querySelector('[data-command="ignite"]')).toBeNull(); expect(document.getElementById('category-healing')).toBeNull();
     expect(document.querySelector('[data-command="healingMoss"] code')?.textContent).toBe('moosling.healingMoss()');
     const session = new LessonSession(lesson, lesson.allowed); session.execute(QUEST_SOLUTIONS[lesson.id], true);
     const guard = session.frames.find((frame) => frame.action === 'BARK_GUARD')!;
