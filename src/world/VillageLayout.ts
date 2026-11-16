@@ -5,9 +5,9 @@ import type { Obstacle } from './ValleyLayout';
 
 export interface Furniture extends MapPoint { frame: 'table' | 'bookshelf' | 'bed' | 'workbench'; width: number; height: number }
 export const ROOM_FURNITURE: Record<InteriorId, readonly Furniture[]> = {
-  inn: [{ frame: 'table', x: 290, y: 410, width: 160, height: 135 }, { frame: 'table', x: 680, y: 480, width: 150, height: 125 }, { frame: 'bed', x: 210, y: 240, width: 100, height: 140 }, { frame: 'bookshelf', x: 750, y: 250, width: 125, height: 160 }],
-  workshop: [{ frame: 'workbench', x: 290, y: 300, width: 220, height: 155 }, { frame: 'workbench', x: 720, y: 490, width: 170, height: 120 }, { frame: 'bookshelf', x: 740, y: 250, width: 125, height: 160 }],
-  library: [{ frame: 'bookshelf', x: 220, y: 250, width: 135, height: 170 }, { frame: 'bookshelf', x: 420, y: 250, width: 135, height: 170 }, { frame: 'bookshelf', x: 740, y: 250, width: 135, height: 170 }, { frame: 'table', x: 300, y: 465, width: 170, height: 140 }],
+  inn: [{ frame: 'table', x: 290, y: 410, width: 88, height: 74 }, { frame: 'table', x: 680, y: 480, width: 83, height: 69 }, { frame: 'bed', x: 210, y: 240, width: 100, height: 140 }, { frame: 'bookshelf', x: 750, y: 250, width: 78, height: 100 }],
+  workshop: [{ frame: 'workbench', x: 290, y: 300, width: 130, height: 92 }, { frame: 'workbench', x: 720, y: 490, width: 102, height: 72 }, { frame: 'bookshelf', x: 740, y: 250, width: 78, height: 100 }],
+  library: [{ frame: 'bookshelf', x: 220, y: 250, width: 81, height: 102 }, { frame: 'bookshelf', x: 420, y: 250, width: 81, height: 102 }, { frame: 'bookshelf', x: 740, y: 250, width: 81, height: 102 }, { frame: 'table', x: 300, y: 465, width: 94, height: 77 }],
 };
 export const VILLAGE_PROPS = [
   { frame: 'well', x: 1630, y: 1080, width: 125, height: 145 },

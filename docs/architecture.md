@@ -401,6 +401,8 @@ Tests prüfen gerundete Wege mit vollem Spielerfreiraum, alle Polygonränder inn
 
 ## ADR 042 – Auenquell, Hauskarten und persistenter Aufenthaltsort
 
+Maßstabskorrektur nach den ersten Spielansichten: Tischgruppen sind rund 45 %, Werkbänke rund 40 % und Bücherregale rund 40 % kleiner. Die sichtbaren Höhen von 69–92 Pixeln für Tische/Werkbänke und 100–102 Pixeln für Regale orientieren sich an der 64 Pixel hohen Spielfigur. Fußpunkte bleiben fest; `roomObstacles` leitet die verkleinerten Kollisionen weiterhin aus denselben Möbelmaßen ab.
+
 `RegionId` erhält das dritte Außengebiet `village` mit derselben Fläche wie der Wald. Ein Reisestein am bereits freigehaltenen östlichen Waldweg verbindet beide Gebiete. Das Dorf verlangt keine zusätzliche Lernquest; die vorhandene Waldzugangssperre bleibt Voraussetzung für den Zugang aus gültigen Spielständen. Die Rückreise landet am Dorfabzweig im Osten des Waldes statt am Talzugang im Westen.
 
 `VillagePlaces` katalogisiert acht Gebäude, drei Innenraum-IDs, vier Bewohner und reine Funktionen für Kartengröße, Startposition, Ortsidentität und Übergangsankunft. Die langlebige `Campaign` speichert den Außenbereich und optional einen validierten Innenraum. Ungültige oder gebietsfremde Innenräume werden beim Laden verworfen; ein unzulässig gespeicherter Wald-/Dorfzugang fällt ins Tal zurück. Bestehende Version-2-Spielstände ohne Innenraum behalten ihr Format und ihre Inhalte. Hausbesuche vergeben weder Fähigkeiten noch Abschlüsse. Reisen werden während laufender Begegnungen abgewehrt; entfernte Lernquests und Training können nicht aus einem Haus gestartet werden.
