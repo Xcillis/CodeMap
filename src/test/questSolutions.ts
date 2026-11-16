@@ -10,7 +10,7 @@ export const QUEST_SOLUTIONS: Record<LessonId, ProgramSources> = {
   'q07-moosling': { moosling: 'repeat(2, () => { moosling.moveRight(); }); repeat(3, () => { moosling.attack(); });' },
   'q08-team': { moosling: 'repeat(2, () => { moosling.moveRight(); }); repeat(2, () => { moosling.attack(); });', glutling: 'repeat(3, () => { glutling.moveRight(); }); repeat(2, () => { glutling.attack(); });' },
   'q09-schachtelpfad': { glutling: 'repeat(3, () => { repeat(2, () => { glutling.moveRight(); }); glutling.moveUp(); });' },
-  'q10-schachtelkampf': { glutling: 'repeat(2, () => { repeat(2, () => { glutling.attack(); }); });' },
+  'q10-schachtelkampf': { glutling: 'repeat(2, () => { repeat(2, () => { glutling.moveRight(); }); glutling.moveLeft(); glutling.moveLeft(); glutling.moveUp(); });' },
   'q11-schleifenwache': { glutling: 'repeat(2, () => { glutling.moveRight(); }); repeat(3, () => { glutling.attack(); });' },
   'q12-steinrutsch': { glutling: 'repeat(2, () => { repeat(2, () => { glutling.moveRight(); }); glutling.moveUp(); });' },
   'q13-lichtpfad': { glutling: 'repeat(4, () => { if (glutling.pathRightClear) { glutling.moveRight(); } else { glutling.moveUp(); } });' },

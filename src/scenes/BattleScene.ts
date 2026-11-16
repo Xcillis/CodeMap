@@ -13,6 +13,7 @@ import { isAbility } from '../combat/Abilities';
 import { ART_KEYS } from '../art/ArtCatalog';
 import { characterImage, registerArtFrames } from '../art/ArtSprites';
 import { motionSprite, playMotion, registerMotion } from '../art/MotionSprites';
+import { runeProgress } from '../combat/PuzzlePresentation';
 
 const TILE = 72;
 const GRID_START_X = 110;
@@ -35,6 +36,7 @@ export class BattleScene extends Phaser.Scene {
   private heading!: Phaser.GameObjects.Text;
   private subtitle!: Phaser.GameObjects.Text;
   private goalLabel!: Phaser.GameObjects.Text;
+  private puzzleLabels!: Phaser.GameObjects.Container;
   private encounter: WorldEncounter = { kind: 'training', mission: 1, team: ['moosling'], skills: { moosling: ARKANA_SPECIES.moosling.supported } };
   private readonly onStep = (sources: ProgramSources) => this.execute(sources);
   private readonly onRunProgram = (sources: ProgramSources) => this.execute(sources, true);
@@ -62,6 +64,7 @@ export class BattleScene extends Phaser.Scene {
     if (this.textures.exists(ART_KEYS.groundTile)) this.add.tileSprite(GRID_START_X - 8, GRID_START_Y - 8, TILE * 7 + 16, TILE * 7 + 16, ART_KEYS.groundTile).setOrigin(0).setTileScale(1.25).setTint(0x779a85).setDepth(-1);
     this.actors = this.add.container();
     this.effects = this.add.container().setDepth(20);
+    this.puzzleLabels = this.add.container().setDepth(11);
     this.heading = this.add.text(GRID_START_X, 52, '', { fontFamily: 'Georgia, serif', fontSize: '30px', color: '#fff0bd' });
     this.subtitle = this.add.text(GRID_START_X, 88, '', { fontSize: '16px', color: '#b8d8cf' });
     this.goalLabel = this.add.text(0, 0, 'Ziel', { fontSize: '13px', color: '#fff2b0', stroke: '#142c35', strokeThickness: 3 }).setOrigin(.5).setDepth(10).setVisible(false);
@@ -138,6 +141,9 @@ export class BattleScene extends Phaser.Scene {
   private render(state: Readonly<EncounterState>): void {
     const active = this.session instanceof LessonSession && this.session.lesson.kind === 'combat' && Boolean(this.session.lesson.adaptiveTrials?.length);
     if (state.lessonTrial) this.subtitle.setText(`Situation ${state.lessonTrial.current}/${state.lessonTrial.total} · ${state.lessonTrial.passed} geschafft · ${active ? 'Aktiver Wächter' : 'Ein Entscheidungsschritt'}`);
+    const runes = runeProgress(state);
+    if (runes) this.subtitle.setText(`Runenfeld · ${runes.activated}/${runes.total} Runen leuchten · innen Felder, außen Reihen`);
+    this.puzzleLabels.removeAll(true);
     this.grid.clear();
     for (let y = 0; y < 7; y += 1) {
       for (let x = 0; x < 7; x += 1) {
@@ -153,8 +159,17 @@ export class BattleScene extends Phaser.Scene {
         this.grid.lineStyle(3, 0xb4c2b7).lineBetween(x + 18, y + 20, x + TILE - 20, y + TILE - 20);
       }
       const x = GRID_START_X + state.goal.x * TILE + TILE / 2; const y = GRID_START_Y + state.goal.y * TILE + TILE / 2;
-      this.grid.fillStyle(0xf6d96d).fillCircle(x, y, 12).lineStyle(3, 0xffe998).strokeCircle(x, y, 27);
-      this.goalLabel.setPosition(x, y + 33);
+      const ready = !runes || runes.activated === runes.total;
+      this.grid.fillStyle(ready ? 0xf6d96d : 0x78817b).fillCircle(x, y, 12).lineStyle(3, 0xffe998).strokeCircle(x, y, 27);
+      this.goalLabel.setText(ready ? 'Ziel' : 'Erst alle blauen Runen').setPosition(x, y + 33);
+      for (const rune of state.runes ?? []) {
+        const rx = GRID_START_X + rune.x * TILE + TILE / 2; const ry = GRID_START_Y + rune.y * TILE + TILE / 2;
+        this.grid.fillStyle(rune.activated ? 0x9fe78e : 0x78cbe6, .25).fillRoundedRect(rx - 30, ry - 30, 60, 60, 8);
+        this.grid.fillStyle(rune.activated ? 0xa7eb94 : 0x78cbe6).fillCircle(rx, ry, 12).lineStyle(2, 0xe9ffde).strokeCircle(rx, ry, 19);
+        this.puzzleLabels.add(this.add.text(rx, ry, rune.activated ? '✓' : '◇', { fontSize: '17px', color: '#17393b' }).setOrigin(.5));
+      }
+      runes?.rows.forEach((row, index) => this.puzzleLabels.add(this.add.text(GRID_START_X + TILE * 4 + 7, GRID_START_Y + row.y * TILE + TILE / 2,
+        `Reihe ${index + 1} · ${row.activated}/${row.total}`, { fontSize: '14px', color: '#e7f7d9', stroke: '#142c35', strokeThickness: 3 }).setOrigin(0, .5)));
     }
     this.tweens.killAll();
     this.effects.removeAll(true);

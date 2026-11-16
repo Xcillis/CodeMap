@@ -86,6 +86,7 @@ export interface PuzzleState extends Omit<BattleState, 'enemy' | 'companion'> {
   companion?: undefined;
   goal: GridPosition;
   walls: GridPosition[];
+  runes?: (GridPosition & { activated: boolean })[];
 }
 export type EncounterState = BattleState | PuzzleState;
 

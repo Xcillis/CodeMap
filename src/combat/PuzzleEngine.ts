@@ -11,7 +11,9 @@ export class PuzzleEngine {
   reset(): void {
     const species = ARKANA_SPECIES[lessonActors(this.definition)[0]];
     this.state = { tick: 0, outcome: 'ongoing', player: { id: species.id, name: species.name, hp: species.maxHp, maxHp: species.maxHp, attackPower: species.attack, guarding: false, ...this.definition.start },
-      goal: { ...this.definition.goal }, walls: this.definition.walls.map((wall) => ({ ...wall })), log: [`${species.name} wartet auf deine Anweisungen. Die goldene Rune ist das Ziel.`] };
+      goal: { ...this.definition.goal }, walls: this.definition.walls.map((wall) => ({ ...wall })),
+      ...(this.definition.runes?.length ? { runes: this.definition.runes.map((rune) => ({ ...rune, activated: false })) } : {}),
+      log: [`${species.name} wartet auf deine Anweisungen. Die goldene Rune ist das Ziel.`] };
   }
   step(action: CombatAction): void {
     if (this.state.outcome !== 'ongoing') return;
@@ -25,8 +27,12 @@ export class PuzzleEngine {
       return;
     }
     Object.assign(this.state.player, next);
+    const rune = this.state.runes?.find((candidate) => candidate.x === next.x && candidate.y === next.y && !candidate.activated);
+    if (rune) { rune.activated = true; this.state.log.push('Eine blaue Rune beginnt zu leuchten.'); }
     if (next.x === this.state.goal.x && next.y === this.state.goal.y) {
-      this.state.outcome = 'victory'; this.state.log.push('Die goldene Rune ist erreicht.');
+      const missing = this.state.runes?.filter((candidate) => !candidate.activated).length ?? 0;
+      if (missing) this.state.log.push(`Noch ${missing} blaue Runen fehlen. Bearbeite zuerst beide Reihen.`);
+      else { this.state.outcome = 'victory'; this.state.log.push('Die goldene Rune ist erreicht.'); }
     }
   }
 }

@@ -13,6 +13,7 @@ import type { EncounterPresentation, LessonId, QuestCompletion } from '../gamepl
 import { ACTIONS, actionLabel } from '../combat/ActionCatalog';
 import { cooldownLabels, intentLabel, statusLabels } from '../combat/CombatPresentation';
 import { setLearningText } from './LearningText';
+import { runeProgress } from '../combat/PuzzlePresentation';
 import { QuestCompletionView } from './QuestCompletionView';
 import { QuestBriefingView } from './QuestBriefingView';
 import { arkanaPortrait } from './ArkanaPortrait';
@@ -315,10 +316,15 @@ export class GameUi {
   private update(state: EncounterState, feedback: string): void {
     if (state.outcome === 'ongoing') this.completion.clear();
     const trial = state.lessonTrial;
-    this.el('lesson-trial').hidden = !trial;
-    this.el('lesson-trial-summary').hidden = !trial;
+    const runes = runeProgress(state);
+    this.el('lesson-trial').hidden = !trial && !runes;
+    this.el('lesson-trial-summary').hidden = !trial && !runes;
     if (trial) this.el('lesson-trial-summary').textContent = `Situation ${trial.current}/${trial.total} · ${trial.passed}/${trial.total} geschafft`;
     if (trial) setLearningText(this.el('lesson-trial'), `Situation ${trial.current}/${trial.total}: ${trial.title}. ${trial.passed}/${trial.total} geschafft. ${trial.message}`);
+    else if (runes) {
+      this.el('lesson-trial-summary').textContent = `Runen ${runes.activated}/${runes.total}`;
+      setLearningText(this.el('lesson-trial'), `${runes.summary}. Innen bearbeitest du eine Reihe; außen wiederholst du den ganzen Reihenablauf.`);
+    }
     setLearningText(this.feedback, feedback); this.el('battle-round').textContent = String(state.tick);
     const intent = intentLabel(state); this.el('battle-intent').textContent = intent; this.el('battle-intent').hidden = !intent;
     const descriptions = [...partyMembers(state), state.enemy].filter((unit) => Boolean(unit)).flatMap((unit) => {

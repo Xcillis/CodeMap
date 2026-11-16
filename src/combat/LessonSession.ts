@@ -11,6 +11,7 @@ import { AdaptiveCombatSession } from './AdaptiveCombatSession';
 import { TeamLessonSession } from './TeamLessonSession';
 import { evaluateCondition } from './Conditions';
 import { BranchMovementProgress } from './BranchMovementProgress';
+import { RuneRowProgress } from './RuneRowProgress';
 import type { ActionFrame, ArkanId, EncounterState, ProgramSources } from './types';
 
 /** Shared quest entry point; solo rules and delegated active/team encounters use the same parser and runner. */
@@ -25,6 +26,7 @@ export class LessonSession {
   private actionFrames: ActionFrame<EncounterState>[] = [];
   private readonly repeatProgress = new RepeatProgress();
   private readonly branchProgress = new BranchMovementProgress();
+  private readonly runeRowProgress?: RuneRowProgress;
   private readonly decisions = new DecisionProgress();
   private trialIndex = 0;
   private passedTrials = 0;
@@ -35,6 +37,7 @@ export class LessonSession {
     this.actors = lessonActors(lesson); this.actor = this.actors[0];
     const skillMap: Partial<Record<ArkanId, readonly SkillId[]>> = Array.isArray(skills) ? Object.fromEntries(this.actors.map((actor) => [actor, skills])) : skills as Partial<Record<ArkanId, readonly SkillId[]>>;
     this.skills = skillMap[this.actor] ?? [];
+    if (lesson.kind === 'puzzle' && lesson.runeRowGoal) this.runeRowProgress = new RuneRowProgress(lesson.runes ?? []);
     this.engine = lesson.kind === 'puzzle' ? new PuzzleEngine(lesson) : new BattleEngine({ [this.actor]: lesson.start, konstrukt: lesson.enemy });
     if (lesson.kind === 'combat' && lesson.adaptiveTrials?.length) this.adaptive = new AdaptiveCombatSession(lesson, this.skills);
     if (lesson.kind === 'combat' && (this.actors.length >= 2 || lesson.abilityGoals?.length)) this.cooperative = new TeamLessonSession(lesson, skillMap);
@@ -45,7 +48,7 @@ export class LessonSession {
     if (this.cooperative) return this.cooperative.snapshot;
     if (this.adaptive) return this.adaptive.snapshot;
     const state: EncounterState = this.engine.snapshot;
-    if (state.outcome === 'victory' && (!this.repeatProgress.satisfies(this.lesson.repeatGoal ?? 'none') || (this.lesson.kind === 'puzzle' && this.lesson.branchGoal && !this.branchProgress.satisfied))) state.outcome = 'incomplete';
+    if (state.outcome === 'victory' && (!this.repeatProgress.satisfies(this.lesson.repeatGoal ?? 'none') || (this.runeRowProgress && !this.runeRowProgress.satisfied) || (this.lesson.kind === 'puzzle' && this.lesson.branchGoal && !this.branchProgress.satisfied))) state.outcome = 'incomplete';
     const trials = this.lesson.kind === 'combat' ? this.lesson.decisionTrials : undefined;
     if (trials?.length) {
       state.outcome = this.decisionFailure ? 'incomplete' : this.passedTrials === trials.length ? 'victory' : 'ongoing';
@@ -60,7 +63,7 @@ export class LessonSession {
     this.trialIndex = 0; this.passedTrials = 0; this.nextTrial = false; this.decisionFailure = undefined; this.decisions.clear();
     if (this.engine instanceof PuzzleEngine) this.engine.reset();
     else this.resetCombat();
-    this.runner = undefined; this.signature = ''; this.actionFrames = []; this.repeatProgress.clear(); this.branchProgress.clear();
+    this.runner = undefined; this.signature = ''; this.actionFrames = []; this.repeatProgress.clear(); this.branchProgress.clear(); this.runeRowProgress?.clear();
   }
   execute(sources: ProgramSources, full = false): string {
     if (this.cooperative) return this.cooperative.execute(sources, full);
@@ -86,6 +89,7 @@ export class LessonSession {
       if (this.engine instanceof PuzzleEngine) this.engine.step(step.action); else this.engine.runStep(step.action);
       const raw = this.engine.snapshot;
       const trace = this.runner?.lastTrace;
+      if ('goal' in before && 'goal' in raw) this.runeRowProgress?.record(before, raw, trace);
       if (before.lessonTrial) {
         this.decisionFailure = this.decisions.record(step.action, before, raw, trace);
         if (!this.decisionFailure) {
@@ -113,7 +117,8 @@ export class LessonSession {
     const state = this.snapshot;
     if (state.outcome === 'victory') return 'Questziel erreicht! Kehre zur Spielwelt zurück, um den nächsten Schritt zu erfahren.';
     if (state.lessonTrial) return `Situation ${state.lessonTrial.current}/${state.lessonTrial.total} · ${state.lessonTrial.passed} geschafft. ${state.lessonTrial.message}`;
-    if (state.outcome === 'incomplete' && this.lesson.repeatGoal === 'nested') return 'Ziel erreicht, Verschachtelungsübung noch offen: Die innere Schleife muss in mindestens zwei äußeren Durchläufen jeweils mindestens zweimal wirksam ausgeführt werden.';
+    if (state.outcome === 'incomplete' && this.runeRowProgress) return 'Alle Runen leuchten. Der gemeinsame Reihenablauf fehlt noch: Lege die innere Rechtsschleife, den Rückweg und den Reihenwechsel zusammen in eine äußere Wiederholung. So bearbeitet dieselbe innere Schleife jede neue Reihe erneut.';
+    if (state.outcome === 'incomplete' && this.lesson.repeatGoal === 'nested') return 'Rune erreicht. Die Verschachtelungsübung ist noch offen: Die innere Schleife soll die Rechtsschritte einer Stufe bearbeiten; die äußere wiederholt diese ganze Stufe mit dem Wechsel nach oben. Bei jeder neuen Stufe beginnt die innere erneut.';
     if (state.outcome === 'incomplete' && this.lesson.repeatGoal === 'effective') return 'Konstrukt ausgeschaltet, Schleifenübung noch offen: Wiederhole mindestens zwei wirksame Bewegungen oder Treffer mit derselben Schleife.';
     if (state.outcome === 'incomplete' && this.lesson.kind === 'puzzle' && this.lesson.branchGoal) return 'Rune erreicht, Entscheidungsübung noch offen: Dieselbe Weg-Abfrage muss ja und nein ergeben und jeweils die passende Bewegung auslösen.';
     if (state.outcome === 'incomplete') return this.lesson.kind === 'puzzle' && this.lesson.repeatGoal === 'movement-sequence'

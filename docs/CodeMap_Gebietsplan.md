@@ -15,7 +15,7 @@ Ein von Bergwänden eingefasstes Tal enthält die Akademie, einen westlichen Üb
 | Brann, Talpatrouille (Start `(440, 390)`) | Q11 Branns Übungswache | Q02 | Eigene Schleifeneinführung, Kampf |
 | Brann | Q14 Glutlings Feuerprobe | Q02 | Feuerfähigkeit, Brand und Abklingzeit; unabhängig von den Schleifenreihen |
 | Mira, Ostpasslager `(1280, 650)` | Q09 Miras Runentreppe | Q02 | Eigene Einführung in Schleifen und verschachtelte Schleifen, Rätsel |
-| Mira | Q10 Miras Schlagmuster | Q09 | Verschachtelte Schleifen, Folge-Kampf |
+| Mira | Q10 Miras Runenfeld | Q09 | Zwei Runenreihen mit demselben verschachtelten Reihenablauf, Folge-Rätsel |
 | Mira / Runenwinde vor dem Pass | Q12 Die Runenwinde am Steinrutsch | Q02 und **eine** aus Q03, Q09 oder Q11 | Verschachteltes Bewegungsrätsel, Gebietsfreigabe |
 
 ```mermaid
@@ -89,3 +89,5 @@ Der Rückweg ins Tal verbindet die fortgeschrittenen Waldquests mit Felsbocks Fu
 Brann läuft vom westlichen Startpunkt einen großen Rundgang über die zentrale und östliche Wiese bis in den Süden des Tals. Er hält bei Annäherung und in Dialogen an; seine Aufgaben werden an seiner aktuellen Position geöffnet. Das Tal besitzt inzwischen einen einzelnen schmalen Zugang von der Brücke zur Akademie; die früheren Wegschleifen bleiben entfernt. Der Wald behält den durchgehenden Waldboden. Die begehbaren Verbindungen, Brücke und Gebietssperren bleiben erhalten.
 
 Talas Anzeige gruppiert Q07 als Einstieg, Q08/Q15/Q16 als drei frei angeordnete Übungen und Q17 als anschließenden Rollenkampf. Die zusätzliche Feuerprobe Q14 bei Brann bleibt ausdrücklich nötig. Q20 steht als eigene spätere Dreierteam-Reihe mit Q19 bei Mira als Voraussetzung. Diese Darstellungsgruppen ändern keine Freigabe im Questgraphen.
+
+Q10 ersetzt das frühere Angriffspaar durch ein zweidimensionales Runenfeld: Das Starterprogramm bearbeitet eine Reihe. Die innere Wiederholung aktiviert die Felder; die äußere wiederholt Reihenarbeit, Rückweg und Reihenwechsel. Jede Rune wird sichtbar und nur einmal aktiviert. Erst alle Runen und das goldene Ziel gemeinsam mit einem passenden Reihen-Nachweis schließen die Quest ab. Kennung und alte Abschlüsse werden nicht gelöscht.

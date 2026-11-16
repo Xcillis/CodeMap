@@ -8,15 +8,22 @@ import { compileActionPlan, nodesToSource } from './DecisionProgram';
 import { learnedTerms } from '../gameplay/LearningTerms';
 
 describe('Verschachtelte Schleifen und bedingte Rätsel', () => {
-  it('verlangt echte innere Wiederholungen in mehreren äußeren Durchläufen', () => {
+  it('bearbeitet ganze Runenreihen mit derselben inneren Schleife in verschiedenen äußeren Durchläufen', () => {
     const lesson = getLesson('q10-schachtelkampf');
-    for (const invalid of ['glutling.attack(); glutling.attack(); glutling.attack(); glutling.attack();', 'repeat(4, () => { glutling.attack(); });', 'repeat(1, () => { repeat(4, () => { glutling.attack(); }); });', 'repeat(2, () => { repeat(2, () => {}); }); repeat(4, () => { glutling.attack(); });', 'repeat(2, () => { repeat(2, () => { glutling.moveLeft(); glutling.moveRight(); }); }); glutling.attack(); glutling.attack(); glutling.attack(); glutling.attack();']) {
-      const s = new LessonSession(lesson, lesson.allowed); expect(s.execute({ glutling: invalid }, true)).toContain('Verschachtelungsübung');
-      expect(s.snapshot).toMatchObject({ outcome: 'incomplete', enemy: { hp: 0 } }); expect(s.frames.every((f) => f.after.outcome !== 'victory')).toBe(true);
+    const row = lesson.starter;
+    for (const invalid of [`${row}\n${row}`, `repeat(1, () => { ${row}\n${row} });`,
+      'repeat(2, () => { glutling.moveRight(); glutling.moveRight(); glutling.moveLeft(); glutling.moveLeft(); glutling.moveUp(); });',
+      'repeat(2, () => { repeat(1, () => { glutling.moveRight(); }); glutling.moveRight(); glutling.moveLeft(); glutling.moveLeft(); glutling.moveUp(); });',
+      'repeat(2, () => { glutling.moveRight(); glutling.moveRight(); repeat(2, () => { glutling.moveLeft(); }); glutling.moveUp(); });',
+      `repeat(2, () => { repeat(2, () => {}); }); ${row}\n${row}`]) {
+      const s = new LessonSession(lesson, lesson.allowed); expect(s.execute({ glutling: invalid }, true)).toContain('Reihenablauf');
+      expect(s.snapshot).toMatchObject({ outcome: 'incomplete', player: { x: 1, y: 3 } });
+      if (!('runes' in s.snapshot)) throw new Error('Runenfeld erwartet');
+      expect(s.snapshot.runes?.every((rune) => rune.activated)).toBe(true); expect(s.frames.every((f) => f.after.outcome !== 'victory')).toBe(true);
     }
     const s = new LessonSession(lesson, lesson.allowed); s.execute(QUEST_SOLUTIONS[lesson.id], true); expect(s.snapshot.outcome).toBe('victory');
-    expect(s.frames.map((f) => f.trace?.loops.map((loop) => loop.iteration))).toEqual([[1, 1], [1, 2], [2, 1], [2, 2]]);
-    s.reset(); s.execute({ glutling: 'repeat(4, () => { glutling.attack(); });' }, true); expect(s.snapshot.outcome).toBe('incomplete');
+    expect(s.frames.filter((f) => f.action === 'MOVE_RIGHT').map((f) => f.trace?.loops.map((loop) => loop.iteration))).toEqual([[1, 1], [1, 2], [2, 1], [2, 2]]);
+    s.reset(); s.execute({ glutling: `${row}\n${row}` }, true); expect(s.snapshot.outcome).toBe('incomplete');
   });
   it('unterscheidet einen flachen Treppenweg vom tatsächlich verschachtelten Programm', () => {
     const lesson = getLesson('q09-schachtelpfad'); const s = new LessonSession(lesson, lesson.allowed);

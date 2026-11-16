@@ -65,6 +65,21 @@ it('ändert den DOM-Hinweis nur bei neuem Text, auch wenn identische Meldungen p
 });
 
 describe('Platz für das Programm bei allen Aufgaben', () => {
+  it('zeigt im Runenfeld Reihenfortschritt statt Gegner-LP und setzt ihn bei Neustart zurück', () => {
+    const lesson = getLesson('q10-schachtelkampf'); const session = new LessonSession(lesson, lesson.allowed);
+    gameEvents.emit('battle-opened', lessonPrograms(lesson), lesson.id, { glutling: lesson.allowed }, { title: lesson.title, mode: 'lesson', instructions: lesson.introduction, objective: lesson.objective, hints: lesson.hints });
+    gameEvents.emit('battle-updated', session.snapshot, lesson.objective);
+    expect(document.getElementById('lesson-trial')!.hidden).toBe(false);
+    expect(document.getElementById('lesson-trial-summary')!.textContent).toBe('Runen 0/4');
+    expect(document.getElementById('enemy-health-status')!.hidden).toBe(true);
+    session.execute({ glutling: lesson.starter }, true); gameEvents.emit('battle-updated', session.snapshot, 'Erste Reihe beobachtet');
+    expect(document.getElementById('lesson-trial-summary')!.textContent).toBe('Runen 2/4');
+    expect(document.getElementById('lesson-trial')!.textContent).toContain('Reihe 1: 2/2');
+    expect(document.getElementById('lesson-trial')!.textContent).toContain('Reihe 2: 0/2');
+    session.execute(QUEST_SOLUTIONS[lesson.id], true); gameEvents.emit('battle-updated', session.snapshot, 'Ziel erreicht');
+    expect(document.getElementById('lesson-trial-summary')!.textContent).toBe('Runen 4/4');
+    session.reset(); gameEvents.emit('battle-updated', session.snapshot, 'Neustart'); expect(document.getElementById('lesson-trial-summary')!.textContent).toBe('Runen 0/4');
+  });
   const details = (id: string) => document.getElementById(id) as HTMLDetailsElement;
   const openLesson = (index: number) => {
     const lesson = WORLD_QUESTS[index];

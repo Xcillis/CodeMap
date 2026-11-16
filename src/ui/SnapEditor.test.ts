@@ -59,9 +59,11 @@ describe('Echte Blockly-Verbindungen', () => {
     const workspace = new Blockly.Workspace();
     try {
       const start = workspace.newBlock('cm_start'); const outer = workspace.newBlock('cm_repeat'); outer.setFieldValue(2, 'COUNT');
-      const inner = workspace.newBlock('cm_repeat'); inner.setFieldValue(2, 'COUNT'); const attack = workspace.newBlock('cm_attack');
-      start.nextConnection!.connect(outer.previousConnection!); outer.getInput('BODY')!.connection!.connect(inner.previousConnection!); inner.getInput('BODY')!.connection!.connect(attack.previousConnection!);
-      const combat = getLesson('q10-schachtelkampf'); const session = new LessonSession(combat, combat.allowed);
+      const inner = workspace.newBlock('cm_repeat'); inner.setFieldValue(2, 'COUNT'); const right = workspace.newBlock('cm_move_right');
+      const left = workspace.newBlock('cm_move_left'); const leftAgain = workspace.newBlock('cm_move_left'); const up = workspace.newBlock('cm_move_up');
+      start.nextConnection!.connect(outer.previousConnection!); outer.getInput('BODY')!.connection!.connect(inner.previousConnection!); inner.getInput('BODY')!.connection!.connect(right.previousConnection!);
+      inner.nextConnection!.connect(left.previousConnection!); left.nextConnection!.connect(leftAgain.previousConnection!); leftAgain.nextConnection!.connect(up.previousConnection!);
+      const field = getLesson('q10-schachtelkampf'); const session = new LessonSession(field, field.allowed);
       session.execute({ glutling: nodesToSource(workspaceNodes(workspace), 'glutling') }, true); expect(session.snapshot.outcome).toBe('victory');
       const puzzle = getLesson('q13-lichtpfad');
       const source = 'repeat(4, () => { if (glutling.pathRightClear) { glutling.moveRight(); } else { glutling.moveUp(); } });';

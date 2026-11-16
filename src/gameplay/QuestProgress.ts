@@ -15,7 +15,7 @@ export const QUEST_SERIES: readonly QuestSeries[] = [
   { id: 'battle-loops', giver: 'brann', title: 'Schleifenkampf', note: 'Unabhängig von der Feuerprobe wählbar.', stages: [{ title: 'Befehle im Kampf wiederholen', quests: ['q11-schleifenwache'] }] },
   { id: 'fire', giver: 'brann', title: 'Glutlings Feuerfähigkeit', note: 'Unabhängig vom Schleifenkampf wählbar; später für Talas Rollenkampf nötig.', stages: [{ title: 'Feuer und Brandschaden', quests: ['q14-feuerprobe'] }] },
   { id: 'nested', giver: 'mira', title: 'Verschachtelte Schleifen', stages: [
-    { title: 'Verschachtelung im Rätsel', quests: ['q09-schachtelpfad'] }, { title: 'Verschachtelung im Kampf', quests: ['q10-schachtelkampf'] },
+    { title: 'Eine Stufe wiederholen', quests: ['q09-schachtelpfad'] }, { title: 'Ein Feld Reihe für Reihe bearbeiten', quests: ['q10-schachtelkampf'] },
   ] },
   { id: 'pass', giver: 'mira', title: 'Den Waldzugang öffnen', note: 'Eine Einstiegsaufgabe bei Eldren, Brann oder Mira genügt. Miras gesamte Rätselreihe ist dafür nicht nötig.', stages: [{ title: 'Den Steinrutsch räumen', quests: ['q12-steinrutsch'] }] },
   { id: 'protection', giver: 'mira', title: 'Felsbocks Schutz', note: 'Nach Talas Rollenkampf und dem Fund von Felsbock.', stages: [

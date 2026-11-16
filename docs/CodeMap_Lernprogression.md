@@ -12,7 +12,7 @@ Nach Q02 öffnen sich drei voneinander unabhängige Einstiege:
 
 - Eldren: eine Bewegung wiederholen (Q03), danach eine ganze Bewegungssequenz wiederholen (Q04).
 - Brann: Schleifen mit Bewegung und Angriff anwenden (Q11). Diese Reihe enthält ihre eigene verständliche Schleifeneinführung und verlangt Q03 nicht.
-- Mira: Schleifen in Schleifen auf einem Treppenweg erleben (Q09), danach ein verschachteltes Angriffsmuster ausführen (Q10). Q09 erklärt zunächst Wiederholung und danach Verschachtelung; Vorwissen aus Eldrens oder Branns Reihe wird nicht vorausgesetzt.
+- Mira: Schleifen in Schleifen auf einem Treppenweg erleben (Q09), danach im Runenfeld die Felder innerhalb mehrerer Reihen bearbeiten (Q10). Q09 erklärt zunächst Wiederholung und danach Verschachtelung; Vorwissen aus Eldrens oder Branns Reihe wird nicht vorausgesetzt.
 
 Die lokalen Folgequests bleiben bewusst abhängig von ihrer Einführung. Zwischen den Aufgabenreihen gibt es keine versteckte Reihenfolge. Jede Aufgabe nennt ihre tatsächlichen Voraussetzungen im Journal und im NPC-Menü.
 
@@ -62,3 +62,18 @@ Artspezifische Rätselaktionen aus der Arkana-Übersicht, Variablen, Funktionen 
 Nach Q17 wird Felsbocks Schutz bei Mira im Tal eingeführt. Die Tankrolle wird erst hier anhand des Steinpanzers erklärt. Felsbock ist nach Q12 am geräumten Pass auffindbar, muss aber selbst aufgenommen werden. Q18 lässt Steinpanzer an echten Treffern beobachten. Q19 erklärt zuerst das Übernehmen eines Treffers für Glutling und führt dann das Wort **Deckung** ein. Das Glossar erhält nach dem Abschluss ein passendes Beispiel. Erst danach ist Teamplatz 3 frei.
 
 Q20 bei Tala verbindet drei bekannte Rollen mit getrennten Programmen: Feuer-/Brandschaden, Heilung von Glutling sowie Deckung und Schaden abfangen. Einzelschritt und Gesamtprogramm müssen dieselben Wirkungen und Zustände liefern. Bloßer Sieg ohne die verlangten realen Wirkungen bleibt eine offene Übung. Der dritte Akteur erhöht weder die Zahl gegnerischer Reaktionen noch das Tempo von Zuständen und Abklingzeiten.
+
+
+## Sichtbarer Zweck der Verschachtelung in Q10
+
+Das frühere zweifache Wiederholen eines Angriffspaares erklärt den Sinn der zweiten Schleife kaum. Q10 heißt deshalb jetzt Miras Runenfeld. Zwei Reihen mit je zwei Runen machen zwei Ebenen sichtbar: Die innere Wiederholung bearbeitet Felder innerhalb einer Reihe; die äußere wiederholt den ganzen Reihenablauf einschließlich Rückweg und Wechsel nach oben.
+
+1. Vorhersagen: Welche Runen wird das vorbereitete Ein-Reihen-Programm aktivieren?
+2. Beobachten: Das Programm schrittweise ausführen; die untere Reihe leuchtet, die obere bleibt offen.
+3. Umbauen: Den ganzen Ablauf in eine äußere Wiederholung legen, während die innere weiterhin die Felder zählt.
+4. Vergleichen: Beim Beginn der zweiten Reihe startet die innere Zählung wieder bei 1. Runen- und Reihenzähler zeigen die räumliche Wirkung.
+5. Sichern: Ein neues Glossarbeispiel verbindet die beiden Ebenen nach dem Abschluss.
+
+Das Aktivieren aller Runen allein weist die geübte Struktur noch nicht nach. Für beide Reihen muss derselbe innere Schleifenblock unter derselben äußeren Schleife die neuen Runen aktivieren. Leere Schleifen, nur verschachtelte Rückwege oder eine flache Abfolge zählen nicht als dieser Reihenablauf. Die Rückbewegung darf dagegen aus einzelnen Befehlen oder einer weiteren Schleife bestehen. Die Lösung benötigt zehn Aktionen und bleibt im bisherigen Budget von zwölf.
+
+Die Runentreppe Q09 erklärt Felder und Stufen jetzt in dieser konkreten Reihenfolge. Ihre Voraussetzungen und die unabhängige Gebietsaufgabe Q12 bleiben erhalten. Vorhandene Q10-Abschlüsse werden nicht entwertet; bisherige Angriffsprogramme bleiben als Entwurf gespeichert und werden vor Ausführung im neuen Rätsel als nicht freigegebene Befehle zurückgewiesen.

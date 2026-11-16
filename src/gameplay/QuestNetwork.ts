@@ -21,7 +21,7 @@ export const QUEST_ROUTES: Record<LessonId, Route> = {
   'q03-wiederkehr': { region: 'valley', giver: 'eldren', all: ['q02-basisangriff'], role: 'Wahlreihe · Schleifenrätsel' },
   'q04-musterpfad': { region: 'valley', giver: 'eldren', all: ['q03-wiederkehr'], role: 'Folgequest · Bewegungsmuster' },
   'q09-schachtelpfad': { region: 'valley', giver: 'mira', all: ['q02-basisangriff'], role: 'Wahlreihe · Verschachtelte Schleifen' },
-  'q10-schachtelkampf': { region: 'valley', giver: 'mira', all: ['q09-schachtelpfad'], role: 'Folgequest · Verschachtelter Kampf' },
+  'q10-schachtelkampf': { region: 'valley', giver: 'mira', all: ['q09-schachtelpfad'], role: 'Folgequest · Reihen und Felder' },
   'q11-schleifenwache': { region: 'valley', giver: 'brann', all: ['q02-basisangriff'], role: 'Wahlreihe · Schleifenkampf' },
   'q12-steinrutsch': { region: 'valley', giver: 'mira', all: ['q02-basisangriff'], any: ['q03-wiederkehr', 'q09-schachtelpfad', 'q11-schleifenwache'], role: 'Gebietsaufgabe · Waldzugang' },
   'q05-aufmerksam': { region: 'forest', giver: 'lyra', all: ['q02-basisangriff'], role: 'Pflicht-Einführung · Bedingungen' },
