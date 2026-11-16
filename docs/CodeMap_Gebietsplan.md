@@ -65,7 +65,8 @@ Moosling erscheint nach Q05 im südöstlichen Waldhain `(1450, 915)`. Es wird ni
 
 ## Bedienung und Fortschritt
 
-- NPCs öffnen ein Menü mit ihren Aufgaben und Folgequests. Voraussetzungen und verfügbare Aufgaben werden ausdrücklich benannt.
+- NPCs und Journal zeigen dieselben Questreihen mit nummerierten Schritten, Fortschrittsbalken und einer nächsten verfügbaren Quest. Parallele Übungen stehen innerhalb eines gemeinsamen Schritts. Abgeschlossene Schritte sind kompakt ausklappbar und bleiben wiederholbar.
+- „Vorher abschließen“ zeigt jede Pflichtvoraussetzung sowie alternative Einstiegsaufgaben getrennt, jeweils mit Status, Questgeber und Gebiet. Ein Verweis öffnet die passende Karte im Journal; er umgeht weder Entdeckung noch Reise oder Voraussetzungen.
 - Das Journal gruppiert Tal und Wald und nennt Questgeber, Aufgabenart, Status und fehlende Voraussetzungen. Nicht zugängliche Aufgaben sind gesperrt; ein Journal-Klick umgeht keine Gebietsgrenze.
 - Ziele werden in jedem Aufgabenraum zunächst angezeigt und bleiben wieder aufklappbar. Tipps sind getrennt ausklappbar. Block- und Textmodus verwenden dieselben Freigaben und Nachweise.
 - Verschachtelte Schleifen müssen innen in mindestens zwei äußeren Durchläufen jeweils mindestens zweimal wirksam laufen. Leere Schleifen und reine Textpräsenz genügen nicht.
@@ -86,3 +87,5 @@ Felsbock erscheint nach Q12 neben dem geräumten Ostpass bei `(1260, 560)`. Es m
 Der Rückweg ins Tal verbindet die fortgeschrittenen Waldquests mit Felsbocks Fundort. Alte Spielstände behalten zwei Plätze, bis Q19 tatsächlich abgeschlossen wurde. Eine angenommene Einführung oder ein freies Training genügt dafür nicht.
 
 Brann läuft vom westlichen Startpunkt einen großen Rundgang über die zentrale und östliche Wiese bis in den Süden des Tals. Er hält bei Annäherung und in Dialogen an; seine Aufgaben werden an seiner aktuellen Position geöffnet. Das Tal besitzt inzwischen einen einzelnen schmalen Zugang von der Brücke zur Akademie; die früheren Wegschleifen bleiben entfernt. Der Wald behält den durchgehenden Waldboden. Die begehbaren Verbindungen, Brücke und Gebietssperren bleiben erhalten.
+
+Talas Anzeige gruppiert Q07 als Einstieg, Q08/Q15/Q16 als drei frei angeordnete Übungen und Q17 als anschließenden Rollenkampf. Die zusätzliche Feuerprobe Q14 bei Brann bleibt ausdrücklich nötig. Q20 steht als eigene spätere Dreierteam-Reihe mit Q19 bei Mira als Voraussetzung. Diese Darstellungsgruppen ändern keine Freigabe im Questgraphen.

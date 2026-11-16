@@ -31,6 +31,29 @@ beforeEach(() => {
 afterEach(() => { for (const [name, callback] of domListeners) document.removeEventListener(name, callback); vi.restoreAllMocks(); });
 
 describe('Sammlung und Questjournal', () => {
+  it('verlinkt eine fehlende Voraussetzung bei Brann aus Talas Fortschritt ins Journal ohne die Quest zu starten', () => {
+    campaign = new Campaign({ version: 2, worldVersion: 1, region: 'forest', introduced: true,
+      completed: ['q01-glutspur', 'q02-basisangriff', 'q11-schleifenwache', 'q12-steinrutsch', 'q05-aufmerksam', 'q07-moosling', 'q08-team', 'q15-wurzelschutz', 'q16-heilmoos'],
+      owned: [{ speciesId: 'glutling' }, { speciesId: 'moosling' }], team: [instanceId('glutling')] });
+    campaign.visitGiver('tala'); gameEvents.emit('campaign-updated', campaign.snapshot); gameEvents.emit('world-giver-open', 'tala'); const before = campaign.snapshot;
+    const action = vi.fn(); gameEvents.on('campaign-action', action);
+    const card = document.querySelector('[data-quest="q17-teamrollen"]')!;
+    const link = Array.from(card.querySelectorAll<HTMLButtonElement>('.quest-reference')).find((button) => button.textContent?.includes('Feuerprobe'))!;
+    link.click(); expect(el('world-panel-title').textContent).toBe('Questjournal');
+    expect((document.activeElement as HTMLElement).dataset.quest).toBe('q14-feuerprobe');
+    expect((document.activeElement?.closest('.quest-stage') as HTMLDetailsElement).open).toBe(true);
+    expect((el('journal-quest-q14-feuerprobe') as HTMLButtonElement).disabled).toBe(true);
+    expect(document.activeElement?.textContent).toContain('Reise zuerst'); expect(action).not.toHaveBeenCalled(); expect(campaign.snapshot).toEqual(before);
+  });
+  it('nimmt verborgene Wiederholungsbuttons abgeschlossener Reihen nicht in die Fokusbegrenzung auf', () => {
+    campaign = new Campaign({ version: 2, worldVersion: 1, region: 'forest', introduced: true, completed: LESSON_IDS,
+      owned: [{ speciesId: 'glutling' }, { speciesId: 'moosling' }, { speciesId: 'felsbock' }], team: [instanceId('glutling')] });
+    campaign.visitGiver('tala'); gameEvents.emit('campaign-updated', campaign.snapshot); gameEvents.emit('world-giver-open', 'tala');
+    const backwards = new KeyboardEvent('keydown', { key: 'Tab', shiftKey: true, bubbles: true, cancelable: true }); document.dispatchEvent(backwards);
+    expect(backwards.defaultPrevented).toBe(true); expect(document.activeElement?.tagName).toBe('SUMMARY');
+    expect(document.activeElement?.closest('[data-series]')?.getAttribute('data-series')).toBe('trio');
+    expect(document.activeElement?.textContent).toContain('Schritt 1');
+  });
   it('zeigt bei einem Questgeber nur seine Aufgabenreihe mit eigenen Voraussetzungen', () => {
     campaign = new Campaign({ version: 2, worldVersion: 1, region: 'valley', introduced: true, completed: LESSON_IDS.slice(0, 2), owned: [{ speciesId: 'glutling' }], team: [instanceId('glutling')] });
     campaign.visitGiver('mira'); gameEvents.emit('campaign-updated', campaign.snapshot); gameEvents.emit('world-giver-open', 'mira');
@@ -232,7 +255,11 @@ describe('Sammlung und Questjournal', () => {
     document.dispatchEvent(new KeyboardEvent('keydown', { key: 'j' }));
     expect(el('world-panel').hidden).toBe(false); expect(document.activeElement?.id).toBe('world-panel-close');
     const tab = new KeyboardEvent('keydown', { key: 'Tab', bubbles: true, cancelable: true });
-    document.dispatchEvent(tab); expect(tab.defaultPrevented).toBe(true);
+    document.dispatchEvent(tab); expect(tab.defaultPrevented).toBe(false); // Visible disclosure summaries remain reachable.
+    const backwards = new KeyboardEvent('keydown', { key: 'Tab', shiftKey: true, bubbles: true, cancelable: true });
+    document.dispatchEvent(backwards); expect(backwards.defaultPrevented).toBe(true); expect(document.activeElement?.tagName).toBe('SUMMARY');
+    const wrap = new KeyboardEvent('keydown', { key: 'Tab', bubbles: true, cancelable: true });
+    document.dispatchEvent(wrap); expect(wrap.defaultPrevented).toBe(true); expect(document.activeElement?.id).toBe('world-panel-close');
     document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }));
     expect(el('world-panel').hidden).toBe(true); expect(document.activeElement?.id).toBe('open-journal');
   });

@@ -10,6 +10,7 @@ import { renderAdventureControls } from './AdventureControls';
 import { renderQuestBoard } from './QuestBoardView';
 import { QUEST_GIVERS, isQuestGiverId, type QuestGiverId } from '../gameplay/QuestNetwork';
 import { REGIONS } from '../gameplay/WorldRegions';
+import type { LessonId } from '../gameplay/WorldQuests';
 
 /** Collection and journal are views; ownership and quest validation stay in Campaign. */
 export class WorldUi {
@@ -48,8 +49,8 @@ export class WorldUi {
     document.addEventListener('keydown', (event) => {
       if (event.key === 'Escape' && !this.panel.hidden) { event.preventDefault(); this.close(); return; }
       if (!this.panel.hidden && event.key === 'Tab') {
-        const buttons = Array.from(this.panel.querySelectorAll<HTMLElement>('button:not(:disabled), input:not(:disabled), select:not(:disabled), [tabindex]'))
-          .filter((element) => element.tabIndex >= 0 && !element.closest('[hidden]'));
+        const buttons = Array.from(this.panel.querySelectorAll<HTMLElement>('button:not(:disabled), input:not(:disabled), select:not(:disabled), summary, [tabindex]'))
+          .filter((element) => element.tabIndex >= 0 && this.isVisible(element));
         const first = buttons[0]; const last = buttons.at(-1);
         if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last?.focus(); }
         else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first?.focus(); }
@@ -88,7 +89,7 @@ export class WorldUi {
     const intro = this.tab === 'collection' ? `${state.owned.length} von ${Object.keys(ARKANA_SPECIES).length} Arkana-Arten gesammelt. Hier findest du ihre Eigenschaften und gelernten Fähigkeiten.`
       : this.tab === 'team' ? `${team.length} von ${this.campaign.teamLimit} Teamplätzen belegt. Die Einführung jeder Lernquest nennt das benötigte Team. Im freien Training sind Solo und Team möglich; drei Arkana erst nach Freischaltung des dritten Platzes.`
       : this.tab === 'glossary' ? `${learnedTerms(state.completed).length} Fachbegriffe gelernt. Lies Erklärungen und probiere die Beispiele mit den bereits gelernten Befehlen aus.`
-      : this.tab === 'journal' ? this.campaign.objective : this.tab === 'giver' && this.giver ? `${QUEST_GIVERS[this.giver].description} Wähle eine bereite Aufgabe. Folgequests haben eigene Voraussetzungen.` : 'Alle implementierten Befehle sind hier verfügbar. Das Training verändert weder Lernfreigaben noch Questabschlüsse. Alte Arena-Entwürfe bleiben in den entsprechenden Trainingsaufgaben erhalten.';
+      : this.tab === 'journal' ? this.campaign.objective : this.tab === 'giver' && this.giver ? `${QUEST_GIVERS[this.giver].description} Die Übersicht zeigt deinen Fortschritt und offene nächste Schritte. Übungen im selben Schritt sind frei wählbar; „Vorher abschließen“ zeigt die Voraussetzungen.` : 'Alle implementierten Befehle sind hier verfügbar. Das Training verändert weder Lernfreigaben noch Questabschlüsse. Alte Arena-Entwürfe bleiben in den entsprechenden Trainingsaufgaben erhalten.';
     setLearningText(this.el('world-panel-intro'), intro);
     this.el('character-tabs').hidden = !character;
     for (const tab of CHARACTER_TABS) {
@@ -109,7 +110,20 @@ export class WorldUi {
       return;
     }
     if (this.tab === 'training') { this.renderTraining(content); return; }
-    renderQuestBoard(content, this.campaign, (action) => { this.close(); gameEvents.emit('campaign-action', action); }, this.tab === 'giver' ? this.giver : undefined);
+    renderQuestBoard(content, this.campaign, (action) => { this.close(); gameEvents.emit('campaign-action', action); }, this.tab === 'giver' ? this.giver : undefined, (id) => this.inspectQuest(id));
+  }
+  private inspectQuest(id: LessonId): void {
+    if (this.blocked || this.panel.hidden) return;
+    this.open('journal'); const card = this.panel.querySelector<HTMLElement>(`[data-quest="${id}"]`); if (!card) return;
+    for (let parent = card.parentElement; parent && parent !== this.panel; parent = parent.parentElement) if (parent instanceof HTMLDetailsElement) parent.open = true;
+    card.focus();
+  }
+  private isVisible(element: HTMLElement): boolean {
+    if (element.closest('[hidden]')) return false;
+    for (let parent = element.parentElement; parent && parent !== this.panel; parent = parent.parentElement) {
+      if (parent instanceof HTMLDetailsElement && !parent.open && !parent.querySelector('summary')?.contains(element)) return false;
+    }
+    return true;
   }
   private changeAdventure(change: () => AdventureChange): void {
     if (this.blocked || this.panel.hidden) return;
