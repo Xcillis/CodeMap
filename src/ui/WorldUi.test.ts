@@ -129,7 +129,7 @@ describe('Sammlung und Questjournal', () => {
     campaign.visitGiver('lyra'); gameEvents.emit('campaign-updated', campaign.snapshot); click('open-journal');
     const button = el('journal-quest-q05-aufmerksam') as HTMLButtonElement;
     expect(button.disabled).toBe(false); expect(button.textContent).toBe('Glutling wählen & starten');
-    expect(el('world-panel-content').textContent).toContain('Prüfstein südlich der Akademie');
+    expect(el('world-panel-content').textContent).toContain('Lyras Prüfstein am Waldsaum');
     let action = ''; gameEvents.on('campaign-action', (value: string) => { action = value; }); button.click();
     expect(action).toBe('prepare-lesson:q05-aufmerksam'); campaign.prepareMission('q05-aufmerksam');
     gameEvents.emit('campaign-updated', campaign.snapshot); click('open-collection'); click('character-tab-glossary');

@@ -27,3 +27,10 @@ Das [Animationspaket](../public/assets/aetheria-motion-v1/README.md) enthält 96
 Die ursprünglichen PNG-Ausgaben, Prompts, Prüfsummen und Frame-Metadaten liegen bei jedem Paket. Die neuen Atlasbilder sind visuell geprüft; automatisierte Tests prüfen Grenzen, Herkunft, Cachewiederverwendung, Übergänge, reduzierte Bewegung und Aufräumen nach Gebietswechseln. Bestehende Wegprüfungen suchen weiterhin mit Spielerbreite zu allen relevanten Orten und prüfen Brücke sowie Passsperre. Gameplay und Questfreigaben werden durch den grafischen Austausch nicht geändert.
 
 Details: [Architektur](architecture.md), [Gebietsplan](CodeMap_Gebietsplan.md), [Lernprogression](CodeMap_Lernprogression.md).
+
+
+## Aetherwald v1
+
+Die neue Waldreferenz erhält eine eigene lokale Texturfamilie: vier asymmetrische Laub-/Nadelbaumvarianten, Moosfelsen, Baumstumpf, Farn, Totholz und ein schattiger Waldboden. Goldene Blattspitzen, dunkle türkisgrüne Kronen, warme Lichtungen und schmale Erdpfade verbinden das Paket mit dem Tal. [Originale, vollständige Prompts und Herkunft](../public/assets/aetheria-forest-v1/README.md) liegen im Projekt. Es wird built-in image_gen verwendet; die PNGs werden unverändert eingebunden, Frame-Metadaten schneiden die Einzelobjekte aus.
+
+Die Waldfläche ist viermal so groß wie das Akademietal. Es gibt keinen riesigen Hintergrund mit aufgemalten Figuren: Stämme und große Bodenobjekte besitzen Kollisionen, die Kronen werden anhand ihrer Fußpunkte sortiert, Figuren und Questgeber bleiben unabhängig. Das deterministische Layout vermeidet ein regelmäßiges Baumraster durch unterschiedliche Abstände, Größen und Varianten. Wege und Interaktionsflächen werden freigehalten. Sonnenflecken und dezente Strahlen werden statisch in kleine Geländeabschnitte gezeichnet; es gibt keinen zusätzlichen Effekt pro Frame. Der endgültige Browser-/FPS-Check bleibt bei fehlendem Computerzugriff offen.

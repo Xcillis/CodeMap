@@ -3,6 +3,7 @@ import { InteractionController } from './InteractionController';
 import { Campaign } from './Campaign';
 import { LESSON_IDS } from './WorldQuests';
 import { instanceId } from './ArkanaCatalog';
+import { ARKANA_ENCOUNTERS } from './ArkanaEncounters';
 
 describe('Verfügbare Weltinteraktionen', () => {
   it('bietet den späteren Fund nur bei Freischaltung an und entfernt ihn nach der Aufnahme', () => {
@@ -10,10 +11,11 @@ describe('Verfügbare Weltinteraktionen', () => {
     let campaign = new Campaign(state);
     const targets = () => campaign.availableEncounters.map((encounter) => ({ ...encounter, label: encounter.name, range: 70 }));
     const controller = new InteractionController(targets());
-    expect(controller.nearestTo(1450, 915)).toBeUndefined();
+    const moosling = ARKANA_ENCOUNTERS.find((encounter) => encounter.id === 'moosling')!;
+    expect(controller.nearestTo(moosling.x, moosling.y)).toBeUndefined();
     campaign = new Campaign({ ...state, completed: LESSON_IDS }); controller.setTargets(targets());
-    expect(controller.nearestTo(1450, 915)?.id).toBe('moosling');
-    campaign.apply('recruit-moosling'); controller.setTargets(targets()); expect(controller.nearestTo(1450, 915)).toBeUndefined();
+    expect(controller.nearestTo(moosling.x, moosling.y)?.id).toBe('moosling');
+    campaign.apply('recruit-moosling'); controller.setTargets(targets()); expect(controller.nearestTo(moosling.x, moosling.y)).toBeUndefined();
   });
   it('entfernt eine Fundbegegnung und lässt benachbarte Questorte ansprechbar', () => {
     const controller = new InteractionController([

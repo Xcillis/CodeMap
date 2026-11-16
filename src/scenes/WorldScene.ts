@@ -11,10 +11,10 @@ import { touchInput } from '../input/TouchInput';
 import { isArkanId } from '../gameplay/ArkanaCatalog';
 import type { ArkanId } from '../combat/types';
 import { QUEST_GIVERS, giverLessons, isQuestGiverId, type QuestGiverId } from '../gameplay/QuestNetwork';
-import { REGIONS, VALLEY_PASS, WORLD_SIZE } from '../gameplay/WorldRegions';
+import { REGIONS, REGION_SIZES, VALLEY_PASS } from '../gameplay/WorldRegions';
 import { VALLEY_OBSTACLES, valleyBlocked } from '../world/ValleyLayout';
 import { drawValley } from '../world/ValleyRenderer';
-import { FOREST_TREES, forestBlocked } from '../world/ForestLayout';
+import { FOREST_OBSTACLES, FOREST_TRAINING, forestBlocked } from '../world/ForestLayout';
 import { ART_KEYS, groundDepth, heroFacing, type HeroFrame } from '../art/ArtCatalog';
 import { characterImage, environmentImage, preloadArt, registerArtFrames } from '../art/ArtSprites';
 import { motionSprite, playMotion, preloadMotion, registerMotion } from '../art/MotionSprites';
@@ -23,9 +23,8 @@ import { NpcPatrol, NPC_BEHAVIORS, npcShouldPause } from '../gameplay/NpcPatrol'
 import { preloadValleyArt, registerValleyArt, valleyImage } from '../art/ValleyArt';
 import { addAcademyLights } from '../world/ValleyEffects';
 import { preloadMountainArt, registerMountainArt } from '../art/MountainArt';
-
-const WORLD_WIDTH = WORLD_SIZE.width;
-const WORLD_HEIGHT = WORLD_SIZE.height;
+import { preloadForestArt, registerForestArt } from '../art/ForestArt';
+import { drawForest } from '../world/ForestRenderer';
 
 export class WorldScene extends Phaser.Scene {
   private player!: Phaser.GameObjects.Arc;
@@ -83,14 +82,15 @@ export class WorldScene extends Phaser.Scene {
   constructor() {
     super('world');
   }
-  preload(): void { preloadArt(this); preloadMotion(this); if (this.campaign.region === 'valley') { preloadValleyArt(this); preloadMountainArt(this); } }
+  preload(): void { preloadArt(this); preloadMotion(this); if (this.campaign.region === 'valley') { preloadValleyArt(this); preloadMountainArt(this); } else preloadForestArt(this); }
 
   create(data?: { fromTravel?: boolean }): void {
-    registerArtFrames(this); registerMotion(this); if (this.campaign.region === 'valley') { registerValleyArt(this); registerMountainArt(this); } this.npcVisuals.clear(); this.playerArt = undefined; this.playerFacing = 'hero-down';
+    registerArtFrames(this); registerMotion(this); if (this.campaign.region === 'valley') { registerValleyArt(this); registerMountainArt(this); } else registerForestArt(this); this.npcVisuals.clear(); this.playerArt = undefined; this.playerFacing = 'hero-down';
     this.dialogActive = false; this.overlayActive = false; this.gateBody = undefined; this.gateRocks = undefined;
     this.encounterLabels.clear(); this.arkanaVisuals.clear();
     this.interactionHint = undefined;
-    this.physics.world.setBounds(0, 0, WORLD_WIDTH, WORLD_HEIGHT);
+    const size = REGION_SIZES[this.campaign.region];
+    this.physics.world.setBounds(0, 0, size.width, size.height);
     this.drawLandscape();
     const obstacles = this.createObstacles();
     const region = REGIONS[this.campaign.region]; const spawn = data?.fromTravel ? region.arrival : region.spawn;
@@ -98,7 +98,7 @@ export class WorldScene extends Phaser.Scene {
     this.physics.add.collider(this.player, obstacles);
     this.playerController = new PlayerController(this, this.player);
     const people = (Object.keys(QUEST_GIVERS) as QuestGiverId[]).filter((id) => QUEST_GIVERS[id].region === this.campaign.region);
-    const training = this.campaign.region === 'valley' ? { x: 1000, y: 720 } : { x: 380, y: 650 };
+    const training = this.campaign.region === 'valley' ? { x: 1000, y: 720 } : FOREST_TRAINING;
     this.fixedTargets = [...people.map((id) => ({ id: `giver:${id}`, label: QUEST_GIVERS[id].name, x: QUEST_GIVERS[id].x, y: QUEST_GIVERS[id].y, range: 75 })),
       { id: 'training', label: 'Freie Trainingsarena', ...training, range: 70 },
       { id: 'travel', label: this.campaign.region === 'valley' ? 'Zum Aetherwald reisen' : 'Ins Tal zurückreisen', ...region.exit, range: 55 },
@@ -109,7 +109,7 @@ export class WorldScene extends Phaser.Scene {
     if (this.campaign.region === 'valley') this.createWorldEncounter('landslide', 'Runenwinde · Steinrutsch', 1360, 520, 0xe1c970);
     this.interactionController = new InteractionController(this.fixedTargets);
 
-    this.cameras.main.setBounds(0, 0, WORLD_WIDTH, WORLD_HEIGHT);
+    this.cameras.main.setBounds(0, 0, size.width, size.height);
     this.cameras.main.startFollow(this.player, true, 0.12, 0.12);
     this.cameras.main.setZoom(1.12);
     gameEvents.on('dialog-closed', this.onDialogClosed);
@@ -209,7 +209,7 @@ export class WorldScene extends Phaser.Scene {
   }
 
   private drawLandscape(): void {
-    if (this.campaign.region === 'forest') { this.drawForest(); return; }
+    if (this.campaign.region === 'forest') { drawForest(this); return; }
     this.gateRocks = drawValley(this).landslide;
     this.drawBuilding(1040, 255);
   }
@@ -222,7 +222,7 @@ export class WorldScene extends Phaser.Scene {
       group.add(body);
       return body;
     };
-    if (this.campaign.region === 'forest') { for (const [x, y] of FOREST_TREES) addObstacle(x, y + 10, 30, 30); return group; }
+    if (this.campaign.region === 'forest') { for (const body of FOREST_OBSTACLES) addObstacle(body.x, body.y, body.width, body.height); return group; }
     for (const obstacle of VALLEY_OBSTACLES) addObstacle(obstacle.x, obstacle.y, obstacle.width, obstacle.height);
     this.gateBody = addObstacle(VALLEY_PASS.x, VALLEY_PASS.y, VALLEY_PASS.width, VALLEY_PASS.height);
     return group;
@@ -270,27 +270,6 @@ export class WorldScene extends Phaser.Scene {
     }
   }
 
-  private drawForest(): void {
-    const illustrated = this.textures.exists(ART_KEYS.groundTile);
-    if (illustrated) this.add.tileSprite(0, 0, 1600, 1040, ART_KEYS.groundTile).setOrigin(0).setTileScale(1.4).setTint(0x8bbd9b);
-    const ground = this.add.graphics().setDepth(.1);
-    if (!illustrated) ground.fillStyle(0x315d46).fillRect(0, 0, 1600, 1040);
-    for (const [x, y] of FOREST_TREES) this.drawTree(x, y);
-    this.drawPond(980, 145);
-    this.add.text(160, 75, 'AETHERWALD', { fontSize: '28px', color: '#d4f6d9', stroke: '#183c30', strokeThickness: 5 }).setDepth(10000);
-    this.add.text(160, 113, 'Bedingungen & Verzweigungen', { fontSize: '17px', color: '#c7decb' }).setDepth(10000);
-  }
-
-  private drawTree(x: number, y: number): void {
-    const art = environmentImage(this, 'oak', x, y + 26, 140);
-    if (art) { art.setDepth(groundDepth(y + 26)); return; }
-    const tree = this.add.graphics().setDepth(2);
-    tree.fillStyle(0x5b3d28).fillRect(x - 7, y, 14, 30);
-    tree.fillStyle(0x284f32).fillCircle(x, y - 18, 31);
-    tree.fillStyle(0x397140).fillCircle(x - 16, y - 9, 23).fillCircle(x + 17, y - 9, 22).fillCircle(x + 3, y - 36, 23);
-    tree.lineStyle(3, 0x1d3d28, 0.7).strokeCircle(x, y - 18, 31);
-  }
-
   private drawBuilding(x: number, y: number): void {
     const illustrated = valleyImage(this, 'academy', x, y + 150, 300, 310);
     const art = illustrated ?? environmentImage(this, 'academy', x, y + 150, 300, 310);
@@ -309,10 +288,4 @@ export class WorldScene extends Phaser.Scene {
     this.add.text(x, y - 178, 'Akademie von Aetheria', { fontFamily: 'Georgia, serif', fontSize: '24px', color: '#fff1be', stroke: '#283928', strokeThickness: 5 }).setOrigin(0.5).setDepth(4);
   }
 
-  private drawPond(x: number, y: number): void {
-    const pond = this.add.graphics();
-    pond.fillStyle(0x3a7893).fillEllipse(x, y, 250, 150);
-    pond.lineStyle(7, 0x89b9b0).strokeEllipse(x, y, 250, 150);
-    pond.lineStyle(2, 0xb4e4e2, 0.8).strokeEllipse(x - 22, y - 10, 100, 45);
-  }
 }

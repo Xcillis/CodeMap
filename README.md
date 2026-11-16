@@ -11,6 +11,8 @@ npm run dev
 
 Öffne die von Vite ausgegebene Adresse, normalerweise `http://localhost:5173`, in Edge oder einem anderen Browser. Auf Windows kann in PowerShell bei Bedarf `npm.cmd` verwendet werden. `npm test` prüft die Logik und UI; `npm run build` erstellt den Produktionsbuild.
 
+Der Aetherwald misst **3200 × 2080 Weltpixel** und hat damit die vierfache Fläche des Akademietals (1600 × 1040). Neue [Wald-Assets und Prompts](public/assets/aetheria-forest-v1/README.md) bilden dichte Baumgruppen, Moosfelsen, Farne, Totholz und schattigen Boden. Schmale verbundene Wege führen von Lyra am westlichen Waldsaum zu Neria auf der nordöstlichen Sonnenlichtung und Tala im südöstlichen Forscherhain. Moosling wartet nach Lyras Einführung im Mooshain. Wegweiser und beschriftete Lichtungen helfen bei der Orientierung. Bestehende Quests und Spielstände bleiben erhalten; ein Zurücksetzen ist nicht nötig.
+
 ## Vom Tal in den Wald
 
 1. **Eldren an der Talakademie** erklärt den Einstieg. Finde Glutling am westlichen Akademieweg und nimm es ausdrücklich auf.

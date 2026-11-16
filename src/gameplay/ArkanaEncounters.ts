@@ -9,7 +9,7 @@ export interface ArkanaEncounter { id: ArkanId; name: string; region: RegionId; 
 export const ARKANA_ENCOUNTERS: readonly ArkanaEncounter[] = [
   { id: 'glutling', name: 'Glutling', region: 'valley', x: 600, y: 650, color: 0xef934a },
   { id: 'felsbock', name: 'Felsbock', region: 'valley', x: 1260, y: 560, color: 0xa99b83, afterLesson: 'q12-steinrutsch' },
-  { id: 'moosling', name: 'Moosling', region: 'forest', x: 1450, y: 915, color: 0x78bc69, afterLesson: 'q05-aufmerksam' },
+  { id: 'moosling', name: 'Moosling', region: 'forest', x: 2760, y: 1730, color: 0x78bc69, afterLesson: 'q05-aufmerksam' },
 ];
 
 export function encounterUnlocked(state: CampaignState, species: ArkanId): boolean {

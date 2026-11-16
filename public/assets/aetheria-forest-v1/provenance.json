@@ -1,0 +1,20 @@
+{
+  "tool": "built-in image_gen",
+  "date": "2026-11-16",
+  "reference": "User supplied Aetherwald image, used as visual direction only",
+  "processing": "Original PNGs copied unchanged; runtime frame metadata selects sprites; floor downsampled once in Phaser to 256px.",
+  "assets": {
+    "trees.png": {
+      "sha256": "864870bcfe870f0ad98e2701ef7b047fce334402b7f0c5c9c94f9c10d7500556",
+      "alphaMin": 0
+    },
+    "props.png": {
+      "sha256": "389cbc33cba8e641ca7bd8c6808242610ab9765d8baeb3eb3b301d26fa8a7ceb",
+      "alphaMin": 0
+    },
+    "floor.png": {
+      "sha256": "bf8208fdb7fe93bc3dc95d24ce2322301551f03d5fed17f012cd06c2beb4a70d",
+      "alphaMin": 255
+    }
+  }
+}

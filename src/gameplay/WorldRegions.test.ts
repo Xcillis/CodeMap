@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { VALLEY_CLIFFS, VALLEY_PASS, REGIONS, WORLD_SIZE } from './WorldRegions';
+import { VALLEY_CLIFFS, VALLEY_PASS, REGIONS, REGION_SIZES, WORLD_SIZE } from './WorldRegions';
 import { QUEST_GIVERS, QUEST_ROUTES, normalizeCompletions } from './QuestNetwork';
 import { LESSON_IDS } from './WorldQuests';
 
@@ -13,7 +13,7 @@ describe('Getrennte und begehbare Gebiete', () => {
     expect(REGIONS.forest.arrival.x - REGIONS.forest.exit.x).toBeGreaterThan(55);
   });
   it('verteilt Questgeber innerhalb ihrer Karten und ordnet jede Aufgabe einem passenden Ort zu', () => {
-    for (const giver of Object.values(QUEST_GIVERS)) { expect(giver.x).toBeGreaterThan(70); expect(giver.x).toBeLessThan(WORLD_SIZE.width - 70); expect(giver.y).toBeGreaterThan(70); expect(giver.y).toBeLessThan(WORLD_SIZE.height - 70); }
+    for (const giver of Object.values(QUEST_GIVERS)) { const size = REGION_SIZES[giver.region]; expect(giver.x).toBeGreaterThan(70); expect(giver.x).toBeLessThan(size.width - 70); expect(giver.y).toBeGreaterThan(70); expect(giver.y).toBeLessThan(size.height - 70); }
     for (const id of LESSON_IDS) expect(QUEST_GIVERS[QUEST_ROUTES[id].giver].region).toBe(QUEST_ROUTES[id].region);
     expect(normalizeCompletions(LESSON_IDS, false)).toHaveLength(LESSON_IDS.length);
   });

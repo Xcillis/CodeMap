@@ -61,7 +61,7 @@ flowchart LR
   Q05 --> M[Moosling im Waldhain aufnehmen] --> Q07 --> Q08
 ```
 
-Moosling erscheint nach Q05 im südöstlichen Waldhain `(1450, 915)`. Es wird nicht automatisch vergeben und verschwindet nach der Aufnahme samt Interaktion. Q06 ist keine Voraussetzung für Moosling oder Nerias Rätsel. Der zweite reguläre Teamplatz wird erst bei Annahme der Q08-Einführung geöffnet.
+Moosling erscheint nach Q05 im südöstlichen Waldhain `(2760, 1730)`. Es wird nicht automatisch vergeben und verschwindet nach der Aufnahme samt Interaktion. Q06 ist keine Voraussetzung für Moosling oder Nerias Rätsel. Der zweite reguläre Teamplatz wird erst bei Annahme der Q08-Einführung geöffnet.
 
 ## Bedienung und Fortschritt
 
@@ -86,8 +86,26 @@ Felsbock erscheint nach Q12 neben dem geräumten Ostpass bei `(1260, 560)`. Es m
 
 Der Rückweg ins Tal verbindet die fortgeschrittenen Waldquests mit Felsbocks Fundort. Alte Spielstände behalten zwei Plätze, bis Q19 tatsächlich abgeschlossen wurde. Eine angenommene Einführung oder ein freies Training genügt dafür nicht.
 
-Brann läuft vom westlichen Startpunkt einen großen Rundgang über die zentrale und östliche Wiese bis in den Süden des Tals. Er hält bei Annäherung und in Dialogen an; seine Aufgaben werden an seiner aktuellen Position geöffnet. Das Tal besitzt inzwischen einen einzelnen schmalen Zugang von der Brücke zur Akademie; die früheren Wegschleifen bleiben entfernt. Der Wald behält den durchgehenden Waldboden. Die begehbaren Verbindungen, Brücke und Gebietssperren bleiben erhalten.
+Brann läuft vom westlichen Startpunkt einen großen Rundgang über die zentrale und östliche Wiese bis in den Süden des Tals. Er hält bei Annäherung und in Dialogen an; seine Aufgaben werden an seiner aktuellen Position geöffnet. Das Tal besitzt inzwischen einen einzelnen schmalen Zugang von der Brücke zur Akademie; die früheren Wegschleifen bleiben entfernt. Der Wald besitzt schattigen Boden und ein verbundenes schmales Wegenetz zwischen seinen Lichtungen. Die begehbaren Verbindungen, Brücke und Gebietssperren bleiben erhalten.
 
 Talas Anzeige gruppiert Q07 als Einstieg, Q08/Q15/Q16 als drei frei angeordnete Übungen und Q17 als anschließenden Rollenkampf. Die zusätzliche Feuerprobe Q14 bei Brann bleibt ausdrücklich nötig. Q20 steht als eigene spätere Dreierteam-Reihe mit Q19 bei Mira als Voraussetzung. Diese Darstellungsgruppen ändern keine Freigabe im Questgraphen.
 
 Q10 ersetzt das frühere Angriffspaar durch ein zweidimensionales Runenfeld: Das Starterprogramm bearbeitet eine Reihe. Die innere Wiederholung aktiviert die Felder; die äußere wiederholt Reihenarbeit, Rückweg und Reihenwechsel. Jede Rune wird sichtbar und nur einmal aktiviert. Erst alle Runen und das goldene Ziel gemeinsam mit einem passenden Reihen-Nachweis schließen die Quest ab. Kennung und alte Abschlüsse werden nicht gelöscht.
+
+
+## Großer Aetherwald nach der Waldreferenz
+
+Das Akademietal bleibt 1600 × 1040 groß. Der Wald wächst auf 3200 × 2080 Weltpixel: doppelte Breite und Höhe, vierfache Fläche. Regionseigene Kamera- und Physikgrenzen verhindern, dass die neue Fläche abgeschnitten wird. Die Fußpunktkollisionen lassen die Baumkronen optisch über die Figuren ragen.
+
+| Ort | Position | Funktion |
+| --- | --- | --- |
+| Westlicher Rückweg | 100, 1640 | Reise ins Tal, jederzeit offen |
+| Ankunft | 230, 1640 | Sicherer Start am Waldrand |
+| Lyra | 700, 1450 | Bestehende Bedingungseinführung, anschließend Wächter |
+| Trainingsstein | 1060, 1630 | Freies Training |
+| Alte Eiche | 1480, 1030 | Zentrale Orientierung und freie Lichtung |
+| Neria | 2440, 500 | Lichtpfad auf der Sonnenlichtung |
+| Tala | 2580, 1550 | Forscherhain und bestehende Teamquests |
+| Moosling | 2760, 1730 | Ausdrücklich aufzunehmen, erscheint weiterhin erst nach Q05 |
+
+Ein südlicher Pfad verbindet Eingang, Lyra, Training und Tala. Eine nordöstliche Abzweigung führt über die zentrale Lichtung zu Neria; ein weiterer Weg verbindet Neria und Tala. Dazwischen bleibt der Wald frei begehbar. Generierte Baumgruppen und größere Bodenobjekte sparen alle Wegkorridore und Interaktionsplätze aus. Die Questvoraussetzungen, Entdeckungsregeln und Reihenfolge innerhalb der Lernreihen ändern sich nicht.

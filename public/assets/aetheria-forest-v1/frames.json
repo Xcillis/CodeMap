@@ -1,0 +1,70 @@
+{
+  "trees": {
+    "file": "trees.png",
+    "width": 1254,
+    "height": 1254,
+    "frames": {
+      "oak": {
+        "x": 22,
+        "y": 35,
+        "width": 580,
+        "height": 555
+      },
+      "fir": {
+        "x": 748,
+        "y": 30,
+        "width": 415,
+        "height": 567
+      },
+      "elder": {
+        "x": 21,
+        "y": 652,
+        "width": 582,
+        "height": 573
+      },
+      "spruce": {
+        "x": 776,
+        "y": 652,
+        "width": 357,
+        "height": 578
+      }
+    }
+  },
+  "props": {
+    "file": "props.png",
+    "width": 1254,
+    "height": 1254,
+    "frames": {
+      "rock": {
+        "x": 82,
+        "y": 189,
+        "width": 492,
+        "height": 347
+      },
+      "stump": {
+        "x": 655,
+        "y": 191,
+        "width": 528,
+        "height": 363
+      },
+      "fern": {
+        "x": 53,
+        "y": 775,
+        "width": 497,
+        "height": 306
+      },
+      "log": {
+        "x": 643,
+        "y": 783,
+        "width": 549,
+        "height": 290
+      }
+    }
+  },
+  "floor": {
+    "file": "floor.png",
+    "width": 1254,
+    "height": 1254,
+    "frames": {}
+  }
+}
