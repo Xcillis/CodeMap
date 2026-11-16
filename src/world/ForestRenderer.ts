@@ -2,19 +2,16 @@ import type Phaser from 'phaser';
 import { groundDepth } from '../art/ArtCatalog';
 import { FOREST_ART, FOREST_ART_KEYS, forestImage } from '../art/ForestArt';
 import { staticLandscape } from './StaticLandscape';
-import { FOREST_CLEARINGS, FOREST_PATHS, FOREST_PROPS, FOREST_SIZE, FOREST_TREES } from './ForestLayout';
+import { FOREST_CLEARINGS, FOREST_PROPS, FOREST_SIZE, FOREST_TREES } from './ForestLayout';
+import { drawForestPaths } from './ForestPaths';
 
 /** Static ground is cached in <=512px chunks; trees share atlases and use normal camera culling. */
 export function drawForest(scene: Phaser.Scene): void {
-  const trailDots = FOREST_PATHS.flatMap((path) => path.slice(1).flatMap((b, index) => {
-    const a = path[index]; const count = Math.ceil(Math.hypot(b.x - a.x, b.y - a.y) / 6);
-    return Array.from({ length: count + 1 }, (_, step) => ({ x: a.x + (b.x - a.x) * step / count, y: a.y + (b.y - a.y) * step / count }));
-  }));
   for (let y = 0; y < FOREST_SIZE.height; y += 512) for (let x = 0; x < FOREST_SIZE.width; x += 512) {
     const width = Math.min(512, FOREST_SIZE.width - x); const height = Math.min(512, FOREST_SIZE.height - y);
     if (scene.textures.exists(FOREST_ART_KEYS.tile)) scene.add.tileSprite(x, y, width, height, FOREST_ART_KEYS.tile).setOrigin(0).setTilePosition(x, y).setDepth(0);
     else scene.add.rectangle(x, y, width, height, 0x36563b).setOrigin(0);
-    staticLandscape(scene, `forest-ground-v1-${x}-${y}`, width, height, .1, (g) => {
+    staticLandscape(scene, `forest-ground-v2-${x}-${y}`, width, height, .1, (g) => {
       g.translateCanvas(-x, -y);
       for (const area of FOREST_CLEARINGS) {
         if (Math.abs(area.x - x - width / 2) > width / 2 + area.radius * 1.3 || Math.abs(area.y - y - height / 2) > height / 2 + area.radius) continue;
@@ -25,10 +22,7 @@ export function drawForest(scene: Phaser.Scene): void {
         g.fillStyle(0xffefb0, .04).fillTriangle(area.x - 240, area.y - 400, area.x + 80, area.y + 30, area.x + 140, area.y + 20);
       }
       for (const tree of FOREST_TREES) if (tree.x >= x - 70 && tree.x < x + width + 70 && tree.y >= y - 30 && tree.y < y + height + 30) g.fillStyle(0x102c23, .25).fillEllipse(tree.x + 16, tree.y, 90, 28);
-      for (const dot of trailDots) {
-        if (dot.x < x - 20 || dot.x > x + width + 20 || dot.y < y - 20 || dot.y > y + height + 20) continue;
-        g.fillStyle(0x756847, .8).fillCircle(dot.x, dot.y, 18).fillStyle(0xb8a575).fillCircle(dot.x, dot.y, 15).fillStyle(0xd2bb82, .7).fillCircle(dot.x, dot.y, 10);
-      }
+      drawForestPaths(g, x, y, width, height);
     }).setPosition(x, y);
   }
   for (const tree of FOREST_TREES) {
