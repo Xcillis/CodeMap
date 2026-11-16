@@ -12,6 +12,7 @@ import { ACTIONS, actionLabel } from '../combat/ActionCatalog';
 import { isAbility } from '../combat/Abilities';
 import { ART_KEYS } from '../art/ArtCatalog';
 import { characterImage, registerArtFrames } from '../art/ArtSprites';
+import { motionSprite, playMotion, registerMotion } from '../art/MotionSprites';
 
 const TILE = 72;
 const GRID_START_X = 110;
@@ -22,7 +23,7 @@ export class BattleScene extends Phaser.Scene {
   private grid!: Phaser.GameObjects.Graphics;
   private actors!: Phaser.GameObjects.Container;
   private effects!: Phaser.GameObjects.Container;
-  private visuals = new Map<Combatant['id'], { root: Phaser.GameObjects.Container; marker: Phaser.GameObjects.Arc; figure: Phaser.GameObjects.Image | Phaser.GameObjects.Arc; label: Phaser.GameObjects.Text }>();
+  private visuals = new Map<Combatant['id'], { root: Phaser.GameObjects.Container; marker: Phaser.GameObjects.Arc; figure: Phaser.GameObjects.Image | Phaser.GameObjects.Sprite | Phaser.GameObjects.Arc; label: Phaser.GameObjects.Text }>();
   private currentFrame?: ActionFrame<EncounterState>;
   private playback = new Playback<ActionFrame<EncounterState>>(
     (frame, duration) => this.animateFrame(frame, duration),
@@ -54,7 +55,7 @@ export class BattleScene extends Phaser.Scene {
   }
 
   create(encounter?: WorldEncounter): void {
-    registerArtFrames(this);
+    registerArtFrames(this); registerMotion(this);
     this.encounter = encounter?.team ? encounter : { kind: 'training', mission: 1, team: ['moosling'], skills: { moosling: ARKANA_SPECIES.moosling.supported } };
     this.cameras.main.setBackgroundColor('#142c35');
     this.grid = this.add.graphics();
@@ -168,7 +169,8 @@ export class BattleScene extends Phaser.Scene {
     const y = GRID_START_Y + actor.y * TILE + TILE / 2;
     let visual = this.visuals.get(actor.id);
     if (!visual || !visual.root.scene) {
-      const art = characterImage(this, actor.id, 0, 27, 48);
+      const art = motionSprite(this, actor.id, 0, 27, 48) ?? characterImage(this, actor.id, 0, 27, 48);
+      if (art instanceof Phaser.GameObjects.Sprite) playMotion(art, actor.id, 'idle', actor.id === 'konstrukt' ? -1 : 1);
       const marker = this.add.circle(0, 0, 24, color, art ? .13 : 1).setStrokeStyle(2, 0xffffff);
       if (actor.id !== 'konstrukt') marker.setInteractive({ useHandCursor: true }).on('pointerdown', () => gameEvents.emit('arkan-selected', actor.id));
       if (art && actor.id !== 'konstrukt') art.setInteractive({ useHandCursor: true }).on('pointerdown', () => gameEvents.emit('arkan-selected', actor.id));
@@ -177,7 +179,11 @@ export class BattleScene extends Phaser.Scene {
       visual = { root, marker, figure: art ?? marker, label }; this.visuals.set(actor.id, visual);
     }
     visual.root.setPosition(x, y).setScale(1).setAlpha(actor.hp > 0 ? 1 : .3);
-    visual.figure.setScale(visual.figure instanceof Phaser.GameObjects.Image ? 48 / visual.figure.frame.height : 1).setAlpha(1);
+    if (visual.figure instanceof Phaser.GameObjects.Sprite) {
+      visual.figure.setScale(48 / visual.figure.frame.realHeight);
+      if (actor.hp > 0) playMotion(visual.figure, actor.id, 'idle'); else visual.figure.anims.stop();
+    } else visual.figure.setScale(visual.figure instanceof Phaser.GameObjects.Image ? 48 / visual.figure.frame.height : 1);
+    visual.figure.setAlpha(1);
     visual.marker.setScale(1).setAlpha(1).setStrokeStyle(actor.protection || actor.armor || actor.coveredBy ? 4 : 2, actor.protection || actor.armor || actor.coveredBy ? 0x8cc8e2 : 0xffffff);
     visual.label.setText(this.actorLabel(actor));
   }
@@ -205,7 +211,8 @@ export class BattleScene extends Phaser.Scene {
       }
       explanation = frame.effects.map((effect) => effect.text).join(' ');
     } else if (moved) {
-      this.tweens.add({ targets: visual.root, x: GRID_START_X + after.x * TILE + TILE / 2, y: GRID_START_Y + after.y * TILE + TILE / 2, duration: duration * .6, ease: 'Sine.easeInOut' });
+      if (visual.figure instanceof Phaser.GameObjects.Sprite) playMotion(visual.figure, frame.actor, 'walk', after.x - before.x);
+      this.tweens.add({ targets: visual.root, x: GRID_START_X + after.x * TILE + TILE / 2, y: GRID_START_Y + after.y * TILE + TILE / 2, duration: duration * .6, ease: 'Sine.easeInOut', onComplete: () => { if (visual.figure instanceof Phaser.GameObjects.Sprite) playMotion(visual.figure, frame.actor, 'idle'); } });
       explanation = ACTIONS[frame.action].label;
     } else if (isAbility(frame.action) || frame.action === 'WAIT') {
       explanation = frame.after.log.at(-1) ?? ACTIONS[frame.action].label;

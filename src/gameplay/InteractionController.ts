@@ -9,6 +9,10 @@ export interface InteractionTarget {
 export class InteractionController {
   constructor(private targets: readonly InteractionTarget[]) {}
   setTargets(targets: readonly InteractionTarget[]): void { this.targets = targets; }
+  moveTarget(id: string, x: number, y: number): void {
+    const target = this.targets.find((item) => item.id === id);
+    if (target) { target.x = x; target.y = y; }
+  }
 
   removeTarget(id: string): void {
     this.targets = this.targets.filter((target) => target.id !== id);

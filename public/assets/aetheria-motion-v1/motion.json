@@ -1,0 +1,945 @@
+{
+  "sheets": {
+    "hero": {
+      "file": "hero.png",
+      "width": 1536,
+      "height": 1024,
+      "frames": {
+        "hero-down-0": {
+          "x": 83,
+          "y": 21,
+          "width": 142,
+          "height": 224,
+          "canvasWidth": 147,
+          "canvasHeight": 230,
+          "offsetX": 2,
+          "offsetY": 6
+        },
+        "hero-down-1": {
+          "x": 336,
+          "y": 21,
+          "width": 143,
+          "height": 224,
+          "canvasWidth": 147,
+          "canvasHeight": 230,
+          "offsetX": 2,
+          "offsetY": 6
+        },
+        "hero-down-2": {
+          "x": 592,
+          "y": 22,
+          "width": 147,
+          "height": 226,
+          "canvasWidth": 147,
+          "canvasHeight": 230,
+          "offsetX": 0,
+          "offsetY": 4
+        },
+        "hero-down-3": {
+          "x": 838,
+          "y": 21,
+          "width": 147,
+          "height": 223,
+          "canvasWidth": 147,
+          "canvasHeight": 230,
+          "offsetX": 0,
+          "offsetY": 7
+        },
+        "hero-down-4": {
+          "x": 1089,
+          "y": 22,
+          "width": 145,
+          "height": 225,
+          "canvasWidth": 147,
+          "canvasHeight": 230,
+          "offsetX": 1,
+          "offsetY": 5
+        },
+        "hero-down-5": {
+          "x": 1342,
+          "y": 22,
+          "width": 147,
+          "height": 221,
+          "canvasWidth": 147,
+          "canvasHeight": 230,
+          "offsetX": 0,
+          "offsetY": 9
+        },
+        "hero-up-0": {
+          "x": 81,
+          "y": 269,
+          "width": 139,
+          "height": 228,
+          "canvasWidth": 147,
+          "canvasHeight": 230,
+          "offsetX": 4,
+          "offsetY": 2
+        },
+        "hero-up-1": {
+          "x": 335,
+          "y": 270,
+          "width": 138,
+          "height": 227,
+          "canvasWidth": 147,
+          "canvasHeight": 230,
+          "offsetX": 4,
+          "offsetY": 3
+        },
+        "hero-up-2": {
+          "x": 584,
+          "y": 268,
+          "width": 138,
+          "height": 230,
+          "canvasWidth": 147,
+          "canvasHeight": 230,
+          "offsetX": 4,
+          "offsetY": 0
+        },
+        "hero-up-3": {
+          "x": 836,
+          "y": 267,
+          "width": 138,
+          "height": 230,
+          "canvasWidth": 147,
+          "canvasHeight": 230,
+          "offsetX": 4,
+          "offsetY": 0
+        },
+        "hero-up-4": {
+          "x": 1091,
+          "y": 270,
+          "width": 136,
+          "height": 229,
+          "canvasWidth": 147,
+          "canvasHeight": 230,
+          "offsetX": 6,
+          "offsetY": 1
+        },
+        "hero-up-5": {
+          "x": 1340,
+          "y": 269,
+          "width": 141,
+          "height": 227,
+          "canvasWidth": 147,
+          "canvasHeight": 230,
+          "offsetX": 3,
+          "offsetY": 3
+        },
+        "hero-left-0": {
+          "x": 82,
+          "y": 523,
+          "width": 138,
+          "height": 227,
+          "canvasWidth": 147,
+          "canvasHeight": 230,
+          "offsetX": 4,
+          "offsetY": 3
+        },
+        "hero-left-1": {
+          "x": 335,
+          "y": 522,
+          "width": 138,
+          "height": 228,
+          "canvasWidth": 147,
+          "canvasHeight": 230,
+          "offsetX": 4,
+          "offsetY": 2
+        },
+        "hero-left-2": {
+          "x": 585,
+          "y": 522,
+          "width": 142,
+          "height": 227,
+          "canvasWidth": 147,
+          "canvasHeight": 230,
+          "offsetX": 2,
+          "offsetY": 3
+        },
+        "hero-left-3": {
+          "x": 837,
+          "y": 522,
+          "width": 140,
+          "height": 225,
+          "canvasWidth": 147,
+          "canvasHeight": 230,
+          "offsetX": 4,
+          "offsetY": 5
+        },
+        "hero-left-4": {
+          "x": 1089,
+          "y": 522,
+          "width": 140,
+          "height": 226,
+          "canvasWidth": 147,
+          "canvasHeight": 230,
+          "offsetX": 4,
+          "offsetY": 4
+        },
+        "hero-left-5": {
+          "x": 1343,
+          "y": 522,
+          "width": 139,
+          "height": 226,
+          "canvasWidth": 147,
+          "canvasHeight": 230,
+          "offsetX": 4,
+          "offsetY": 4
+        },
+        "hero-right-0": {
+          "x": 83,
+          "y": 776,
+          "width": 126,
+          "height": 228,
+          "canvasWidth": 147,
+          "canvasHeight": 230,
+          "offsetX": 10,
+          "offsetY": 2
+        },
+        "hero-right-1": {
+          "x": 335,
+          "y": 776,
+          "width": 129,
+          "height": 228,
+          "canvasWidth": 147,
+          "canvasHeight": 230,
+          "offsetX": 9,
+          "offsetY": 2
+        },
+        "hero-right-2": {
+          "x": 584,
+          "y": 776,
+          "width": 133,
+          "height": 228,
+          "canvasWidth": 147,
+          "canvasHeight": 230,
+          "offsetX": 7,
+          "offsetY": 2
+        },
+        "hero-right-3": {
+          "x": 836,
+          "y": 776,
+          "width": 136,
+          "height": 228,
+          "canvasWidth": 147,
+          "canvasHeight": 230,
+          "offsetX": 6,
+          "offsetY": 2
+        },
+        "hero-right-4": {
+          "x": 1093,
+          "y": 776,
+          "width": 131,
+          "height": 227,
+          "canvasWidth": 147,
+          "canvasHeight": 230,
+          "offsetX": 8,
+          "offsetY": 3
+        },
+        "hero-right-5": {
+          "x": 1345,
+          "y": 776,
+          "width": 132,
+          "height": 229,
+          "canvasWidth": 147,
+          "canvasHeight": 230,
+          "offsetX": 8,
+          "offsetY": 1
+        }
+      }
+    },
+    "npcs": {
+      "file": "npcs.png",
+      "width": 1024,
+      "height": 1536,
+      "frames": {
+        "eldren-0": {
+          "x": 62,
+          "y": 18,
+          "width": 153,
+          "height": 226,
+          "canvasWidth": 161,
+          "canvasHeight": 236,
+          "offsetX": 4,
+          "offsetY": 10
+        },
+        "eldren-1": {
+          "x": 315,
+          "y": 18,
+          "width": 153,
+          "height": 226,
+          "canvasWidth": 161,
+          "canvasHeight": 236,
+          "offsetX": 4,
+          "offsetY": 10
+        },
+        "eldren-2": {
+          "x": 569,
+          "y": 15,
+          "width": 159,
+          "height": 236,
+          "canvasWidth": 161,
+          "canvasHeight": 236,
+          "offsetX": 1,
+          "offsetY": 0
+        },
+        "eldren-3": {
+          "x": 819,
+          "y": 19,
+          "width": 161,
+          "height": 232,
+          "canvasWidth": 161,
+          "canvasHeight": 236,
+          "offsetX": 0,
+          "offsetY": 4
+        },
+        "brann-0": {
+          "x": 43,
+          "y": 268,
+          "width": 180,
+          "height": 223,
+          "canvasWidth": 183,
+          "canvasHeight": 229,
+          "offsetX": 2,
+          "offsetY": 6
+        },
+        "brann-1": {
+          "x": 299,
+          "y": 268,
+          "width": 179,
+          "height": 223,
+          "canvasWidth": 183,
+          "canvasHeight": 229,
+          "offsetX": 2,
+          "offsetY": 6
+        },
+        "brann-2": {
+          "x": 552,
+          "y": 274,
+          "width": 183,
+          "height": 229,
+          "canvasWidth": 183,
+          "canvasHeight": 229,
+          "offsetX": 0,
+          "offsetY": 0
+        },
+        "brann-3": {
+          "x": 815,
+          "y": 275,
+          "width": 178,
+          "height": 227,
+          "canvasWidth": 183,
+          "canvasHeight": 229,
+          "offsetX": 2,
+          "offsetY": 2
+        },
+        "mira-0": {
+          "x": 49,
+          "y": 520,
+          "width": 167,
+          "height": 233,
+          "canvasWidth": 172,
+          "canvasHeight": 239,
+          "offsetX": 2,
+          "offsetY": 6
+        },
+        "mira-1": {
+          "x": 306,
+          "y": 520,
+          "width": 167,
+          "height": 233,
+          "canvasWidth": 172,
+          "canvasHeight": 239,
+          "offsetX": 2,
+          "offsetY": 6
+        },
+        "mira-2": {
+          "x": 556,
+          "y": 520,
+          "width": 172,
+          "height": 239,
+          "canvasWidth": 172,
+          "canvasHeight": 239,
+          "offsetX": 0,
+          "offsetY": 0
+        },
+        "mira-3": {
+          "x": 817,
+          "y": 520,
+          "width": 164,
+          "height": 236,
+          "canvasWidth": 172,
+          "canvasHeight": 239,
+          "offsetX": 4,
+          "offsetY": 3
+        },
+        "lyra-0": {
+          "x": 47,
+          "y": 778,
+          "width": 163,
+          "height": 232,
+          "canvasWidth": 171,
+          "canvasHeight": 240,
+          "offsetX": 4,
+          "offsetY": 8
+        },
+        "lyra-1": {
+          "x": 302,
+          "y": 778,
+          "width": 163,
+          "height": 233,
+          "canvasWidth": 171,
+          "canvasHeight": 240,
+          "offsetX": 4,
+          "offsetY": 7
+        },
+        "lyra-2": {
+          "x": 558,
+          "y": 778,
+          "width": 171,
+          "height": 237,
+          "canvasWidth": 171,
+          "canvasHeight": 240,
+          "offsetX": 0,
+          "offsetY": 3
+        },
+        "lyra-3": {
+          "x": 817,
+          "y": 778,
+          "width": 158,
+          "height": 240,
+          "canvasWidth": 171,
+          "canvasHeight": 240,
+          "offsetX": 6,
+          "offsetY": 0
+        },
+        "neria-0": {
+          "x": 60,
+          "y": 1032,
+          "width": 152,
+          "height": 233,
+          "canvasWidth": 155,
+          "canvasHeight": 236,
+          "offsetX": 2,
+          "offsetY": 3
+        },
+        "neria-1": {
+          "x": 313,
+          "y": 1032,
+          "width": 155,
+          "height": 233,
+          "canvasWidth": 155,
+          "canvasHeight": 236,
+          "offsetX": 0,
+          "offsetY": 3
+        },
+        "neria-2": {
+          "x": 575,
+          "y": 1033,
+          "width": 151,
+          "height": 232,
+          "canvasWidth": 155,
+          "canvasHeight": 236,
+          "offsetX": 2,
+          "offsetY": 4
+        },
+        "neria-3": {
+          "x": 832,
+          "y": 1034,
+          "width": 142,
+          "height": 236,
+          "canvasWidth": 155,
+          "canvasHeight": 236,
+          "offsetX": 6,
+          "offsetY": 0
+        },
+        "tala-0": {
+          "x": 54,
+          "y": 1286,
+          "width": 143,
+          "height": 236,
+          "canvasWidth": 143,
+          "canvasHeight": 239,
+          "offsetX": 0,
+          "offsetY": 3
+        },
+        "tala-1": {
+          "x": 311,
+          "y": 1286,
+          "width": 142,
+          "height": 234,
+          "canvasWidth": 143,
+          "canvasHeight": 239,
+          "offsetX": 0,
+          "offsetY": 5
+        },
+        "tala-2": {
+          "x": 570,
+          "y": 1288,
+          "width": 133,
+          "height": 239,
+          "canvasWidth": 143,
+          "canvasHeight": 239,
+          "offsetX": 5,
+          "offsetY": 0
+        },
+        "tala-3": {
+          "x": 824,
+          "y": 1290,
+          "width": 136,
+          "height": 237,
+          "canvasWidth": 143,
+          "canvasHeight": 239,
+          "offsetX": 4,
+          "offsetY": 2
+        }
+      }
+    },
+    "creatures": {
+      "file": "creatures.png",
+      "width": 1536,
+      "height": 1024,
+      "frames": {
+        "moosling-0": {
+          "x": 57,
+          "y": 26,
+          "width": 173,
+          "height": 183,
+          "canvasWidth": 173,
+          "canvasHeight": 239,
+          "offsetX": 0,
+          "offsetY": 56
+        },
+        "moosling-1": {
+          "x": 314,
+          "y": 23,
+          "width": 171,
+          "height": 186,
+          "canvasWidth": 173,
+          "canvasHeight": 239,
+          "offsetX": 1,
+          "offsetY": 53
+        },
+        "moosling-2": {
+          "x": 566,
+          "y": 24,
+          "width": 170,
+          "height": 185,
+          "canvasWidth": 173,
+          "canvasHeight": 239,
+          "offsetX": 2,
+          "offsetY": 54
+        },
+        "moosling-3": {
+          "x": 820,
+          "y": 17,
+          "width": 171,
+          "height": 239,
+          "canvasWidth": 173,
+          "canvasHeight": 239,
+          "offsetX": 1,
+          "offsetY": 0
+        },
+        "moosling-4": {
+          "x": 1079,
+          "y": 31,
+          "width": 168,
+          "height": 178,
+          "canvasWidth": 173,
+          "canvasHeight": 239,
+          "offsetX": 2,
+          "offsetY": 61
+        },
+        "moosling-5": {
+          "x": 1329,
+          "y": 18,
+          "width": 172,
+          "height": 238,
+          "canvasWidth": 173,
+          "canvasHeight": 239,
+          "offsetX": 0,
+          "offsetY": 1
+        },
+        "glutling-0": {
+          "x": 50,
+          "y": 263,
+          "width": 180,
+          "height": 193,
+          "canvasWidth": 184,
+          "canvasHeight": 193,
+          "offsetX": 2,
+          "offsetY": 0
+        },
+        "glutling-1": {
+          "x": 307,
+          "y": 266,
+          "width": 175,
+          "height": 190,
+          "canvasWidth": 184,
+          "canvasHeight": 193,
+          "offsetX": 4,
+          "offsetY": 3
+        },
+        "glutling-2": {
+          "x": 558,
+          "y": 265,
+          "width": 184,
+          "height": 184,
+          "canvasWidth": 184,
+          "canvasHeight": 193,
+          "offsetX": 0,
+          "offsetY": 9
+        },
+        "glutling-3": {
+          "x": 814,
+          "y": 256,
+          "width": 176,
+          "height": 187,
+          "canvasWidth": 184,
+          "canvasHeight": 193,
+          "offsetX": 4,
+          "offsetY": 6
+        },
+        "glutling-4": {
+          "x": 1070,
+          "y": 273,
+          "width": 181,
+          "height": 182,
+          "canvasWidth": 184,
+          "canvasHeight": 193,
+          "offsetX": 2,
+          "offsetY": 11
+        },
+        "glutling-5": {
+          "x": 1325,
+          "y": 256,
+          "width": 182,
+          "height": 185,
+          "canvasWidth": 184,
+          "canvasHeight": 193,
+          "offsetX": 1,
+          "offsetY": 8
+        },
+        "felsbock-0": {
+          "x": 42,
+          "y": 518,
+          "width": 199,
+          "height": 250,
+          "canvasWidth": 205,
+          "canvasHeight": 256,
+          "offsetX": 3,
+          "offsetY": 6
+        },
+        "felsbock-1": {
+          "x": 297,
+          "y": 517,
+          "width": 202,
+          "height": 251,
+          "canvasWidth": 205,
+          "canvasHeight": 256,
+          "offsetX": 2,
+          "offsetY": 5
+        },
+        "felsbock-2": {
+          "x": 551,
+          "y": 518,
+          "width": 201,
+          "height": 250,
+          "canvasWidth": 205,
+          "canvasHeight": 256,
+          "offsetX": 2,
+          "offsetY": 6
+        },
+        "felsbock-3": {
+          "x": 809,
+          "y": 512,
+          "width": 198,
+          "height": 256,
+          "canvasWidth": 205,
+          "canvasHeight": 256,
+          "offsetX": 4,
+          "offsetY": 0
+        },
+        "felsbock-4": {
+          "x": 1061,
+          "y": 524,
+          "width": 205,
+          "height": 244,
+          "canvasWidth": 205,
+          "canvasHeight": 256,
+          "offsetX": 0,
+          "offsetY": 12
+        },
+        "felsbock-5": {
+          "x": 1325,
+          "y": 512,
+          "width": 191,
+          "height": 256,
+          "canvasWidth": 205,
+          "canvasHeight": 256,
+          "offsetX": 7,
+          "offsetY": 0
+        },
+        "konstrukt-0": {
+          "x": 27,
+          "y": 768,
+          "width": 207,
+          "height": 220,
+          "canvasWidth": 210,
+          "canvasHeight": 220,
+          "offsetX": 2,
+          "offsetY": 0
+        },
+        "konstrukt-1": {
+          "x": 285,
+          "y": 768,
+          "width": 201,
+          "height": 218,
+          "canvasWidth": 210,
+          "canvasHeight": 220,
+          "offsetX": 4,
+          "offsetY": 2
+        },
+        "konstrukt-2": {
+          "x": 539,
+          "y": 768,
+          "width": 209,
+          "height": 216,
+          "canvasWidth": 210,
+          "canvasHeight": 220,
+          "offsetX": 0,
+          "offsetY": 4
+        },
+        "konstrukt-3": {
+          "x": 797,
+          "y": 768,
+          "width": 210,
+          "height": 211,
+          "canvasWidth": 210,
+          "canvasHeight": 220,
+          "offsetX": 0,
+          "offsetY": 9
+        },
+        "konstrukt-4": {
+          "x": 1074,
+          "y": 768,
+          "width": 185,
+          "height": 219,
+          "canvasWidth": 210,
+          "canvasHeight": 220,
+          "offsetX": 12,
+          "offsetY": 1
+        },
+        "konstrukt-5": {
+          "x": 1336,
+          "y": 768,
+          "width": 160,
+          "height": 209,
+          "canvasWidth": 210,
+          "canvasHeight": 220,
+          "offsetX": 25,
+          "offsetY": 11
+        }
+      }
+    }
+  },
+  "actors": {
+    "hero-down": {
+      "sheet": "hero",
+      "height": 230,
+      "idle": [
+        "hero-down-0",
+        "hero-down-1"
+      ],
+      "walk": [
+        "hero-down-2",
+        "hero-down-3",
+        "hero-down-4",
+        "hero-down-5"
+      ],
+      "sourceFacing": "right"
+    },
+    "hero-up": {
+      "sheet": "hero",
+      "height": 230,
+      "idle": [
+        "hero-up-0",
+        "hero-up-1"
+      ],
+      "walk": [
+        "hero-up-2",
+        "hero-up-3",
+        "hero-up-4",
+        "hero-up-5"
+      ],
+      "sourceFacing": "right"
+    },
+    "hero-left": {
+      "sheet": "hero",
+      "height": 230,
+      "idle": [
+        "hero-left-0",
+        "hero-left-1"
+      ],
+      "walk": [
+        "hero-left-2",
+        "hero-left-3",
+        "hero-left-4",
+        "hero-left-5"
+      ],
+      "sourceFacing": "right"
+    },
+    "hero-right": {
+      "sheet": "hero",
+      "height": 230,
+      "idle": [
+        "hero-right-0",
+        "hero-right-1"
+      ],
+      "walk": [
+        "hero-right-2",
+        "hero-right-3",
+        "hero-right-4",
+        "hero-right-5"
+      ],
+      "sourceFacing": "right"
+    },
+    "eldren": {
+      "sheet": "npcs",
+      "height": 236,
+      "idle": [
+        "eldren-0",
+        "eldren-1"
+      ],
+      "walk": [
+        "eldren-2",
+        "eldren-3"
+      ],
+      "sourceFacing": "right"
+    },
+    "brann": {
+      "sheet": "npcs",
+      "height": 229,
+      "idle": [
+        "brann-0",
+        "brann-1"
+      ],
+      "walk": [
+        "brann-2",
+        "brann-3"
+      ],
+      "sourceFacing": "right"
+    },
+    "mira": {
+      "sheet": "npcs",
+      "height": 239,
+      "idle": [
+        "mira-0",
+        "mira-1"
+      ],
+      "walk": [
+        "mira-2",
+        "mira-3"
+      ],
+      "sourceFacing": "right"
+    },
+    "lyra": {
+      "sheet": "npcs",
+      "height": 240,
+      "idle": [
+        "lyra-0",
+        "lyra-1"
+      ],
+      "walk": [
+        "lyra-2",
+        "lyra-3"
+      ],
+      "sourceFacing": "right"
+    },
+    "neria": {
+      "sheet": "npcs",
+      "height": 236,
+      "idle": [
+        "neria-0",
+        "neria-1"
+      ],
+      "walk": [
+        "neria-2",
+        "neria-3"
+      ],
+      "sourceFacing": "right"
+    },
+    "tala": {
+      "sheet": "npcs",
+      "height": 239,
+      "idle": [
+        "tala-0",
+        "tala-1"
+      ],
+      "walk": [
+        "tala-2",
+        "tala-3"
+      ],
+      "sourceFacing": "right"
+    },
+    "moosling": {
+      "sheet": "creatures",
+      "height": 239,
+      "idle": [
+        "moosling-0",
+        "moosling-1"
+      ],
+      "walk": [
+        "moosling-2",
+        "moosling-3",
+        "moosling-4",
+        "moosling-5"
+      ],
+      "sourceFacing": "left"
+    },
+    "glutling": {
+      "sheet": "creatures",
+      "height": 193,
+      "idle": [
+        "glutling-0",
+        "glutling-1"
+      ],
+      "walk": [
+        "glutling-2",
+        "glutling-3",
+        "glutling-4",
+        "glutling-5"
+      ],
+      "sourceFacing": "left"
+    },
+    "felsbock": {
+      "sheet": "creatures",
+      "height": 256,
+      "idle": [
+        "felsbock-0",
+        "felsbock-1"
+      ],
+      "walk": [
+        "felsbock-2",
+        "felsbock-3",
+        "felsbock-4",
+        "felsbock-5"
+      ],
+      "sourceFacing": "left"
+    },
+    "konstrukt": {
+      "sheet": "creatures",
+      "height": 220,
+      "idle": [
+        "konstrukt-0",
+        "konstrukt-1"
+      ],
+      "walk": [
+        "konstrukt-2",
+        "konstrukt-3",
+        "konstrukt-4",
+        "konstrukt-5"
+      ],
+      "sourceFacing": "left"
+    }
+  }
+}

@@ -27,6 +27,8 @@ Das Tal folgt der bereitgestellten Landschaftsreferenz: begrünte Felswände, ge
 
 Der erste Stil verbindet facettierte Diorama-Umgebung, vier Blickrichtungen der Spielfigur und eigene Porträts für Questgeber und Arkana. Tal, Wald, Arena und Sammlung verwenden die gleichen Atlanten. Eine kleine Bodenkachel und zwischengespeicherte Wege halten die Darstellung leicht; die Kollisionskörper bleiben unabhängig von den Bildern. Alle PNGs liegen unter `public/assets/aetheria-v1/` und werden ohne externen Dienst geladen. Fehlen die Grafiken, bleibt der prozedurale Fallback erhalten.
 
+Die Figuren besitzen jetzt eigene Idle- und Laufbilder aus dem [Animationspaket](public/assets/aetheria-motion-v1/README.md): Der Held läuft in vier Richtungen, Arkana und Übungskonstrukt wechseln bei Bewegung in ihren Laufzyklus. Eldren, Neria und Tala bleiben mit Blinzeln und ruhigen Standposen an ihrem Platz. Brann, Mira und Lyra patrouillieren kurze Strecken mit Pausen. Sie halten bei Annäherung, Dialogen und geöffneten Menüs an; Name und Interaktionspunkt folgen ihrer Position. Die neuen Atlanten werden einmal geladen und gemeinsam verwendet. Bestehende Spielstände benötigen keinen Reset.
+
 ## Spielen und programmieren
 
 Glutlings Nahkampf heißt **Glutstoß** (`glutling.flameStrike()`), Mooslings **Rankenhieb** (`moosling.vineStrike()`). Alte `.attack()`-Programme bleiben gültig. Die Blockbeschriftung gehört zum ausgewählten Arkana; der Text nennt es ausdrücklich.

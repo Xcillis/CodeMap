@@ -1,0 +1,28 @@
+{
+  "tool": "built-in image_gen",
+  "date": "2026-11-16",
+  "reference": "../aetheria-v1/characters.png (identity and style)",
+  "assets": {
+    "hero.png": {
+      "sourceOutput": "exec-31694501-3c09-4e8d-addf-af9ba6948036.png",
+      "sha256": "853274e448f4ff539bee675352968c884876c3202ad55b1e69c6e48878a64e74",
+      "alphaMin": 0,
+      "transparentFraction": 0.7048,
+      "processing": "Unmodified PNG; alpha bounds and foot alignment stored as Phaser frame metadata."
+    },
+    "npcs.png": {
+      "sourceOutput": "exec-fb0c409e-3fdc-4261-9466-b025936b5b6a.png",
+      "sha256": "4efd2cc5c07365a1ca29f8edcb684ea49e3cda951cd1a8514bc2bd8d0556ff0f",
+      "alphaMin": 0,
+      "transparentFraction": 0.632,
+      "processing": "Unmodified PNG; alpha bounds and foot alignment stored as Phaser frame metadata."
+    },
+    "creatures.png": {
+      "sourceOutput": "exec-3b889df3-f4e3-4fca-aea8-20fe80535a2d.png",
+      "sha256": "560a3496062730a20c424cb1b4feb17e6adec4818a053f81b223df5ecd0e75ea",
+      "alphaMin": 0,
+      "transparentFraction": 0.626,
+      "processing": "Unmodified PNG; alpha bounds and foot alignment stored as Phaser frame metadata."
+    }
+  }
+}

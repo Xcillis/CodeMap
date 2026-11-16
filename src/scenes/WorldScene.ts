@@ -12,23 +12,27 @@ import { isArkanId } from '../gameplay/ArkanaCatalog';
 import type { ArkanId } from '../combat/types';
 import { QUEST_GIVERS, giverLessons, isQuestGiverId, type QuestGiverId } from '../gameplay/QuestNetwork';
 import { REGIONS, VALLEY_PASS, WORLD_SIZE } from '../gameplay/WorldRegions';
-import { VALLEY_OBSTACLES } from '../world/ValleyLayout';
+import { VALLEY_OBSTACLES, valleyBlocked } from '../world/ValleyLayout';
 import { drawValley } from '../world/ValleyRenderer';
+import { FOREST_TREES, forestBlocked } from '../world/ForestLayout';
 import { ART_KEYS, groundDepth, heroFacing, type HeroFrame } from '../art/ArtCatalog';
 import { characterImage, environmentImage, preloadArt, registerArtFrames } from '../art/ArtSprites';
+import { motionSprite, playMotion, preloadMotion, registerMotion } from '../art/MotionSprites';
+import { NpcPatrol, NPC_BEHAVIORS, npcShouldPause } from '../gameplay/NpcPatrol';
 
 const WORLD_WIDTH = WORLD_SIZE.width;
 const WORLD_HEIGHT = WORLD_SIZE.height;
 
 export class WorldScene extends Phaser.Scene {
   private player!: Phaser.GameObjects.Arc;
-  private playerArt?: Phaser.GameObjects.Image;
+  private playerArt?: Phaser.GameObjects.Image | Phaser.GameObjects.Sprite;
   private playerFacing: HeroFrame = 'hero-down';
   private playerController!: PlayerController;
   private interactionController!: InteractionController;
   private readonly campaign = new Campaign(loadProgress().campaign);
   private readonly encounterLabels = new Map<string, Phaser.GameObjects.Text>();
   private readonly arkanaVisuals = new Map<ArkanId, readonly Phaser.GameObjects.GameObject[]>();
+  private readonly npcVisuals = new Map<QuestGiverId, { root: Phaser.GameObjects.Container; art?: Phaser.GameObjects.Image | Phaser.GameObjects.Sprite; label: Phaser.GameObjects.Text; patrol: NpcPatrol }>();
   private fixedTargets: InteractionTarget[] = [];
   private gateBody?: Phaser.GameObjects.Rectangle;
   private gateRocks?: Phaser.GameObjects.Container;
@@ -75,10 +79,10 @@ export class WorldScene extends Phaser.Scene {
   constructor() {
     super('world');
   }
-  preload(): void { preloadArt(this); }
+  preload(): void { preloadArt(this); preloadMotion(this); }
 
   create(data?: { fromTravel?: boolean }): void {
-    registerArtFrames(this); this.playerArt = undefined; this.playerFacing = 'hero-down';
+    registerArtFrames(this); registerMotion(this); this.npcVisuals.clear(); this.playerArt = undefined; this.playerFacing = 'hero-down';
     this.dialogActive = false; this.overlayActive = false; this.gateBody = undefined; this.gateRocks = undefined;
     this.encounterLabels.clear(); this.arkanaVisuals.clear();
     this.interactionHint = undefined;
@@ -119,26 +123,25 @@ export class WorldScene extends Phaser.Scene {
       gameEvents.off('world-quest-victory', this.onVictory); gameEvents.off('world-returned', this.onReturned);
       gameEvents.off('quest-continue', this.onContinue);
       this.encounterLabels.clear();
-      this.arkanaVisuals.clear();
+      this.arkanaVisuals.clear(); this.npcVisuals.clear();
     });
     this.publishCampaign();
   }
 
-  update(): void {
+  update(_time: number, delta: number): void {
     const interactionPressed = this.playerController.update(!this.dialogActive && !this.overlayActive);
     if (this.playerArt) {
       const velocity = (this.player.body as Phaser.Physics.Arcade.Body).velocity;
-      const facing = heroFacing(velocity.x, velocity.y, this.playerFacing);
-      if (facing !== this.playerFacing) {
-        this.playerFacing = facing;
-        // All four directions share a fixed on-screen height and one unchanged physics footprint.
+      const facing = heroFacing(velocity.x, velocity.y, this.playerFacing); const moving = velocity.lengthSq() > 0;
+      if (this.playerArt instanceof Phaser.GameObjects.Sprite) playMotion(this.playerArt, facing, moving ? 'walk' : 'idle');
+      else if (facing !== this.playerFacing) {
         const frame = this.textures.getFrame(ART_KEYS.characters, facing);
         this.playerArt.setTexture(ART_KEYS.characters, facing).setDisplaySize(64 * frame.width / frame.height, 64);
       }
-      const moving = velocity.lengthSq() > 0;
-      const bob = moving ? Math.sin(this.time.now / 85) * 1.5 : 0;
-      this.playerArt.setPosition(this.player.x, this.player.y + 15 + bob).setDepth(groundDepth(this.player.y + 15));
+      this.playerFacing = facing;
+      this.playerArt.setPosition(this.player.x, this.player.y + 15).setDepth(groundDepth(this.player.y + 15));
     }
+    this.updateNpcs(delta);
     const nearby = this.interactionController.nearestTo(this.player.x, this.player.y);
     this.showInteractionHint(nearby && !this.dialogActive && !this.overlayActive ? `E oder Leertaste: ${nearby.label}` : '');
 
@@ -191,7 +194,7 @@ export class WorldScene extends Phaser.Scene {
     if (isArkanId(id) && this.campaign.has(id)) return;
     const quest = !isArkanId(id);
     const shadow = this.add.ellipse(x, y + 18, 32, 10, 0x142c35, .3).setDepth(4);
-    const art = isArkanId(id) ? characterImage(this, id, x, y + 18, 54) : environmentImage(this, 'runestone', x, y + 18, 32, 43);
+    const art = isArkanId(id) ? motionSprite(this, id, x, y + 18, 54) ?? characterImage(this, id, x, y + 18, 54) : environmentImage(this, 'runestone', x, y + 18, 32, 43);
     if (art) art.setDepth(groundDepth(y + 18));
     const marker = art ?? (quest
       ? this.add.rectangle(x, y, 24, 34, color).setStrokeStyle(3, 0x3d4a41).setDepth(5)
@@ -215,7 +218,7 @@ export class WorldScene extends Phaser.Scene {
       group.add(body);
       return body;
     };
-    if (this.campaign.region === 'forest') { for (const [x, y] of this.forestTrees()) addObstacle(x, y + 10, 30, 30); return group; }
+    if (this.campaign.region === 'forest') { for (const [x, y] of FOREST_TREES) addObstacle(x, y + 10, 30, 30); return group; }
     for (const obstacle of VALLEY_OBSTACLES) addObstacle(obstacle.x, obstacle.y, obstacle.width, obstacle.height);
     this.gateBody = addObstacle(VALLEY_PASS.x, VALLEY_PASS.y, VALLEY_PASS.width, VALLEY_PASS.height);
     return group;
@@ -226,25 +229,39 @@ export class WorldScene extends Phaser.Scene {
     this.physics.add.existing(player);
     const body = player.body as Phaser.Physics.Arcade.Body;
     body.setCircle(14).setOffset(2, 2).setCollideWorldBounds(true);
-    this.playerArt = characterImage(this, 'hero-down', x, y + 15);
+    this.playerArt = motionSprite(this, 'hero-down', x, y + 15) ?? characterImage(this, 'hero-down', x, y + 15);
     if (this.playerArt) { player.setAlpha(0); this.playerArt.setDepth(groundDepth(y + 15)); }
     return player;
   }
 
   private createNpc(id: QuestGiverId): void {
     const { x, y, name, color } = QUEST_GIVERS[id];
-    this.add.ellipse(x, y + 20, 27, 9, 0x1d2a25, 0.3).setDepth(4);
-    const art = characterImage(this, id, x, y + 19, 68);
-    if (art) art.setDepth(groundDepth(y + 19));
+    const root = this.add.container(x, y).setDepth(groundDepth(y + 19));
+    root.add(this.add.ellipse(0, 20, 27, 9, 0x1d2a25, .3));
+    const art = motionSprite(this, id, 0, 19, 68) ?? characterImage(this, id, 0, 19, 68);
+    if (art) root.add(art);
     else {
-      this.add.circle(x, y, 17, color).setStrokeStyle(3, 0xf2d8ff).setDepth(5);
-      this.add.triangle(x, y - 15, -14, 11, 14, 11, 0, -19, 0x40245f).setDepth(6);
+      root.add(this.add.circle(0, 0, 17, color).setStrokeStyle(3, 0xf2d8ff));
+      root.add(this.add.triangle(0, -15, -14, 11, 14, 11, 0, -19, 0x40245f));
     }
-    const label = this.add.text(x, y - 65, name, { fontFamily: 'Georgia, serif', fontSize: '16px', color: '#fff6d8', stroke: '#26352c', strokeThickness: 4, align: 'center' }).setOrigin(0.5).setDepth(10000);
+    const label = this.add.text(x, y - 65, name, { fontFamily: 'Georgia, serif', fontSize: '16px', color: '#fff6d8', stroke: '#26352c', strokeThickness: 4, align: 'center' }).setOrigin(.5).setDepth(10000);
+    this.npcVisuals.set(id, { root, art, label, patrol: new NpcPatrol({ x, y }, NPC_BEHAVIORS[id]) });
     this.encounterLabels.set(`giver:${id}`, label);
   }
 
-  private forestTrees(): number[][] { return [[170, 160], [350, 210], [500, 160], [780, 150], [950, 220], [1300, 150], [1470, 230], [240, 800], [440, 910], [650, 780], [790, 950], [1230, 940], [1500, 700], [1350, 650], [300, 350], [830, 650]]; }
+  private updateNpcs(delta: number): void {
+    for (const [id, visual] of this.npcVisuals) {
+      const current = visual.patrol.position;
+      const frozen = npcShouldPause(current, this.player, this.dialogActive || this.overlayActive);
+      const next = visual.patrol.step(delta, frozen, (point) => this.campaign.region === 'valley'
+        ? !valleyBlocked(point, this.campaign.forestUnlocked, 18)
+        : !forestBlocked(point, 18));
+      visual.root.setPosition(next.x, next.y).setDepth(groundDepth(next.y + 19)); visual.label.setPosition(next.x, next.y - 65);
+      this.interactionController.moveTarget(`giver:${id}`, next.x, next.y);
+      if (visual.art instanceof Phaser.GameObjects.Sprite) playMotion(visual.art, id, next.moving ? 'walk' : 'idle', next.dx);
+    }
+  }
+
   private drawForest(): void {
     const illustrated = this.textures.exists(ART_KEYS.groundTile);
     if (illustrated) this.add.tileSprite(0, 0, 1600, 1040, ART_KEYS.groundTile).setOrigin(0).setTileScale(1.4).setTint(0x8bbd9b);
@@ -252,7 +269,7 @@ export class WorldScene extends Phaser.Scene {
     if (!illustrated) ground.fillStyle(0x315d46).fillRect(0, 0, 1600, 1040);
     ground.lineStyle(40, 0x93865d).beginPath().moveTo(100, 520).lineTo(600, 490).lineTo(1140, 390).strokePath();
     ground.beginPath().moveTo(600, 490).lineTo(1030, 800).lineTo(1450, 915).strokePath();
-    for (const [x, y] of this.forestTrees()) this.drawTree(x, y);
+    for (const [x, y] of FOREST_TREES) this.drawTree(x, y);
     this.drawPond(980, 145);
     this.add.text(160, 75, 'AETHERWALD', { fontSize: '28px', color: '#d4f6d9', stroke: '#183c30', strokeThickness: 5 }).setDepth(10000);
     this.add.text(160, 113, 'Bedingungen & Verzweigungen', { fontSize: '17px', color: '#c7decb' }).setDepth(10000);
