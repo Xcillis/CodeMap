@@ -5,9 +5,11 @@ import type { EnvironmentFrame } from '../art/ArtCatalog';
 import { VALLEY_ART_KEYS, valleyImage } from '../art/ValleyArt';
 import { addValleySunlight, addValleyWater } from './ValleyEffects';
 import { nearAcademyPath } from './ValleyScenery';
+import { VALLEY_MOUNTAINS, mountainContains } from './ValleyMountains';
+import { mountainImage } from '../art/MountainArt';
 import { WORLD_SIZE } from '../gameplay/WorldRegions';
 import { staticLandscape } from './StaticLandscape';
-import { RIVER_WIDTH, VALLEY_BOULDERS, VALLEY_BORDERS, VALLEY_BRIDGE, VALLEY_POND, VALLEY_TREES, riverX, valleyBlocked } from './ValleyLayout';
+import { RIVER_WIDTH, VALLEY_BOULDERS, VALLEY_BRIDGE, VALLEY_POND, VALLEY_TREES, riverX, valleyBlocked } from './ValleyLayout';
 
 export function drawIllustratedValley(scene: Phaser.Scene, paintGround: (graphics: Phaser.GameObjects.Graphics) => void): Phaser.GameObjects.Container {
   const prop = (frame: EnvironmentFrame, x: number, y: number, width: number, height?: number) => valleyImage(scene, frame, x, y, width, height) ?? environmentImage(scene, frame, x, y, width, height);
@@ -19,16 +21,13 @@ export function drawIllustratedValley(scene: Phaser.Scene, paintGround: (graphic
   prop('bridge', bridge.x, bridge.y + bridge.height / 2, bridge.width, bridge.height)?.setDepth(.3);
   for (const tree of VALLEY_TREES) {
     const foot = tree.y + 22 * tree.size;
+    if (mountainContains({ x: tree.x, y: foot })) continue;
     prop(tree.kind === 'pine' ? 'pine' : 'oak', tree.x, foot, (tree.kind === 'pine' ? 92 : 132) * tree.size)?.setDepth(groundDepth(foot));
   }
   for (const rock of VALLEY_BOULDERS) prop('boulder', rock.x, rock.y + rock.height / 2, rock.width * 1.08, rock.height * 1.35)?.setDepth(groundDepth(rock.y + rock.height / 2));
-  for (const border of VALLEY_BORDERS) {
-    const vertical = border.height > border.width; const length = vertical ? border.height : border.width;
-    for (let offset = 28; offset < length; offset += 58) {
-      const x = vertical ? border.x : border.x - border.width / 2 + offset;
-      const foot = vertical ? border.y - border.height / 2 + offset + 22 : border.y + border.height / 2;
-      prop('boulder', x, foot, vertical ? border.width + 40 : 110, 85)?.setDepth(groundDepth(foot));
-    }
+  for (const area of VALLEY_MOUNTAINS) {
+    const foot = area.y + area.height / 2;
+    (mountainImage(scene, area) ?? prop('boulder', area.x, foot, area.width, area.height))?.setDepth(groundDepth(foot));
   }
   for (let y = 135; y < 950; y += 145) for (let x = 100; x < 1350; x += 150) {
     const point = { x: x + (y % 31), y };

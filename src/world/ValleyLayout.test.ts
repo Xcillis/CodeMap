@@ -3,6 +3,7 @@ import { QUEST_GIVERS } from '../gameplay/QuestNetwork';
 import { ARKANA_ENCOUNTERS } from '../gameplay/ArkanaEncounters';
 import { REGIONS, WORLD_SIZE } from '../gameplay/WorldRegions';
 import { VALLEY_BRIDGE, VALLEY_POND, riverX, valleyBlocked, type Point } from './ValleyLayout';
+import { VALLEY_MOUNTAINS, mountainContains } from './ValleyMountains';
 
 /** Four-way search with the player's full clearance, not just a point-sized path. */
 function reachable(passOpen: boolean, sealBridge = false): Set<string> {
@@ -23,6 +24,15 @@ function reachable(passOpen: boolean, sealBridge = false): Set<string> {
 const gridKey = ({ x, y }: Point) => `${Math.round(x / 10) * 10},${Math.round(y / 10) * 10}`;
 
 describe('Begehbare Tallandschaft nach der Bildreferenz', () => {
+  it('belegt unterschiedlich tiefe Gebirgsflächen statt einer überall gleich breiten Randlinie', () => {
+    expect(mountainContains({ x: 65, y: 255 })).toBe(true);
+    expect(mountainContains({ x: 65, y: 480 })).toBe(false);
+    expect(valleyBlocked({ x: 1000, y: 940 }, true, 0)).toBe(true);
+    expect(valleyBlocked({ x: 500, y: 940 }, true, 0)).toBe(false);
+    expect(new Set(VALLEY_MOUNTAINS.map((area) => area.variant)).size).toBe(6);
+    expect(new Set(VALLEY_MOUNTAINS.map((area) => area.width)).size).toBeGreaterThan(8);
+    expect(new Set(VALLEY_MOUNTAINS.map((area) => area.height)).size).toBeGreaterThan(8);
+  });
   it('hält Wasser geschlossen und lässt die Brücke mit Spielerbreite passieren', () => {
     expect(valleyBlocked({ x: riverX(500), y: 500 })).toBe(true);
     expect(valleyBlocked({ x: VALLEY_POND.x, y: VALLEY_POND.y })).toBe(true);

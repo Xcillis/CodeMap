@@ -6,12 +6,13 @@ Stand: 16. November 2026. Die aktuelle Nutzerreferenz ist das zuletzt bereitgest
 
 - Gemalte Blatt- und Grasstrukturen, goldene Lichtkanten und weiche kühle Schatten.
 - Laub- und Nadelbäume, Moosfelsen, Blumen, Farne und Schilf als getrennte Objekte.
+- Großflächige unregelmäßige Gebirgsmassive aus sechs verschiedenen Felsformen; 19 überlappende Flächen ersetzen die regelmäßige Randsteinreihe. Vorsprünge und Einbuchtungen verändern auch die begehbare Fläche.
 - Türkisfarbener Fluss mit sichtbarer Strömung und zwei kleinen schäumenden Kaskaden; ruhigerer Teich mit Seerosen.
 - Stein-/Fachwerkakademie mit blaugrünem Dach, Sternbanner und drei warmen Fenstern.
 - Ein einzelner schmaler Zugang von der Brücke zur Akademie nach ausdrücklicher Nutzerwahl. Die alten Rundwege und runden Übungsplätze bleiben entfernt; der Wald erhält keine neuen Straßen.
 - Leichte, ruhige Lichtvariation der Fenster und wenige weiche statische Sonnenbänder.
 
-`ValleyLayout` bleibt die verbindliche Hindernisgeometrie. `IllustratedValley` setzt die neuen Objekte auf vorhandene Bodenanker. Wasser, Brücke, Gebäude, Fundorte und Gebietspass behalten ihre Positionen und Kollisionen. Branns Rundgang und die vier Blickrichtungen bleiben erhalten. Die Karte ist kein flaches Bild mit aufgemalten Questgebern: Figuren, Arkana, Geröll und Effekte bleiben unabhängig beweglich beziehungsweise ausblendbar.
+`ValleyLayout` bleibt die verbindliche Hindernisgeometrie. `IllustratedValley` setzt die neuen Objekte auf vorhandene Bodenanker. Wasser, Brücke, Gebäude, Fundorte und Gebietspass behalten ihre Positionen und Kollisionen. Die neuen Gebirgsvorsprünge ergänzen solide Flächen am Rand; Orientierungspunkte und Branns Strecke bleiben erreichbar. Das [Gebirgsset](../public/assets/aetheria-mountains-v1/README.md) dokumentiert Atlas, Ursprung und feste Platzierung. Branns Rundgang und die vier Blickrichtungen bleiben erhalten. Die Karte ist kein flaches Bild mit aufgemalten Questgebern: Figuren, Arkana, Geröll und Effekte bleiben unabhängig beweglich beziehungsweise ausblendbar.
 
 ## Wasser, Licht und Leistung
 

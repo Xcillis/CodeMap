@@ -1,4 +1,5 @@
 import { VALLEY_CLIFFS, VALLEY_PASS, WORLD_SIZE } from '../gameplay/WorldRegions';
+import { MOUNTAIN_BODIES } from './ValleyMountains';
 
 export interface Point { readonly x: number; readonly y: number }
 export interface Obstacle extends Point { readonly width: number; readonly height: number }
@@ -31,7 +32,7 @@ export const VALLEY_BOULDERS: readonly Obstacle[] = [
 ];
 export const VALLEY_BORDERS: readonly Obstacle[] = [
   { x: 800, y: 32.5, width: 1600, height: 65 }, { x: 800, y: 1007.5, width: 1600, height: 65 },
-  { x: 25, y: 520, width: 50, height: 1040 }, ...VALLEY_CLIFFS,
+  { x: 25, y: 520, width: 50, height: 1040 }, ...VALLEY_CLIFFS, ...MOUNTAIN_BODIES,
 ];
 
 export function riverX(y: number): number {
@@ -62,10 +63,11 @@ export const VALLEY_OBSTACLES: readonly Obstacle[] = [
   ...VALLEY_BOULDERS, ...riverObstacles, ...pondObstacles,
   ...[-1, 1].map((side) => ({ x: VALLEY_BRIDGE.x, y: VALLEY_BRIDGE.y + side * (VALLEY_BRIDGE.height / 2 - 2), width: VALLEY_BRIDGE.width, height: 4 })),
 ];
+const closedValleyObstacles: readonly Obstacle[] = [...VALLEY_OBSTACLES, VALLEY_PASS];
 
 /** Conservative clearance check used for decoration placement and navigation validation. */
 export function valleyBlocked(point: Point, passOpen = false, radius = 14): boolean {
   if (point.x < radius || point.x > WORLD_SIZE.width - radius || point.y < radius || point.y > WORLD_SIZE.height - radius) return true;
-  return (passOpen ? VALLEY_OBSTACLES : [...VALLEY_OBSTACLES, VALLEY_PASS]).some((body) =>
+  return (passOpen ? VALLEY_OBSTACLES : closedValleyObstacles).some((body) =>
     Math.abs(point.x - body.x) < body.width / 2 + radius && Math.abs(point.y - body.y) < body.height / 2 + radius);
 }

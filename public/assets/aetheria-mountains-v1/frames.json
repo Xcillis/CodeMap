@@ -1,0 +1,43 @@
+{
+  "file": "mountains.png",
+  "width": 1536,
+  "height": 1024,
+  "frames": {
+    "ridge": {
+      "x": 11,
+      "y": 167,
+      "width": 488,
+      "height": 233
+    },
+    "bastion": {
+      "x": 527,
+      "y": 113,
+      "width": 481,
+      "height": 303
+    },
+    "scree": {
+      "x": 1042,
+      "y": 112,
+      "width": 483,
+      "height": 307
+    },
+    "ledge": {
+      "x": 12,
+      "y": 594,
+      "width": 482,
+      "height": 343
+    },
+    "crag": {
+      "x": 522,
+      "y": 549,
+      "width": 491,
+      "height": 385
+    },
+    "shoulder": {
+      "x": 1033,
+      "y": 620,
+      "width": 491,
+      "height": 312
+    }
+  }
+}

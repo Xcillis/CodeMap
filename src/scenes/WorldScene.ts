@@ -22,6 +22,7 @@ import { motionDirection, type MotionDirection } from '../art/MotionCatalog';
 import { NpcPatrol, NPC_BEHAVIORS, npcShouldPause } from '../gameplay/NpcPatrol';
 import { preloadValleyArt, registerValleyArt, valleyImage } from '../art/ValleyArt';
 import { addAcademyLights } from '../world/ValleyEffects';
+import { preloadMountainArt, registerMountainArt } from '../art/MountainArt';
 
 const WORLD_WIDTH = WORLD_SIZE.width;
 const WORLD_HEIGHT = WORLD_SIZE.height;
@@ -82,10 +83,10 @@ export class WorldScene extends Phaser.Scene {
   constructor() {
     super('world');
   }
-  preload(): void { preloadArt(this); preloadMotion(this); if (this.campaign.region === 'valley') preloadValleyArt(this); }
+  preload(): void { preloadArt(this); preloadMotion(this); if (this.campaign.region === 'valley') { preloadValleyArt(this); preloadMountainArt(this); } }
 
   create(data?: { fromTravel?: boolean }): void {
-    registerArtFrames(this); registerMotion(this); if (this.campaign.region === 'valley') registerValleyArt(this); this.npcVisuals.clear(); this.playerArt = undefined; this.playerFacing = 'hero-down';
+    registerArtFrames(this); registerMotion(this); if (this.campaign.region === 'valley') { registerValleyArt(this); registerMountainArt(this); } this.npcVisuals.clear(); this.playerArt = undefined; this.playerFacing = 'hero-down';
     this.dialogActive = false; this.overlayActive = false; this.gateBody = undefined; this.gateRocks = undefined;
     this.encounterLabels.clear(); this.arkanaVisuals.clear();
     this.interactionHint = undefined;

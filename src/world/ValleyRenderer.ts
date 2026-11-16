@@ -5,6 +5,7 @@ import { ART_KEYS } from '../art/ArtCatalog';
 import { VALLEY_ART_KEYS } from '../art/ValleyArt';
 import { drawIllustratedValley } from './IllustratedValley';
 import { ACADEMY_PATH, nearAcademyPath } from './ValleyScenery';
+import { VALLEY_MOUNTAINS } from './ValleyMountains';
 import {
   RIVER_POINTS, RIVER_WIDTH, VALLEY_BOULDERS, VALLEY_BORDERS, VALLEY_BRIDGE,
   VALLEY_POND, VALLEY_TREES, riverX, valleyBlocked, type Obstacle, type ValleyTree,
@@ -34,17 +35,10 @@ function drawRock(g: Phaser.GameObjects.Graphics, body: Obstacle, moss = true): 
 }
 
 function drawBorders(g: Phaser.GameObjects.Graphics): void {
-  const random = randomSource(75);
   for (const body of VALLEY_BORDERS) {
-    const vertical = body.height > body.width;
     g.fillStyle(0x4e6754).fillRect(body.x - body.width / 2, body.y - body.height / 2, body.width, body.height);
-    const length = vertical ? body.height : body.width;
-    for (let offset = 22; offset < length; offset += 46) {
-      const x = vertical ? body.x + (random() - .5) * 10 : body.x - body.width / 2 + offset;
-      const y = vertical ? body.y - body.height / 2 + offset : body.y + (random() - .5) * 8;
-      drawRock(g, { x, y, width: vertical ? body.width - 4 : 64, height: vertical ? 64 : body.height - 3 });
-    }
   }
+  for (const area of VALLEY_MOUNTAINS) drawRock(g, area);
 }
 
 function drawTrunk(g: Phaser.GameObjects.Graphics, tree: ValleyTree): void {
@@ -165,7 +159,7 @@ export function drawValley(scene: Phaser.Scene): { landslide: Phaser.GameObjects
     scene.add.text(430, 100, 'TAL VON AETHERIA', { fontFamily: 'Georgia, serif', fontSize: '25px', color: '#fff3cc', stroke: '#354c34', strokeThickness: 5 }).setDepth(10000);
     return { landslide };
   }
-  staticLandscape(scene, 'valley-terrain-v4', WORLD_SIZE.width, WORLD_SIZE.height, 0, (ground) => {
+  staticLandscape(scene, 'valley-terrain-v5', WORLD_SIZE.width, WORLD_SIZE.height, 0, (ground) => {
     const random = randomSource(21);
     ground.fillStyle(palette.grass).fillRect(0, 0, WORLD_SIZE.width, WORLD_SIZE.height);
     for (let i = 0; i < 180; i++) ground.fillStyle(i % 2 ? palette.light : palette.shade, .12).fillEllipse(random() * 1600, random() * 1040, 70 + random() * 210, 25 + random() * 90);

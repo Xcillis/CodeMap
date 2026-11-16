@@ -1,0 +1,9 @@
+{
+  "tool": "built-in image_gen",
+  "date": "2026-11-16",
+  "reference": "../aetheria-valley-v2/environment.png (own art style reference)",
+  "sourceOutput": "exec-8cb4063b-591a-402b-b8ac-935cfd55d156.png",
+  "sha256": "05d659b83e3027f9abb455b3e8d0977969b0ab9e26c315ecc942ec3dbea038d1",
+  "alphaMin": 0,
+  "processing": "Original PNG copied unchanged; sprite crop metadata only."
+}
