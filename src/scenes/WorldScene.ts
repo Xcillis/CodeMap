@@ -20,6 +20,8 @@ import { characterImage, environmentImage, preloadArt, registerArtFrames } from 
 import { motionSprite, playMotion, preloadMotion, registerMotion } from '../art/MotionSprites';
 import { motionDirection, type MotionDirection } from '../art/MotionCatalog';
 import { NpcPatrol, NPC_BEHAVIORS, npcShouldPause } from '../gameplay/NpcPatrol';
+import { preloadValleyArt, registerValleyArt, valleyImage } from '../art/ValleyArt';
+import { addAcademyLights } from '../world/ValleyEffects';
 
 const WORLD_WIDTH = WORLD_SIZE.width;
 const WORLD_HEIGHT = WORLD_SIZE.height;
@@ -80,10 +82,10 @@ export class WorldScene extends Phaser.Scene {
   constructor() {
     super('world');
   }
-  preload(): void { preloadArt(this); preloadMotion(this); }
+  preload(): void { preloadArt(this); preloadMotion(this); if (this.campaign.region === 'valley') preloadValleyArt(this); }
 
   create(data?: { fromTravel?: boolean }): void {
-    registerArtFrames(this); registerMotion(this); this.npcVisuals.clear(); this.playerArt = undefined; this.playerFacing = 'hero-down';
+    registerArtFrames(this); registerMotion(this); if (this.campaign.region === 'valley') registerValleyArt(this); this.npcVisuals.clear(); this.playerArt = undefined; this.playerFacing = 'hero-down';
     this.dialogActive = false; this.overlayActive = false; this.gateBody = undefined; this.gateRocks = undefined;
     this.encounterLabels.clear(); this.arkanaVisuals.clear();
     this.interactionHint = undefined;
@@ -195,7 +197,7 @@ export class WorldScene extends Phaser.Scene {
     if (isArkanId(id) && this.campaign.has(id)) return;
     const quest = !isArkanId(id);
     const shadow = this.add.ellipse(x, y + 18, 32, 10, 0x142c35, .3).setDepth(4);
-    const art = isArkanId(id) ? motionSprite(this, id, x, y + 18, 54) ?? characterImage(this, id, x, y + 18, 54) : environmentImage(this, 'runestone', x, y + 18, 32, 43);
+    const art = isArkanId(id) ? motionSprite(this, id, x, y + 18, 54) ?? characterImage(this, id, x, y + 18, 54) : (this.campaign.region === 'valley' ? valleyImage(this, 'runestone', x, y + 18, 32, 43) : undefined) ?? environmentImage(this, 'runestone', x, y + 18, 32, 43);
     if (art) art.setDepth(groundDepth(y + 18));
     const marker = art ?? (quest
       ? this.add.rectangle(x, y, 24, 34, color).setStrokeStyle(3, 0x3d4a41).setDepth(5)
@@ -289,9 +291,11 @@ export class WorldScene extends Phaser.Scene {
   }
 
   private drawBuilding(x: number, y: number): void {
-    const art = environmentImage(this, 'academy', x, y + 150, 300, 310);
+    const illustrated = valleyImage(this, 'academy', x, y + 150, 300, 310);
+    const art = illustrated ?? environmentImage(this, 'academy', x, y + 150, 300, 310);
     if (art) {
       art.setDepth(groundDepth(y + 150));
+      if (illustrated) addAcademyLights(this, illustrated);
       this.add.text(x, y - 178, 'Akademie von Aetheria', { fontFamily: 'Georgia, serif', fontSize: '24px', color: '#fff1be', stroke: '#283928', strokeThickness: 5 }).setOrigin(.5).setDepth(10000);
       return;
     }

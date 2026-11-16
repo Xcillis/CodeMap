@@ -1,0 +1,149 @@
+{
+  "environment": {
+    "file": "environment.png",
+    "width": 1536,
+    "height": 1024,
+    "frames": {
+      "oak": {
+        "x": 16,
+        "y": 22,
+        "width": 367,
+        "height": 340
+      },
+      "pine": {
+        "x": 451,
+        "y": 24,
+        "width": 261,
+        "height": 337
+      },
+      "boulder": {
+        "x": 789,
+        "y": 157,
+        "width": 321,
+        "height": 202
+      },
+      "academy": {
+        "x": 1153,
+        "y": 25,
+        "width": 362,
+        "height": 335
+      },
+      "bridge": {
+        "x": 12,
+        "y": 489,
+        "width": 374,
+        "height": 175
+      },
+      "runestone": {
+        "x": 455,
+        "y": 452,
+        "width": 243,
+        "height": 215
+      },
+      "flowers": {
+        "x": 799,
+        "y": 503,
+        "width": 283,
+        "height": 161
+      },
+      "rubble": {
+        "x": 1155,
+        "y": 505,
+        "width": 367,
+        "height": 158
+      },
+      "reeds": {
+        "x": 58,
+        "y": 723,
+        "width": 256,
+        "height": 267
+      },
+      "fern": {
+        "x": 419,
+        "y": 790,
+        "width": 298,
+        "height": 198
+      },
+      "lilies": {
+        "x": 791,
+        "y": 825,
+        "width": 305,
+        "height": 153
+      },
+      "bankRock": {
+        "x": 1168,
+        "y": 782,
+        "width": 320,
+        "height": 208
+      }
+    }
+  },
+  "grass": {
+    "file": "grass.png",
+    "width": 1254,
+    "height": 1254,
+    "frames": {}
+  },
+  "water": {
+    "file": "water.png",
+    "width": 1254,
+    "height": 1254,
+    "frames": {
+      "water-0": {
+        "x": 0,
+        "y": 0,
+        "width": 627,
+        "height": 627
+      },
+      "water-1": {
+        "x": 627,
+        "y": 0,
+        "width": 627,
+        "height": 627
+      },
+      "water-2": {
+        "x": 0,
+        "y": 627,
+        "width": 627,
+        "height": 627
+      },
+      "water-3": {
+        "x": 627,
+        "y": 627,
+        "width": 627,
+        "height": 627
+      }
+    }
+  },
+  "foam": {
+    "file": "foam.png",
+    "width": 1254,
+    "height": 1254,
+    "frames": {
+      "foam-0": {
+        "x": 0,
+        "y": 0,
+        "width": 627,
+        "height": 627
+      },
+      "foam-1": {
+        "x": 627,
+        "y": 0,
+        "width": 627,
+        "height": 627
+      },
+      "foam-2": {
+        "x": 0,
+        "y": 627,
+        "width": 627,
+        "height": 627
+      },
+      "foam-3": {
+        "x": 627,
+        "y": 627,
+        "width": 627,
+        "height": 627
+      }
+    }
+  }
+}

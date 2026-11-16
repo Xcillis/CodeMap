@@ -2,7 +2,9 @@ import Phaser from 'phaser';
 import { WORLD_SIZE } from '../gameplay/WorldRegions';
 import { staticLandscape } from './StaticLandscape';
 import { ART_KEYS } from '../art/ArtCatalog';
+import { VALLEY_ART_KEYS } from '../art/ValleyArt';
 import { drawIllustratedValley } from './IllustratedValley';
+import { ACADEMY_PATH, nearAcademyPath } from './ValleyScenery';
 import {
   RIVER_POINTS, RIVER_WIDTH, VALLEY_BOULDERS, VALLEY_BORDERS, VALLEY_BRIDGE,
   VALLEY_POND, VALLEY_TREES, riverX, valleyBlocked, type Obstacle, type ValleyTree,
@@ -98,6 +100,19 @@ function drawWater(g: Phaser.GameObjects.Graphics): void {
   }
 }
 
+function drawAcademyPath(g: Phaser.GameObjects.Graphics): void {
+  const points = ACADEMY_PATH.map((point) => new Phaser.Math.Vector2(point.x, point.y));
+  g.lineStyle(28, 0x9d8a58, .65).strokePoints(points, false);
+  g.lineStyle(23, 0xcbb17a).strokePoints(points, false);
+  g.lineStyle(16, 0xe2cc92, .8).strokePoints(points, false);
+  for (let index = 1; index < ACADEMY_PATH.length; index++) {
+    const a = ACADEMY_PATH[index - 1]; const b = ACADEMY_PATH[index];
+    for (let step = 20; step < Math.hypot(b.x - a.x, b.y - a.y); step += 27) {
+      const t = step / Math.hypot(b.x - a.x, b.y - a.y); g.fillStyle(0xa58e61, .42).fillEllipse(a.x + (b.x - a.x) * t + 3, a.y + (b.y - a.y) * t, 3, 2);
+    }
+  }
+}
+
 function animateWater(scene: Phaser.Scene): void {
   for (let i = 0; i < 7; i++) {
     const position = 160 + i * 118;
@@ -130,7 +145,7 @@ function addMeadowDetail(g: Phaser.GameObjects.Graphics): void {
   const random = randomSource(20261114);
   for (let i = 0; i < 950; i++) {
     const point = { x: 70 + random() * 1310, y: 85 + random() * 860 };
-    if (valleyBlocked(point, false, 28)) continue;
+    if (valleyBlocked(point, false, 28) || nearAcademyPath(point)) continue;
     const { x, y } = point;
     g.lineStyle(1, i % 2 ? 0x658f43 : 0xa9c662, .7).beginPath().moveTo(x - 3, y).lineTo(x - 4, y - 5).moveTo(x, y + 1).lineTo(x + 1, y - 7).strokePath();
     if (i % 4 === 0) {
@@ -145,17 +160,16 @@ function addMeadowDetail(g: Phaser.GameObjects.Graphics): void {
 
 /** Local, layered vector placeholders inspired by the supplied valley reference; no bitmap background. */
 export function drawValley(scene: Phaser.Scene): { landslide: Phaser.GameObjects.Container } {
-  if (scene.textures.exists(ART_KEYS.environment) && scene.textures.exists(ART_KEYS.groundTile)) {
-    const landslide = drawIllustratedValley(scene, drawWater);
-    animateWater(scene);
+  if ((scene.textures.exists(VALLEY_ART_KEYS.environment) && scene.textures.exists(VALLEY_ART_KEYS.groundTile)) || (scene.textures.exists(ART_KEYS.environment) && scene.textures.exists(ART_KEYS.groundTile))) {
+    const landslide = drawIllustratedValley(scene, (ground) => { drawAcademyPath(ground); drawWater(ground); });
     scene.add.text(430, 100, 'TAL VON AETHERIA', { fontFamily: 'Georgia, serif', fontSize: '25px', color: '#fff3cc', stroke: '#354c34', strokeThickness: 5 }).setDepth(10000);
     return { landslide };
   }
-  staticLandscape(scene, 'valley-terrain-v3', WORLD_SIZE.width, WORLD_SIZE.height, 0, (ground) => {
+  staticLandscape(scene, 'valley-terrain-v4', WORLD_SIZE.width, WORLD_SIZE.height, 0, (ground) => {
     const random = randomSource(21);
     ground.fillStyle(palette.grass).fillRect(0, 0, WORLD_SIZE.width, WORLD_SIZE.height);
     for (let i = 0; i < 180; i++) ground.fillStyle(i % 2 ? palette.light : palette.shade, .12).fillEllipse(random() * 1600, random() * 1040, 70 + random() * 210, 25 + random() * 90);
-    addMeadowDetail(ground); drawWater(ground); drawBridge(ground); drawBorders(ground);
+    addMeadowDetail(ground); drawAcademyPath(ground); drawWater(ground); drawBridge(ground); drawBorders(ground);
     for (const body of VALLEY_BOULDERS) drawRock(ground, body);
     for (const tree of VALLEY_TREES) drawTrunk(ground, tree);
   });

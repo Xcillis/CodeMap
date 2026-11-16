@@ -1,42 +1,28 @@
-# Gestaltungsreferenzen und bevorzugter Grafikstil
+# Gestaltungsreferenzen und aktueller Grafikstil
 
-Stand: 15. November 2026. Die bevorzugte Stilreferenz ist jetzt [„I created a low-poly isometric diorama biome for my indie game“ von Square Glade Games](https://www.youtube.com/shorts/wKRqFhqWc0A). Titel und Vorschaubild wurden geprüft; eine vollständige Videoanalyse liegt hier nicht vor. Das zuvor bereitgestellte Talbild bleibt Referenz für Landschaftsaufbau und Orientierung. Die aktuelle spielbare Fassung verwendet ein erstes eigens generiertes Sprite-Set für Umgebung, Figuren und Boden. Die bisherigen Phaser-Grafiken bleiben als Fallback erhalten. Das Set ist eine erste spielbare Stilumsetzung; endgültige Animationszyklen folgen später.
+Stand: 16. November 2026. Die aktuelle Nutzerreferenz ist das zuletzt bereitgestellte Bild eines warm beleuchteten, malerischen Fantasytals mit Fluss, Holzbrücke und Akademie. Es löst den zuvor bevorzugten facettierten Diorama-Look für die Talumgebung ab. Das neue [Grafikpaket v2](../public/assets/aetheria-valley-v2/README.md) enthält eigene generierte Objekte und Wasserphasen. Die Figuren behalten vorerst ihre vorhandenen Chibi-Atlanten; der Wald und die Fallbacks verwenden weiterhin das erste Set.
 
-## Bevorzugte Stilrichtung
+## Bildsprache und Aufbau
 
-Die neue Nutzerpräferenz richtet sich auf einen stilisierten Low-Poly-Diorama-Look mit schräger Ansicht von oben. Das Vorschaubild zeigt plastische Nadelbäume, natürlich grüne Vegetation, türkisfarbenes Wasser, erdige Wege und deutlich gerichtete weiche Schatten. Für die weitere Gestaltung sind lesbare räumliche Formen, eine einheitliche Lichtquelle und eine ruhige, natürliche Palette maßgeblich.
+- Gemalte Blatt- und Grasstrukturen, goldene Lichtkanten und weiche kühle Schatten.
+- Laub- und Nadelbäume, Moosfelsen, Blumen, Farne und Schilf als getrennte Objekte.
+- Türkisfarbener Fluss mit sichtbarer Strömung und zwei kleinen schäumenden Kaskaden; ruhigerer Teich mit Seerosen.
+- Stein-/Fachwerkakademie mit blaugrünem Dach, Sternbanner und drei warmen Fenstern.
+- Ein einzelner schmaler Zugang von der Brücke zur Akademie nach ausdrücklicher Nutzerwahl. Die alten Rundwege und runden Übungsplätze bleiben entfernt; der Wald erhält keine neuen Straßen.
+- Leichte, ruhige Lichtvariation der Fenster und wenige weiche statische Sonnenbänder.
 
-Für den bestehenden Phaser-Aufbau ist eine Umsetzung über vorgerenderte 2D-Umgebungselemente und Figuren mit fester Perspektive vorgesehen. Das erlaubt räumlich wirkende Objekte und Animationen bei der vorhandenen 2D-Spielmechanik. Die verbindlichen Perspektiv-, Größen- und Lichtvorgaben werden vor einer Asset-Serie an einer kleinen zusammenhängenden Szene geprüft. Das erste Set übersetzt die Richtung in facettierte, leicht märchenhafte 2D-Sprites mit gemeinsamer Lichtführung. Die Spielmechanik bleibt auf dem bisherigen zweidimensionalen Koordinatensystem; es wird keine neue isometrische Physik eingeführt.
+`ValleyLayout` bleibt die verbindliche Hindernisgeometrie. `IllustratedValley` setzt die neuen Objekte auf vorhandene Bodenanker. Wasser, Brücke, Gebäude, Fundorte und Gebietspass behalten ihre Positionen und Kollisionen. Branns Rundgang und die vier Blickrichtungen bleiben erhalten. Die Karte ist kein flaches Bild mit aufgemalten Questgebern: Figuren, Arkana, Geröll und Effekte bleiben unabhängig beweglich beziehungsweise ausblendbar.
 
-## Bildsprache
+## Wasser, Licht und Leistung
 
-- Freundliches, helles Fantasy-Tal mit durchgehenden sonnigen Wiesen; die früheren Sandwege und runden Übungsplatzflächen sind entfernt.
-- Graue, facettierte Felsen mit begrünten Oberseiten bilden natürliche Gebietsgrenzen.
-- Ein türkisfarbener Bach mit hellen Strömungsdetails und kleinen Kaskaden strukturiert den Westen.
-- Eine Holzbrücke schafft einen sichtbaren Übergang; ein Teich mit Seerosen liegt im Südosten.
-- Laub- und Nadelbäume, Wiesenbüschel sowie gelbe, helle und violette Blüten gliedern die Freiflächen.
-- Der Steinrutsch ist als zusammenhängender Geröllhaufen im einzigen östlichen Pass erkennbar.
+`ValleyArt` bereitet aus den unveränderten PNGs kleine gemeinsame Kacheln vor. `ValleyEffects` überblendet vier Wasserphasen und verschiebt die Textur stromabwärts. Zwei kleine Ebenenpaare werden durch einmalige Geometriemasken auf Fluss und Teich begrenzt. Die Brücke verdeckt das Wasser, und Wasser übermalt keine Wiesen. Kaskadenschaum verwendet vier weitere Atlasbilder. Die Fenster bekommen additive Radialverläufe mit geringer Helligkeitsvariation; es gibt keine Shader-/Blurfilter-Kette.
 
-## Übertragung auf die spielbare Karte
+`ValleyAtmosphere` verwendet ausschließlich begrenzte Szenendeltas. Das Pausieren der Welt stoppt auch die Effekte. Bei reduzierter Bewegungspräferenz bleiben die Bilder und Lichtwerte konstant. Szenenausgänge entfernen Listener und Masken, Texturen werden bei Rückkehr wiederverwendet. Die fertige Ansicht und FPS sind im tatsächlichen Edge-Fenster noch zu prüfen: Der Browser-/Computerzugriff steht nicht zur Verfügung.
 
-Die Akademie, Arkana-Fundorte und Gebietsein- und -ausgänge behalten ihre Positionen. Die Landschaft besitzt keine gezeichneten Wege mehr. Eldren und Mira bleiben an ihren Aufgabenorten, während Brann einen großen Rundgang über die westlichen, zentralen und östlichen Wiesen läuft. Brücke, Runenwinde und der gesperrte Pass bleiben als räumliche Orientierung erhalten.
+## Figuren und Prüfung
 
-`ValleyLayout` enthält weiterhin die Landschaftspositionen und Hindernisflächen. `IllustratedValley` kombiniert die generierte Bodenkachel mit einer einmalig zwischengespeicherten Wasserebene und den generierten Umweltsprites. Bäume, Felsen, Akademie und Figuren werden anhand ihrer Bodenposition geschichtet. Der Steinrutsch bleibt separat ausblendbar. Weitere Besuche verwenden dieselben Bildtexturen. Einige kleine Wasserreflexe bewegen sich unabhängig von der Spielmechanik und werden auf der Brücke ausgespart. Der bisherige prozedurale Renderer bleibt bei fehlenden Bilddateien als Fallback erhalten.
+Das [Animationspaket](../public/assets/aetheria-motion-v1/README.md) enthält 96 Frames, darunter vier Heldenrichtungen und vier eigene Brann-Ansichten. Brann läuft im Tal, Mira und Lyra patrouillieren kurz; Eldren, Neria und Tala stehen mit Idle-Animationen. Interaktionen bleiben an der aktuellen Figurposition. Vollständige Richtungsatlanten für jede Kreatur und separate Angriffssprites bleiben spätere Arbeiten.
 
-Bach und Teich besitzen Kollisionen. Die Brücke hält einen breiten, begehbaren Korridor über das Wasser frei; Geländer begrenzen ihn oben und unten. Baumstämme und große Felsen blockieren, kleine Blüten und Gras bleiben begehbar. Der Steinrutsch verwendet weiterhin seine eigene, vom Questabschluss gesteuerte Sperre. Beim Freiräumen werden Darstellung und Kollision gemeinsam entfernt.
+Die ursprünglichen PNG-Ausgaben, Prompts, Prüfsummen und Frame-Metadaten liegen bei jedem Paket. Die neuen Atlasbilder sind visuell geprüft; automatisierte Tests prüfen Grenzen, Herkunft, Cachewiederverwendung, Übergänge, reduzierte Bewegung und Aufräumen nach Gebietswechseln. Bestehende Wegprüfungen suchen weiterhin mit Spielerbreite zu allen relevanten Orten und prüfen Brücke sowie Passsperre. Gameplay und Questfreigaben werden durch den grafischen Austausch nicht geändert.
 
-Automatisierte Wegprüfungen suchen mit dem Platzbedarf der Spielfigur nach Verbindungen zu allen Tal-Questgebern, Glutling, Trainingsplatz, Runenwinde und Ankunftspunkt. Sie prüfen außerdem, dass der geschlossene Pass nicht umgangen wird, der offene Pass erreichbar ist und eine gesperrte Brücke keine alternative Bachquerung zulässt.
-
-## Erstes Sprite-Set und weitere Ausarbeitung
-
-Für eine ausgearbeitete Fassung werden getrennte Boden-, Fels-, Pflanzen-, Wasser- und Brückenelemente mit derselben Perspektive, Lichtquelle und Palette benötigt. Felsoberseiten, Stammfüße und Baumkronen erhalten eindeutige Ankerpunkte. Die begehbare Wegbreite und die gemeinsam verwendeten Hindernisflächen bleiben beim Austausch erhalten. Der Steinrutsch braucht eine separat ausblendbare Darstellung und einen passenden freigeräumten Untergrund. Figuren und Interaktionsmarker müssen sich auch auf detailreichen Hintergründen deutlich abheben.
-
-Quest- und Lernprogression sind im [Gebietsplan](CodeMap_Gebietsplan.md) beschrieben. Die technische Trennung und die aktuelle Asset-Regel stehen in [architecture.md](architecture.md).
-
-## Asset-Quelle und technische Prüfung
-
-Die PNGs wurden auf ausdrücklichen Nutzerauftrag mit dem eingebauten `image_gen`-Tool neu erzeugt. Das lokale [Asset-Paket](../public/assets/aetheria-v1/README.md) enthält acht Umweltobjekte, vier Heldenansichten, sechs Questgeber, drei Arkana, das Übungskonstrukt und den Boden. Vollständige Prompts und Herkunft sind mitgespeichert. Die PNGs wurden nicht zugeschnitten oder übermalt; `frames.json` vermisst die verwendeten Ausschnitte einschließlich transparenter Randbereiche. Dieselben Arkana-Frames erscheinen in Welt, Arena, Auswahl und Sammlung.
-
-Die generierten Atlasbilder wurden visuell geprüft; PNG-Abmessungen, RGBA, Ausschnittgrenzen, Figurenabdeckung, Blickrichtungen, Fußanker und Cachewiederverwendung werden automatisiert geprüft. Der Browser-/Computerzugriff war bei der Integration nicht verfügbar; eine Sichtprüfung der laufenden Anwendung in Edge konnte daher nicht durchgeführt werden. Das zusätzliche [Animationspaket](../public/assets/aetheria-motion-v1/README.md) enthält inzwischen 96 Frames: vier Heldenrichtungen mit jeweils zwei Idle- und vier Laufposen, sechs Questgeber mit jeweils zwei Idle- und zwei Laufposen sowie vier Kreaturen mit jeweils zwei Idle- und vier Laufposen. Hinzu kommen 24 Bilder für Brann in vier Richtungen mit jeweils zwei Idle- und vier Laufposen. Gemeinsame Fußlinien und Figurengrößen verhindern Größenwechsel beim Animieren. Mira und Lyra besitzen kurze horizontale Patrouillen mit gespiegelten Laufbildern. Brann wechselt zwischen eigenen Vorder-, Rück- und Seitenansichten; Arkana besitzen noch keine vier vollständigen Blickrichtungen oder separaten Angriffssprites. Die bestehende zweidimensionale Physik bleibt erhalten.
-
-Eldren, Neria und Tala stehen ruhig; Mira und Lyra gehen einige Schritte mit Ruhepausen; Brann läuft einen größeren Rundgang mit kurzen Zwischenhalten. In Spielnähe sowie bei Dialogen und Menüs pausiert ihre Patrouille. Die Heldensteuerung bleibt für Tastatur und Touch identisch. Der Browserzugriff war auch bei diesem Ausbau nicht verfügbar; eine Sichtprüfung der tatsächlich laufenden Animationen in Edge steht noch aus.
+Details: [Architektur](architecture.md), [Gebietsplan](CodeMap_Gebietsplan.md), [Lernprogression](CodeMap_Lernprogression.md).

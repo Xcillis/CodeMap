@@ -1,0 +1,39 @@
+{
+  "tool": "built-in image_gen",
+  "date": "2026-11-16",
+  "reference": "User-provided painterly valley image; style and composition reference, no UI imported.",
+  "assets": {
+    "environment.png": {
+      "sourceOutput": "exec-45dc77cb-442b-408d-9f50-a8778a132052.png",
+      "sha256": "b6b1b0e7c1b937824ed11ce86e11d758fb916e310c09d7a3f411a921619e8bf7",
+      "width": 1536,
+      "height": 1024,
+      "alphaMin": 0,
+      "processing": "Original generated PNG copied unchanged; runtime crops and cached tiles only."
+    },
+    "grass.png": {
+      "sourceOutput": "exec-31e5b4f6-8f04-418f-bedc-113e0c76d2ab.png",
+      "sha256": "1f19425667661d1248e70b6d3670028eac689687eb1e51bfbf59ca2cdc648b16",
+      "width": 1254,
+      "height": 1254,
+      "alphaMin": 255,
+      "processing": "Original generated PNG copied unchanged; runtime crops and cached tiles only."
+    },
+    "water.png": {
+      "sourceOutput": "exec-01b8ab05-7147-402c-b973-a02e04430912.png",
+      "sha256": "d7315436345d53c53fc4e0108502e416d59e3565428d9bb4c0a06d3bc87b7291",
+      "width": 1254,
+      "height": 1254,
+      "alphaMin": 255,
+      "processing": "Original generated PNG copied unchanged; runtime crops and cached tiles only."
+    },
+    "foam.png": {
+      "sourceOutput": "exec-7fd3dff0-c02c-47e0-828b-a0b86fd43e7c.png",
+      "sha256": "2ce768cf8fa6bb16f297ce78053bc06480204d09ac5ae414e639d6071c5df0e5",
+      "width": 1254,
+      "height": 1254,
+      "alphaMin": 0,
+      "processing": "Original generated PNG copied unchanged; four atlas frames."
+    }
+  }
+}
