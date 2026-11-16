@@ -1,0 +1,23 @@
+{
+  "tool": "built-in image_gen",
+  "date": "2026-11-16",
+  "processing": "Unmodified original PNGs copied into project; runtime crop metadata only.",
+  "assets": {
+    "buildings.png": {
+      "sha256": "4330fc8a1448c8415a7713aa8f5b261850b17bad44666a08d41d921390c2ff06",
+      "alphaMin": 0
+    },
+    "interior.png": {
+      "sha256": "47e2f2105b096c3c3258fa9d9cd343eabe19851e0ce28fed6db2a7be9faa6b79",
+      "alphaMin": 0
+    },
+    "props.png": {
+      "sha256": "0619cc484092fe88cce0a3677b6fc1450562bb4c8adbd408313bdc15a63b5be4",
+      "alphaMin": 0
+    },
+    "people.png": {
+      "sha256": "1d3884562327f5baace8cde97ffa7a0228b79df8f220d12f7ba6d5c7ff5ee94a",
+      "alphaMin": 0
+    }
+  }
+}

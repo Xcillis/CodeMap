@@ -12,6 +12,15 @@ let content: HTMLDivElement;
 beforeEach(() => { document.body.replaceChildren(); content = document.createElement('div'); document.body.append(content); });
 
 describe('Sichtbare Questreihen beim Questgeber', () => {
+  it('zeigt im Dorf den Wald als Rückweg und bietet aus einem Haus keinen Gebietswechsel an', () => {
+    const campaign = saved(); campaign.apply('travel-village'); const choose = vi.fn();
+    renderQuestBoard(content, campaign, choose);
+    expect(content.textContent).toContain('Auenquell'); expect(content.querySelector('#travel-forest')).not.toBeNull(); expect(content.querySelector('#travel-valley')).toBeNull();
+    (content.querySelector('#travel-forest') as HTMLButtonElement).click(); expect(choose).toHaveBeenCalledWith('travel-forest');
+    campaign.apply('enter-library'); content.replaceChildren(); choose.mockClear(); renderQuestBoard(content, campaign, choose);
+    expect(content.textContent).toContain('südliche Tür'); expect(content.querySelector('#travel-forest')).toBeNull(); expect(content.querySelector('#travel-valley')).toBeNull();
+    expect(choose).not.toHaveBeenCalled();
+  });
   it('zeigt Tala als Einstieg, drei parallele Übungen und Rollenkampf mit aktuellem Fortschritt', () => {
     const campaign = saved(); const before = campaign.snapshot; const choose = vi.fn(); renderQuestBoard(content, campaign, choose, 'tala');
     const meter = content.querySelector('progress')!; expect(meter.value).toBe(1); expect(meter.max).toBe(6);

@@ -1,6 +1,7 @@
 import type { AbilityEvidence, ArkanId, GridPosition, ProgramSources } from '../combat/types';
 import { BASIC_MOVEMENT, type SkillId } from './ArkanaCatalog';
 import type { QuestGiverId } from './QuestNetwork';
+import type { InteriorId } from './VillagePlaces';
 
 export const LESSON_IDS = ['q01-glutspur', 'q02-basisangriff', 'q03-wiederkehr', 'q04-musterpfad', 'q05-aufmerksam', 'q06-waechter', 'q07-moosling', 'q08-team', 'q09-schachtelpfad', 'q10-schachtelkampf', 'q11-schleifenwache', 'q12-steinrutsch', 'q13-lichtpfad', 'q14-feuerprobe', 'q15-wurzelschutz', 'q16-heilmoos', 'q17-teamrollen', 'q18-steinpanzer', 'q19-deckung', 'q20-dreiklang'] as const;
 export type LessonId = typeof LESSON_IDS[number];
@@ -206,5 +207,5 @@ export const lessonPrograms = (quest: WorldQuest): ProgramSources => quest.start
 export interface EncounterPresentation { title: string; instructions: string; objective: string; hints: readonly string[]; mode: 'lesson' | 'training' }
 export interface QuestFollowUp { lesson: LessonId; title: string }
 export interface QuestCompletion { lesson: LessonId; title: string; text: string; nextObjective: string; repeated: boolean; followUps?: readonly QuestFollowUp[] }
-export type CampaignAction = 'meet-eldren' | `recruit-${ArkanId}` | 'open-training' | 'travel-forest' | 'travel-valley' | `quests:${QuestGiverId}` | `lesson:${LessonId}` | `prepare-lesson:${LessonId}`;
+export type CampaignAction = 'meet-eldren' | `recruit-${ArkanId}` | 'open-training' | 'travel-forest' | 'travel-valley' | 'travel-village' | `enter-${InteriorId}` | 'leave-house' | `quests:${QuestGiverId}` | `lesson:${LessonId}` | `prepare-lesson:${LessonId}`;
 export interface CampaignDialog { speaker: string; text: string; action?: CampaignAction; actionLabel?: string }

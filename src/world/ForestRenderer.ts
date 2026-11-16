@@ -35,4 +35,5 @@ export function drawForest(scene: Phaser.Scene): void {
   for (const area of FOREST_CLEARINGS) scene.add.text(area.x, area.y - 125, area.name, { fontFamily: 'Georgia, serif', fontSize: '18px', color: '#f2e6ad', stroke: '#20382c', strokeThickness: 4 }).setOrigin(.5).setDepth(10000);
   for (const sign of [{ x: 780, y: 1330, text: '↑ Neria · Sonnenlichtung\n→ Tala · Forscherhain' }, { x: 1820, y: 1660, text: '← Lyra · Waldsaum\nTala · Mooshain →' }]) scene.add.text(sign.x, sign.y, sign.text, { fontSize: '14px', color: '#f0dd9d', backgroundColor: '#263f31', padding: { x: 8, y: 6 } }).setOrigin(.5).setDepth(10000);
   scene.add.text(260, 1540, 'AETHERWALD\nBedingungen & Verzweigungen', { fontSize: '18px', color: '#f2e6ad', stroke: '#20382c', strokeThickness: 4 }).setDepth(10000);
+  scene.add.text(2890, 1600, 'Dorf Auenquell →', { fontSize: '16px', color: '#f0dd9d', backgroundColor: '#263f31', padding: { x: 8, y: 6 } }).setOrigin(.5).setDepth(10000);
 }

@@ -149,4 +149,14 @@ describe('Lokaler Weltfortschritt', () => {
     expect(loadProgress().campaign.owned).toEqual([]);
     localStorage.setItem(key, 'null'); expect(loadProgress().campaign.completed).toEqual([]);
   });
+  it('lädt ein Dorfhaus samt Besitz und Programmentwürfen über einen vollständigen Speicherwechsel', async () => {
+    const saved = { version: 2, worldVersion: 1, region: 'village', interior: 'library', introduced: true, completed: LESSON_IDS, owned: [{ speciesId: 'glutling' }], team: [instanceId('glutling')] };
+    const programs = { 'q10-schachtelkampf:glutling': 'repeat(2, () => { glutling.moveRight(); });' };
+    localStorage.setItem(key, JSON.stringify({ programVersion: 3, campaign: saved, programs, blockWorkspaces: { 'q01-glutspur:glutling': '{"preserve":true}' } }));
+    const storage = await import('./LocalProgress'); const before = storage.loadProgress();
+    expect(before.campaign).toMatchObject({ region: 'village', interior: 'library' }); storage.saveProgress({ campaign: before.campaign });
+    vi.resetModules(); const after = (await import('./LocalProgress')).loadProgress();
+    expect(after.programs).toEqual(programs); expect(after.blockWorkspaces).toEqual(before.blockWorkspaces); expect(after.campaign.interior).toBe('library');
+    expect(after.campaign.owned).toEqual(before.campaign.owned); expect(after.campaign.completed).toEqual(before.campaign.completed);
+  });
 });

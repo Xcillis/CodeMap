@@ -10,6 +10,7 @@ import { renderAdventureControls } from './AdventureControls';
 import { renderQuestBoard } from './QuestBoardView';
 import { QUEST_GIVERS, isQuestGiverId, type QuestGiverId } from '../gameplay/QuestNetwork';
 import { REGIONS } from '../gameplay/WorldRegions';
+import { INTERIORS } from '../gameplay/VillagePlaces';
 import type { LessonId } from '../gameplay/WorldQuests';
 
 /** Collection and journal are views; ownership and quest validation stay in Campaign. */
@@ -83,7 +84,7 @@ export class WorldUi {
   private render(): void {
     const state = this.campaign.snapshot;
     const team = this.campaign.activeTeam;
-    this.el('active-team-summary').textContent = `${REGIONS[state.region].name} · Team ${team.length}/${this.campaign.teamLimit}: ${team.map((item) => ARKANA_SPECIES[item.speciesId].name).join(' → ') || 'noch leer'}`;
+    this.el('active-team-summary').textContent = `${state.interior ? INTERIORS[state.interior].name : REGIONS[state.region].name} · Team ${team.length}/${this.campaign.teamLimit}: ${team.map((item) => ARKANA_SPECIES[item.speciesId].name).join(' → ') || 'noch leer'}`;
     const character = isCharacterTab(this.tab);
     this.el('world-panel-title').textContent = character ? 'Charakter' : this.tab === 'journal' ? 'Questjournal' : this.tab === 'giver' && this.giver ? QUEST_GIVERS[this.giver].name : 'Freie Trainingsarena';
     const intro = this.tab === 'collection' ? `${state.owned.length} von ${Object.keys(ARKANA_SPECIES).length} Arkana-Arten gesammelt. Hier findest du ihre Eigenschaften und gelernten Fähigkeiten.`

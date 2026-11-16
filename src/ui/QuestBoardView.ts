@@ -80,6 +80,9 @@ function renderSeries(series: QuestSeries, campaign: Campaign, choose: (action: 
 
 export function renderQuestBoard(content: HTMLElement, campaign: Campaign, choose: (action: CampaignAction) => void, giver?: QuestGiverId, inspectQuest?: InspectQuest): void {
   const state = campaign.snapshot; const inspect = inspectQuest ?? ((id) => revealQuest(content, id));
+  if (state.region === 'village' && !giver) {
+    content.append(paragraph(state.interior ? 'Du bist in einem Haus in Auenquell. Verlasse es durch die südliche Tür, um wieder zur Spielwelt und zu den bisherigen Lernquests zu gelangen.' : 'Du bist in Auenquell. Gasthaus, Werkstatt und Bibliothek sind betretbar. Die bisherigen Lernquests erreichst du über den Rückweg in den Aetherwald.'));
+  }
   for (const region of ['valley', 'forest'] as const satisfies readonly RegionId[]) {
     const people = (Object.keys(QUEST_GIVERS) as QuestGiverId[]).filter((id) => QUEST_GIVERS[id].region === region && (!giver || id === giver));
     if (!people.length) continue;
@@ -87,7 +90,7 @@ export function renderQuestBoard(content: HTMLElement, campaign: Campaign, choos
     const heading = document.createElement('h3'); heading.textContent = `${REGIONS[region].name}${region === state.region ? ' · Hier bist du' : region === 'forest' && !campaign.forestUnlocked ? ' · Zugang gesperrt' : ' · Reise erforderlich'}`;
     section.append(heading, paragraph(REGIONS[region].theme));
     if (region === 'forest' && state.legacyForestAccess) section.append(paragraph('Dein bereits freigeschalteter Waldzugang aus dem bisherigen Spielstand bleibt erhalten. Die neuen Talaufgaben werden dadurch nicht als bestanden markiert.'));
-    if (region !== state.region && campaign.forestUnlocked) {
+    if (region !== state.region && campaign.forestUnlocked && !state.interior && !(state.region === 'village' && region === 'valley')) {
       const travel = document.createElement('button'); travel.type = 'button'; travel.id = `travel-${region}`; travel.textContent = `Nach ${REGIONS[region].name} reisen`;
       travel.addEventListener('click', () => choose(region === 'forest' ? 'travel-forest' : 'travel-valley')); section.append(travel);
     }

@@ -5,11 +5,13 @@ import { LESSON_IDS, getLesson, isLessonId, lessonActors, type LessonId, type Ca
 import { availableArkanaEncounters, encounterUnlocked } from './ArkanaEncounters';
 import { QUEST_GIVERS, QUEST_ROUTES, forestAccessible, giverLessons, isQuestGiverId, normalizeCompletions, requirementsMet, type QuestGiverId } from './QuestNetwork';
 import { REGIONS, isRegionId, type RegionId } from './WorldRegions';
+import { INTERIORS, isInteriorId, VILLAGE_BUILDINGS, VILLAGE_RESIDENTS, type InteriorId } from './VillagePlaces';
 
 export interface CampaignState {
   version: 2;
   worldVersion: 1;
   region: RegionId;
+  interior?: InteriorId;
   legacyForestAccess: boolean;
   introduced: boolean;
   owned: OwnedArkana[];
@@ -38,7 +40,7 @@ export function normalizeCampaign(value: unknown, legacyIntroduction = false): C
   const legacyForestAccess = raw.legacyForestAccess === true || (raw.worldVersion !== 1 && saved.includes('q05-aufmerksam') && saved.includes('q02-basisangriff') && saved.includes('q01-glutspur'));
   const completed = normalizeCompletions(saved, legacyForestAccess);
   const requestedRegion = isRegionId(raw.region) ? raw.region : legacyForestAccess ? 'forest' : 'valley';
-  const region = requestedRegion === 'forest' && !forestAccessible(completed, legacyForestAccess) ? 'valley' : requestedRegion;
+  const region = requestedRegion !== 'valley' && !forestAccessible(completed, legacyForestAccess) ? 'valley' : requestedRegion;
   const introductions = [...new Set([...(raw.version === 2 ? lessonIds(raw.introductions) : []), ...completed])];
   const owned: OwnedArkana[] = [];
   if (Array.isArray(raw.owned)) for (const entry of raw.owned) {
@@ -50,7 +52,7 @@ export function normalizeCampaign(value: unknown, legacyIntroduction = false): C
   }
   const legacyProgress = { completed: legacyIds(legacy.completed), discovered: legacyIds(legacy.discovered) };
   const team = Array.isArray(raw.team) ? [...new Set(raw.team)].filter((id): id is string => typeof id === 'string' && owned.some((item) => item.id === id)).slice(0, teamCapacity(completed, introductions, legacyProgress.completed)) : [];
-  return { version: 2, worldVersion: 1, region, legacyForestAccess, introduced: raw.introduced === true || (raw.introduced === undefined && legacyIntroduction), owned, team,
+  return { version: 2, worldVersion: 1, region, ...(region === 'village' && isInteriorId(raw.interior) ? { interior: raw.interior } : {}), legacyForestAccess, introduced: raw.introduced === true || (raw.introduced === undefined && legacyIntroduction), owned, team,
     discovered: [...new Set([...(raw.version === 2 ? lessonIds(raw.discovered) : []), ...completed])], completed, introductions, legacyProgress };
 }
 
@@ -61,6 +63,7 @@ export class Campaign {
   constructor(saved?: unknown, legacyIntroduction = false) { this.state = normalizeCampaign(saved, legacyIntroduction); }
   get snapshot(): CampaignState { return structuredClone(this.state); }
   get region(): RegionId { return this.state.region; }
+  get interior(): InteriorId | undefined { return this.state.interior; }
   get forestUnlocked(): boolean { return forestAccessible(this.state.completed, this.state.legacyForestAccess); }
   get availableEncounters() { return availableArkanaEncounters(this.state); }
   get teamLimit(): number { return teamCapacity(this.state.completed, this.state.introductions, this.state.legacyProgress.completed); }
@@ -68,6 +71,7 @@ export class Campaign {
   get objective(): string {
     if (!this.state.introduced) return 'Sprich mit Arkanist Eldren an der Akademie.';
     if (!this.has('glutling')) return 'Finde Glutling am westlichen Akademieweg und nimm es in deine Sammlung auf.';
+    if (this.region === 'village') return this.interior ? `${INTERIORS[this.interior].name}: Sprich mit den Bewohnern. Durch die südliche Tür kommst du ins Dorf zurück.` : 'Erkunde Auenquell: Besuche Gasthaus, Werkstatt und Bibliothek. Der Weg im Südwesten führt zurück in den Aetherwald.';
     if (this.region === 'valley') {
       if (!this.state.completed.includes('q01-glutspur')) return 'Bewegungstutorial: Sprich mit Eldren an der Talakademie.';
       if (!this.state.completed.includes('q02-basisangriff')) return 'Angriffstutorial: Kehre zu Eldren an der Talakademie zurück.';
@@ -98,6 +102,7 @@ export class Campaign {
     return `${ARKANA_SPECIES[found.speciesId].name}: Team aktualisiert.`;
   }
   private lessonPrerequisiteError(id: LessonId, requireDiscovery = true): string | undefined {
+    if (this.interior) return 'Verlasse zuerst das Haus, bevor du zu einer Weltquest reist.';
     if (!this.state.introduced) return 'Sprich zuerst mit Arkanist Eldren.';
     const route = QUEST_ROUTES[id];
     if (route.region === 'forest' && !this.forestUnlocked) return 'Der Steinrutsch versperrt den Wald. Löse Miras Gebietsaufgabe „Die Runenwinde am Steinrutsch“.';
@@ -144,6 +149,7 @@ export class Campaign {
   }
   beginTraining(mission: MissionId, team: readonly ArkanId[]): WorldEncounter | string {
     if (this.active) return 'Eine Begegnung läuft bereits.';
+    if (this.interior || this.region === 'village') return 'Die Trainingssteine findest du im Tal und im Aetherwald.';
     if (![1, 2, 3].includes(mission)) return 'Unbekannte Trainingsaufgabe.';
     if ((mission === 3 ? team.length < 2 || team.length > 3 : team.length !== 1) || new Set(team).size !== team.length) return mission === 3 ? 'Wähle zwei oder drei unterschiedliche gesammelte Arkana für das Team-Training.' : 'Wähle ein gesammeltes Arkana für das Solo-Training.';
     if (team.length === 3 && this.teamLimit < 3) return 'Den dritten Teamplatz erhältst du nach Miras Koordinationsquest „Felsbock hält die Stellung“.';
@@ -185,7 +191,22 @@ export class Campaign {
   leaveMission(): void { this.active = undefined; this.finishedActive = undefined; }
   apply(action: CampaignAction): string {
     if (this.active) return 'Beende zuerst die aktuelle Begegnung.';
+    if (action === 'leave-house') {
+      if (!this.interior) return 'Du bist bereits im Freien.';
+      delete this.state.interior; return 'Du trittst wieder nach Auenquell.';
+    }
+    if (action.startsWith('enter-')) {
+      const room = action.slice(6);
+      if (!isInteriorId(room) || this.region !== 'village' || this.interior) return 'Diesen Eingang erreichst du nur draußen im Dorf.';
+      this.state.interior = room; return `Du betrittst ${INTERIORS[room].name}.`;
+    }
+    if (action === 'travel-village') {
+      if (this.region !== 'forest' || !this.forestUnlocked) return 'Auenquell erreichst du über den östlichen Waldweg.';
+      this.state.region = 'village'; return 'Du reist nach Auenquell.';
+    }
     if (action === 'travel-forest' || action === 'travel-valley') {
+      if (this.interior) return 'Verlasse zuerst das Haus.';
+      if (this.region === 'village' && action === 'travel-valley') return 'Der Rückweg ins Tal führt über den Aetherwald.';
       if (action === 'travel-forest' && !this.forestUnlocked) return 'Der Steinrutsch blockiert den Ostpass. Sprich mit Mira und löse ihre Gebietsaufgabe.';
       this.state.region = action === 'travel-forest' ? 'forest' : 'valley'; return `Du reist nach ${REGIONS[this.region].name}.`;
     }
@@ -204,6 +225,17 @@ export class Campaign {
     return '';
   }
   interact(target: string): CampaignDialog {
+    if (target === 'leave-house' && this.interior) return { speaker: 'AUSGANG', text: 'Die Tür führt zurück vor dieses Haus in Auenquell.', action: 'leave-house', actionLabel: 'Haus verlassen' };
+    if (target === 'village-road' && this.region === 'forest') return { speaker: 'WEG NACH AUENQUELL', text: 'Der Wald lichtet sich. Dahinter liegen der Marktplatz, das Gasthaus und die Werkstätten von Auenquell. Der Rückweg bleibt offen.', action: 'travel-village', actionLabel: 'Nach Auenquell reisen' };
+    if (target.startsWith('door:') && this.region === 'village' && !this.interior) {
+      const house = VILLAGE_BUILDINGS.find((item) => item.id === target.slice(5));
+      if (house) return house.interior ? { speaker: house.name.toUpperCase(), text: 'Die Tür steht Besuchern offen. Betritt das Haus und sprich mit den Menschen darin.', action: `enter-${house.interior}`, actionLabel: 'Haus betreten' } : { speaker: house.name.toUpperCase(), text: 'Dieses Haus ist privat. Das Gasthaus, die Werkstatt und die Bibliothek kannst du besuchen.' };
+    }
+    if (target.startsWith('resident:') && this.region === 'village') {
+      const resident = VILLAGE_RESIDENTS.find((person) => person.id === target.slice(9) && person.interior === this.interior);
+      if (resident) return { speaker: resident.name.toUpperCase(), text: resident.text };
+    }
+    if (target === 'travel' && this.region === 'village' && !this.interior) return { speaker: 'RÜCKWEG IN DEN WALD', text: 'Der Weg führt an den südöstlichen Rand des Aetherwaldes zurück.', action: 'travel-forest', actionLabel: 'In den Wald reisen' };
     if (target === 'travel') return this.region === 'forest'
       ? { speaker: 'RÜCKWEG INS TAL', text: 'Du kannst jederzeit zurückkehren und offene Talaufgaben lösen. Deine Programme und dein Fortschritt bleiben erhalten.', action: 'travel-valley', actionLabel: 'Ins Tal reisen' }
       : this.forestUnlocked ? { speaker: 'OSTPASS', text: 'Der Pass ist frei. Im Wald wartet zuerst Lyra mit der Einführung in Bedingungen. Talaufgaben bleiben weiterhin spielbar.', action: 'travel-forest', actionLabel: 'In den Wald reisen' }

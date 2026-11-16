@@ -1,0 +1,126 @@
+{
+  "buildings": {
+    "file": "buildings.png",
+    "width": 1254,
+    "height": 1254,
+    "frames": {
+      "inn": {
+        "x": 17,
+        "y": 24,
+        "width": 592,
+        "height": 570
+      },
+      "workshop": {
+        "x": 648,
+        "y": 54,
+        "width": 584,
+        "height": 542
+      },
+      "library": {
+        "x": 24,
+        "y": 662,
+        "width": 564,
+        "height": 538
+      },
+      "cottage": {
+        "x": 668,
+        "y": 662,
+        "width": 550,
+        "height": 535
+      }
+    }
+  },
+  "interior": {
+    "file": "interior.png",
+    "width": 1254,
+    "height": 1254,
+    "frames": {
+      "table": {
+        "x": 106,
+        "y": 142,
+        "width": 464,
+        "height": 424
+      },
+      "bookshelf": {
+        "x": 721,
+        "y": 27,
+        "width": 393,
+        "height": 553
+      },
+      "bed": {
+        "x": 145,
+        "y": 650,
+        "width": 383,
+        "height": 544
+      },
+      "workbench": {
+        "x": 642,
+        "y": 681,
+        "width": 526,
+        "height": 456
+      }
+    }
+  },
+  "props": {
+    "file": "props.png",
+    "width": 1254,
+    "height": 1254,
+    "frames": {
+      "well": {
+        "x": 93,
+        "y": 40,
+        "width": 445,
+        "height": 565
+      },
+      "market": {
+        "x": 646,
+        "y": 79,
+        "width": 563,
+        "height": 519
+      },
+      "cart": {
+        "x": 27,
+        "y": 730,
+        "width": 563,
+        "height": 424
+      },
+      "flowers": {
+        "x": 647,
+        "y": 781,
+        "width": 567,
+        "height": 343
+      }
+    }
+  },
+  "people": {
+    "file": "people.png",
+    "width": 1254,
+    "height": 1254,
+    "frames": {
+      "mara": {
+        "x": 163,
+        "y": 13,
+        "width": 307,
+        "height": 594
+      },
+      "jorin": {
+        "x": 771,
+        "y": 10,
+        "width": 319,
+        "height": 604
+      },
+      "selma": {
+        "x": 158,
+        "y": 639,
+        "width": 321,
+        "height": 603
+      },
+      "pia": {
+        "x": 797,
+        "y": 636,
+        "width": 349,
+        "height": 608
+      }
+    }
+  }
+}

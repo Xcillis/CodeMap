@@ -109,3 +109,20 @@ Das Akademietal bleibt 1600 × 1040 groß. Der Wald wächst auf 3200 × 2080 Wel
 | Moosling | 2760, 1730 | Ausdrücklich aufzunehmen, erscheint weiterhin erst nach Q05 |
 
 Ein südlicher Pfad verbindet Eingang, Lyra, Training und Tala. Eine nordöstliche Abzweigung führt über die zentrale Lichtung zu Neria; ein weiterer Weg verbindet Neria und Tala. Dazwischen bleibt der Wald frei begehbar. Generierte Baumgruppen und größere Bodenobjekte sparen alle Wegkorridore und Interaktionsplätze aus. Die Questvoraussetzungen, Entdeckungsregeln und Reihenfolge innerhalb der Lernreihen ändern sich nicht.
+
+
+## Dorf Auenquell und Innenräume
+
+Auenquell ist das dritte Außengebiet mit 3200 × 2080 Weltpixeln. Der Reisestein am östlichen Ende des bestehenden südlichen Waldwegs `(3020, 1700)` führt zum westlichen Dorfeingang `(230, 1600)`. Dafür kommt keine zusätzliche Questpflicht hinzu. Die Rückreise vom Dorfrand `(100, 1600)` landet am östlichen Waldweg `(2860, 1700)`, sodass keine unbeabsichtigte Reise zum Talzugang erfolgt.
+
+| Ort | Tür / Außenposition | Zugang und Bewohner |
+| --- | --- | --- |
+| Gasthaus zur Goldenen Rune | 1030, 800 | Betretbar; Mara in der Schankstube |
+| Jorins Werkstatt | 2230, 790 | Betretbar; Handwerker Jorin |
+| Haus der Geschichten | 1750, 430 | Betretbar; Bibliothekarin Selma |
+| Marktplatz | 1510, 1120 | Gärtnerin Pia, Brunnen und Marktstand |
+| Fünf weitere Häuser | Über das Dorf verteilt | Privat, keine Innenkarte |
+
+Die drei Innenräume messen je 960 × 720 Weltpixel. Sie besitzen eine eigene Kamera-/Physikbegrenzung, Möbelkollisionen und einen südlichen Ausgang. Beim Verlassen erscheint die Figur 65 Pixel vor der zugehörigen Haustür. Nur Bewohner der aktuellen Karte sind interaktiv. Die Bedienung entspricht den vorhandenen Dialogen über Tastatur und Touch. Journal und Charakterfenster berücksichtigen Dorf und Innenraum; aus einem Haus wird keine entfernte Trainings-/Weltquest gestartet.
+
+Das Dorf enthält in diesem Ausbau Orientierungsdialoge und den räumlichen Rahmen für spätere Aufgaben zu eigenen Blöcken. Bestehende Lernquests werden nicht verlegt, keine Fähigkeit oder Quest wird durch den Dorfbesuch automatisch vergeben.

@@ -11,7 +11,7 @@ import { touchInput } from '../input/TouchInput';
 import { isArkanId } from '../gameplay/ArkanaCatalog';
 import type { ArkanId } from '../combat/types';
 import { QUEST_GIVERS, giverLessons, isQuestGiverId, type QuestGiverId } from '../gameplay/QuestNetwork';
-import { REGIONS, REGION_SIZES, VALLEY_PASS } from '../gameplay/WorldRegions';
+import { REGIONS, FOREST_VILLAGE_EXIT, VALLEY_PASS } from '../gameplay/WorldRegions';
 import { VALLEY_OBSTACLES, valleyBlocked } from '../world/ValleyLayout';
 import { drawValley } from '../world/ValleyRenderer';
 import { FOREST_OBSTACLES, FOREST_TRAINING, forestBlocked } from '../world/ForestLayout';
@@ -25,6 +25,10 @@ import { addAcademyLights } from '../world/ValleyEffects';
 import { preloadMountainArt, registerMountainArt } from '../art/MountainArt';
 import { preloadForestArt, registerForestArt } from '../art/ForestArt';
 import { drawForest } from '../world/ForestRenderer';
+import { preloadVillageArt, registerVillageArt } from '../art/VillageArt';
+import { arrivalAfterTravel, locationKey, mapSize, mapSpawn, type MapPoint } from '../gameplay/VillagePlaces';
+import { VILLAGE_OBSTACLES, roomObstacles, villageTargets } from '../world/VillageLayout';
+import { drawInterior, drawVillage, drawVillageResidents } from '../world/VillageRenderer';
 
 export class WorldScene extends Phaser.Scene {
   private player!: Phaser.GameObjects.Arc;
@@ -53,9 +57,9 @@ export class WorldScene extends Phaser.Scene {
       if (isQuestGiverId(giver) && this.campaign.visitGiver(giver)) { this.publishCampaign(); gameEvents.emit('world-giver-open', giver); }
       return;
     }
-    if (action === 'travel-forest' || action === 'travel-valley') {
-      const previous = this.campaign.region; const message = this.campaign.apply(action);
-      if (previous !== this.campaign.region) { saveProgress({ campaign: this.campaign.snapshot }); this.clearInput(); this.scene.restart({ fromTravel: true }); }
+    if (action.startsWith('travel-') || action.startsWith('enter-') || action === 'leave-house') {
+      const previous = this.campaign.snapshot; const message = this.campaign.apply(action); const next = this.campaign.snapshot;
+      if (locationKey(previous) !== locationKey(next)) { saveProgress({ campaign: next }); this.clearInput(); this.scene.restart({ spawn: arrivalAfterTravel(previous, next) }); }
       else gameEvents.emit('world-notice', message);
       return;
     }
@@ -82,31 +86,39 @@ export class WorldScene extends Phaser.Scene {
   constructor() {
     super('world');
   }
-  preload(): void { preloadArt(this); preloadMotion(this); if (this.campaign.region === 'valley') { preloadValleyArt(this); preloadMountainArt(this); } else preloadForestArt(this); }
+  preload(): void { preloadArt(this); preloadMotion(this); if (this.campaign.region === 'valley') { preloadValleyArt(this); preloadMountainArt(this); } else if (this.campaign.region === 'forest') preloadForestArt(this); else preloadVillageArt(this); }
 
-  create(data?: { fromTravel?: boolean }): void {
-    registerArtFrames(this); registerMotion(this); if (this.campaign.region === 'valley') { registerValleyArt(this); registerMountainArt(this); } else registerForestArt(this); this.npcVisuals.clear(); this.playerArt = undefined; this.playerFacing = 'hero-down';
+  create(data?: { spawn?: MapPoint }): void {
+    registerArtFrames(this); registerMotion(this); if (this.campaign.region === 'valley') { registerValleyArt(this); registerMountainArt(this); } else if (this.campaign.region === 'forest') registerForestArt(this); else registerVillageArt(this); this.npcVisuals.clear(); this.playerArt = undefined; this.playerFacing = 'hero-down';
     this.dialogActive = false; this.overlayActive = false; this.gateBody = undefined; this.gateRocks = undefined;
     this.encounterLabels.clear(); this.arkanaVisuals.clear();
     this.interactionHint = undefined;
-    const size = REGION_SIZES[this.campaign.region];
+    const size = mapSize(this.campaign.snapshot);
     this.physics.world.setBounds(0, 0, size.width, size.height);
     this.drawLandscape();
     const obstacles = this.createObstacles();
-    const region = REGIONS[this.campaign.region]; const spawn = data?.fromTravel ? region.arrival : region.spawn;
+    const region = REGIONS[this.campaign.region]; const spawn = data?.spawn ?? mapSpawn(this.campaign.snapshot);
     this.player = this.createPlayer(spawn.x, spawn.y);
     this.physics.add.collider(this.player, obstacles);
     this.playerController = new PlayerController(this, this.player);
-    const people = (Object.keys(QUEST_GIVERS) as QuestGiverId[]).filter((id) => QUEST_GIVERS[id].region === this.campaign.region);
-    const training = this.campaign.region === 'valley' ? { x: 1000, y: 720 } : FOREST_TRAINING;
-    this.fixedTargets = [...people.map((id) => ({ id: `giver:${id}`, label: QUEST_GIVERS[id].name, x: QUEST_GIVERS[id].x, y: QUEST_GIVERS[id].y, range: 75 })),
-      { id: 'training', label: 'Freie Trainingsarena', ...training, range: 70 },
-      { id: 'travel', label: this.campaign.region === 'valley' ? 'Zum Aetherwald reisen' : 'Ins Tal zurückreisen', ...region.exit, range: 55 },
-      ...(this.campaign.region === 'valley' ? [{ id: 'landslide', label: 'Runenwinde am Steinrutsch', x: 1360, y: 520, range: 65 }] : [])];
-    for (const person of people) this.createNpc(person);
-    this.createWorldEncounter('training', 'Freie Trainingsarena', training.x, training.y, 0x80c6d3);
-    this.createWorldEncounter('travel', this.campaign.region === 'valley' ? '→ Aetherwald' : '← Tal von Aetheria', region.exit.x, region.exit.y, 0xb9e4d4);
-    if (this.campaign.region === 'valley') this.createWorldEncounter('landslide', 'Runenwinde · Steinrutsch', 1360, 520, 0xe1c970);
+    if (this.campaign.region === 'village') {
+      this.fixedTargets = villageTargets(this.campaign.snapshot);
+      drawVillageResidents(this, this.campaign.snapshot);
+      if (!this.campaign.interior) this.createWorldEncounter('travel', '← Aetherwald', region.exit.x, region.exit.y, 0xb9e4d4);
+    } else {
+      const people = (Object.keys(QUEST_GIVERS) as QuestGiverId[]).filter((id) => QUEST_GIVERS[id].region === this.campaign.region);
+      const training = this.campaign.region === 'valley' ? { x: 1000, y: 720 } : FOREST_TRAINING;
+      this.fixedTargets = [...people.map((id) => ({ id: `giver:${id}`, label: QUEST_GIVERS[id].name, x: QUEST_GIVERS[id].x, y: QUEST_GIVERS[id].y, range: 75 })),
+        { id: 'training', label: 'Freie Trainingsarena', ...training, range: 70 },
+        { id: 'travel', label: this.campaign.region === 'valley' ? 'Zum Aetherwald reisen' : 'Ins Tal zurückreisen', ...region.exit, range: 55 },
+        ...(this.campaign.region === 'valley' ? [{ id: 'landslide', label: 'Runenwinde am Steinrutsch', x: 1360, y: 520, range: 65 }]
+          : [{ id: 'village-road', label: 'Nach Auenquell reisen', ...FOREST_VILLAGE_EXIT, range: 65 }])];
+      for (const person of people) this.createNpc(person);
+      this.createWorldEncounter('training', 'Freie Trainingsarena', training.x, training.y, 0x80c6d3);
+      this.createWorldEncounter('travel', this.campaign.region === 'valley' ? '→ Aetherwald' : '← Tal von Aetheria', region.exit.x, region.exit.y, 0xb9e4d4);
+      if (this.campaign.region === 'valley') this.createWorldEncounter('landslide', 'Runenwinde · Steinrutsch', 1360, 520, 0xe1c970);
+      else this.createWorldEncounter('village-road', '→ Dorf Auenquell', FOREST_VILLAGE_EXIT.x, FOREST_VILLAGE_EXIT.y, 0xe6ce91);
+    }
     this.interactionController = new InteractionController(this.fixedTargets);
 
     this.cameras.main.setBounds(0, 0, size.width, size.height);
@@ -209,6 +221,10 @@ export class WorldScene extends Phaser.Scene {
   }
 
   private drawLandscape(): void {
+    if (this.campaign.region === 'village') {
+      if (this.campaign.interior) drawInterior(this, this.campaign.interior); else drawVillage(this);
+      return;
+    }
     if (this.campaign.region === 'forest') { drawForest(this); return; }
     this.gateRocks = drawValley(this).landslide;
     this.drawBuilding(1040, 255);
@@ -222,6 +238,7 @@ export class WorldScene extends Phaser.Scene {
       group.add(body);
       return body;
     };
+    if (this.campaign.region === 'village') { for (const body of this.campaign.interior ? roomObstacles(this.campaign.interior) : VILLAGE_OBSTACLES) addObstacle(body.x, body.y, body.width, body.height); return group; }
     if (this.campaign.region === 'forest') { for (const body of FOREST_OBSTACLES) addObstacle(body.x, body.y, body.width, body.height); return group; }
     for (const obstacle of VALLEY_OBSTACLES) addObstacle(obstacle.x, obstacle.y, obstacle.width, obstacle.height);
     this.gateBody = addObstacle(VALLEY_PASS.x, VALLEY_PASS.y, VALLEY_PASS.width, VALLEY_PASS.height);

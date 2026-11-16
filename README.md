@@ -1,6 +1,6 @@
 # CodeMap – lokaler RPG-Prototyp
 
-Phaser-/TypeScript-RPG mit zwei verbundenen Gebieten, 20 spielbaren Lernquests, sammelbaren Arkana und einem Block-/Texteditor. Alles funktioniert lokal. Der [Gebietsplan](docs/CodeMap_Gebietsplan.md) beschreibt Questgeber, Voraussetzungen und Reisewege; die [Lernprogression](docs/CodeMap_Lernprogression.md) erklärt die didaktische Struktur.
+Phaser-/TypeScript-RPG mit drei verbundenen Gebieten, 20 spielbaren Lernquests, sammelbaren Arkana und einem Block-/Texteditor. Alles funktioniert lokal. Der [Gebietsplan](docs/CodeMap_Gebietsplan.md) beschreibt Questgeber, Voraussetzungen und Reisewege; die [Lernprogression](docs/CodeMap_Lernprogression.md) erklärt die didaktische Struktur.
 
 ## Lokal starten
 
@@ -12,6 +12,14 @@ npm run dev
 Öffne die von Vite ausgegebene Adresse, normalerweise `http://localhost:5173`, in Edge oder einem anderen Browser. Auf Windows kann in PowerShell bei Bedarf `npm.cmd` verwendet werden. `npm test` prüft die Logik und UI; `npm run build` erstellt den Produktionsbuild.
 
 Der Aetherwald misst **3200 × 2080 Weltpixel** und hat damit die vierfache Fläche des Akademietals (1600 × 1040). Neue [Wald-Assets und Prompts](public/assets/aetheria-forest-v1/README.md) bilden dichte Baumgruppen, Moosfelsen, Farne, Totholz und schattigen Boden. Schmale verbundene Wege führen von Lyra am westlichen Waldsaum zu Neria auf der nordöstlichen Sonnenlichtung und Tala im südöstlichen Forscherhain. Die Erdwege besitzen zusammenhängende Flächen, gerundete Kurven und unregelmäßige Ränder mit verstreuten Steinchen. Moosling wartet nach Lyras Einführung im Mooshain. Wegweiser und beschriftete Lichtungen helfen bei der Orientierung. Bestehende Quests und Spielstände bleiben erhalten; ein Zurücksetzen ist nicht nötig.
+
+## Vom Wald nach Auenquell
+
+Folge dem südlichen Waldweg ganz nach Osten bis zum Reisestein **Dorf Auenquell** bei `(3020, 1700)`. Interagiere mit **E**, **Leertaste** oder der Touch-Aktion und wähle **Nach Auenquell reisen**. Das Dorf ist mit 3200 × 2080 Weltpixeln so groß wie der Wald und umfasst acht unterschiedliche Häuser, einen Marktplatz, Brunnen, Marktstand und Gärten. Ein zusätzlicher Questabschluss ist für diesen Dorfbesuch nicht erforderlich, sobald der Wald erreichbar ist.
+
+**Gasthaus, Jorins Werkstatt und Bibliothek** sind mit „Tür · Betretbar“ markiert. Gehe zur Haustür, interagiere und wähle **Haus betreten**. Jeder Innenraum hat eine eigene Karte, Einrichtung und eine ansprechbare Person. Die Tür im Süden führt wieder vor dasselbe Haus. Die übrigen Gebäude sind ausdrücklich als Privathäuser gekennzeichnet. Auf dem Marktplatz hilft Gärtnerin Pia bei der Orientierung.
+
+Der südwestliche Dorfausgang führt zum östlichen Waldweg zurück. Von dort bleibt der Rückweg ins Tal erreichbar. Gebiet und Innenraum werden gespeichert; Sammlung, Team, Questfortschritt und Programmentwürfe bleiben erhalten. Die neuen [Dorf-Assets samt vollständigen Imagegen-Prompts](public/assets/aetheria-village-v1/README.md) liegen lokal im Projekt. Auenquell bildet den Kartenrahmen für spätere Lernquests zu eigenen Blöcken; deren Programmiersystem gehört noch nicht zu diesem Gebietsausbau.
 
 ## Vom Tal in den Wald
 
