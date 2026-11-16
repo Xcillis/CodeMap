@@ -3,11 +3,11 @@ import { ART_KEYS, groundDepth } from '../art/ArtCatalog';
 import { environmentImage } from '../art/ArtSprites';
 import { WORLD_SIZE } from '../gameplay/WorldRegions';
 import { staticLandscape } from './StaticLandscape';
-import { VALLEY_BOULDERS, VALLEY_BORDERS, VALLEY_BRIDGE, VALLEY_PATHS, VALLEY_TREES, valleyBlocked } from './ValleyLayout';
+import { VALLEY_BOULDERS, VALLEY_BORDERS, VALLEY_BRIDGE, VALLEY_TREES, valleyBlocked } from './ValleyLayout';
 
 export function drawIllustratedValley(scene: Phaser.Scene, paintGround: (graphics: Phaser.GameObjects.Graphics) => void): Phaser.GameObjects.Container {
   scene.add.tileSprite(0, 0, WORLD_SIZE.width, WORLD_SIZE.height, ART_KEYS.groundTile).setOrigin(0).setTileScale(1.4).setDepth(0);
-  staticLandscape(scene, 'valley-paths-art-v1', WORLD_SIZE.width, WORLD_SIZE.height, .1, paintGround);
+  staticLandscape(scene, 'valley-water-art-v2', WORLD_SIZE.width, WORLD_SIZE.height, .1, paintGround);
   const bridge = VALLEY_BRIDGE;
   environmentImage(scene, 'bridge', bridge.x, bridge.y + bridge.height / 2, bridge.width, bridge.height)?.setDepth(.3);
   for (const tree of VALLEY_TREES) {
@@ -25,12 +25,7 @@ export function drawIllustratedValley(scene: Phaser.Scene, paintGround: (graphic
   }
   for (let y = 135; y < 950; y += 145) for (let x = 100; x < 1350; x += 150) {
     const point = { x: x + (y % 31), y };
-    const onPath = VALLEY_PATHS.some((path) => path.slice(1).some((end, index) => {
-      const start = path[index]; const dx = end.x - start.x; const dy = end.y - start.y;
-      const t = Math.max(0, Math.min(1, ((point.x - start.x) * dx + (point.y - start.y) * dy) / (dx * dx + dy * dy)));
-      return Math.hypot(point.x - start.x - t * dx, point.y - start.y - t * dy) < 50;
-    }));
-    if (!onPath && !valleyBlocked(point, false, 25)) environmentImage(scene, 'flowers', point.x, point.y, 34)?.setDepth(.2);
+    if (!valleyBlocked(point, false, 25)) environmentImage(scene, 'flowers', point.x, point.y, 34)?.setDepth(.2);
   }
   const landslide = scene.add.container().setDepth(groundDepth(615));
   for (const [index, y] of [465, 520, 580].entries()) {

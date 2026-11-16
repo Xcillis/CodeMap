@@ -34,7 +34,7 @@ export function motionSprite(scene: Phaser.Scene, actor: MotionActor, x: number,
   playMotion(sprite, actor, 'idle'); return sprite;
 }
 export function playMotion(sprite: Phaser.GameObjects.Sprite, actor: MotionActor, mode: MotionMode, horizontal = 0): void {
-  if (actor.startsWith('hero-')) sprite.setFlipX(false);
+  if (actor.startsWith('hero-') || actor.startsWith('brann-')) sprite.setFlipX(false);
   else if (horizontal) sprite.setFlipX(horizontal > 0 ? MOTION_MANIFEST.actors[actor].sourceFacing === 'left' : MOTION_MANIFEST.actors[actor].sourceFacing !== 'left');
   sprite.play(motionKey(actor, mode), true);
 }

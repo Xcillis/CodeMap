@@ -18,6 +18,7 @@ import { FOREST_TREES, forestBlocked } from '../world/ForestLayout';
 import { ART_KEYS, groundDepth, heroFacing, type HeroFrame } from '../art/ArtCatalog';
 import { characterImage, environmentImage, preloadArt, registerArtFrames } from '../art/ArtSprites';
 import { motionSprite, playMotion, preloadMotion, registerMotion } from '../art/MotionSprites';
+import { motionDirection, type MotionDirection } from '../art/MotionCatalog';
 import { NpcPatrol, NPC_BEHAVIORS, npcShouldPause } from '../gameplay/NpcPatrol';
 
 const WORLD_WIDTH = WORLD_SIZE.width;
@@ -32,7 +33,7 @@ export class WorldScene extends Phaser.Scene {
   private readonly campaign = new Campaign(loadProgress().campaign);
   private readonly encounterLabels = new Map<string, Phaser.GameObjects.Text>();
   private readonly arkanaVisuals = new Map<ArkanId, readonly Phaser.GameObjects.GameObject[]>();
-  private readonly npcVisuals = new Map<QuestGiverId, { root: Phaser.GameObjects.Container; art?: Phaser.GameObjects.Image | Phaser.GameObjects.Sprite; label: Phaser.GameObjects.Text; patrol: NpcPatrol }>();
+  private readonly npcVisuals = new Map<QuestGiverId, { root: Phaser.GameObjects.Container; art?: Phaser.GameObjects.Image | Phaser.GameObjects.Sprite; label: Phaser.GameObjects.Text; patrol: NpcPatrol; facing: MotionDirection; directional: boolean }>();
   private fixedTargets: InteractionTarget[] = [];
   private gateBody?: Phaser.GameObjects.Rectangle;
   private gateRocks?: Phaser.GameObjects.Container;
@@ -238,14 +239,15 @@ export class WorldScene extends Phaser.Scene {
     const { x, y, name, color } = QUEST_GIVERS[id];
     const root = this.add.container(x, y).setDepth(groundDepth(y + 19));
     root.add(this.add.ellipse(0, 20, 27, 9, 0x1d2a25, .3));
-    const art = motionSprite(this, id, 0, 19, 68) ?? characterImage(this, id, 0, 19, 68);
+    const directional = id === 'brann' ? motionSprite(this, 'brann-down', 0, 19, 68) : undefined;
+    const art = directional ?? motionSprite(this, id, 0, 19, 68) ?? characterImage(this, id, 0, 19, 68);
     if (art) root.add(art);
     else {
       root.add(this.add.circle(0, 0, 17, color).setStrokeStyle(3, 0xf2d8ff));
       root.add(this.add.triangle(0, -15, -14, 11, 14, 11, 0, -19, 0x40245f));
     }
     const label = this.add.text(x, y - 65, name, { fontFamily: 'Georgia, serif', fontSize: '16px', color: '#fff6d8', stroke: '#26352c', strokeThickness: 4, align: 'center' }).setOrigin(.5).setDepth(10000);
-    this.npcVisuals.set(id, { root, art, label, patrol: new NpcPatrol({ x, y }, NPC_BEHAVIORS[id]) });
+    this.npcVisuals.set(id, { root, art, label, patrol: new NpcPatrol({ x, y }, NPC_BEHAVIORS[id]), facing: 'down', directional: Boolean(directional) });
     this.encounterLabels.set(`giver:${id}`, label);
   }
 
@@ -258,7 +260,10 @@ export class WorldScene extends Phaser.Scene {
         : !forestBlocked(point, 18));
       visual.root.setPosition(next.x, next.y).setDepth(groundDepth(next.y + 19)); visual.label.setPosition(next.x, next.y - 65);
       this.interactionController.moveTarget(`giver:${id}`, next.x, next.y);
-      if (visual.art instanceof Phaser.GameObjects.Sprite) playMotion(visual.art, id, next.moving ? 'walk' : 'idle', next.dx);
+      if (visual.art instanceof Phaser.GameObjects.Sprite) {
+        visual.facing = motionDirection(next.dx, next.dy, visual.facing);
+        playMotion(visual.art, id === 'brann' && visual.directional ? `brann-${visual.facing}` : id, next.moving ? 'walk' : 'idle', next.dx);
+      }
     }
   }
 
@@ -267,8 +272,6 @@ export class WorldScene extends Phaser.Scene {
     if (illustrated) this.add.tileSprite(0, 0, 1600, 1040, ART_KEYS.groundTile).setOrigin(0).setTileScale(1.4).setTint(0x8bbd9b);
     const ground = this.add.graphics().setDepth(.1);
     if (!illustrated) ground.fillStyle(0x315d46).fillRect(0, 0, 1600, 1040);
-    ground.lineStyle(40, 0x93865d).beginPath().moveTo(100, 520).lineTo(600, 490).lineTo(1140, 390).strokePath();
-    ground.beginPath().moveTo(600, 490).lineTo(1030, 800).lineTo(1450, 915).strokePath();
     for (const [x, y] of FOREST_TREES) this.drawTree(x, y);
     this.drawPond(980, 145);
     this.add.text(160, 75, 'AETHERWALD', { fontSize: '28px', color: '#d4f6d9', stroke: '#183c30', strokeThickness: 5 }).setDepth(10000);

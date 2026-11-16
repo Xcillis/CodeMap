@@ -3,7 +3,7 @@ import type { RegionId } from './WorldRegions';
 
 export const QUEST_GIVERS = {
   eldren: { name: 'Arkanist Eldren', region: 'valley', x: 915, y: 540, color: 0x8c55bc, description: 'Bewegung, Angriff und Runenrätsel an der Talakademie.' },
-  brann: { name: 'Wächter Brann', region: 'valley', x: 440, y: 390, color: 0xbd7652, description: 'Schleifen im Kampf und Glutlings Feuerfähigkeiten am westlichen Übungsplatz.' },
+  brann: { name: 'Wächter Brann', region: 'valley', x: 440, y: 390, color: 0xbd7652, description: 'Patrouilliert durch das Tal und lehrt Schleifen im Kampf sowie Glutlings Feuerfähigkeiten.' },
   mira: { name: 'Bergmeisterin Mira', region: 'valley', x: 1280, y: 650, color: 0xc9a95c, description: 'Verschachtelte Schleifen, die Räumung des Steinrutschs und danach Felsbocks Schutz am Ostpass.' },
   lyra: { name: 'Waldhüterin Lyra', region: 'forest', x: 600, y: 490, color: 0x69b482, description: 'Die verpflichtende Einführung in Bedingungen und ein beweglicher Wächter.' },
   neria: { name: 'Runenkundige Neria', region: 'forest', x: 1140, y: 390, color: 0x90aacb, description: 'Entscheidungen auf dem verschlungenen Waldpfad.' },

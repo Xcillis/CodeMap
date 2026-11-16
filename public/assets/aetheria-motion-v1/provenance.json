@@ -23,6 +23,13 @@
       "alphaMin": 0,
       "transparentFraction": 0.626,
       "processing": "Unmodified PNG; alpha bounds and foot alignment stored as Phaser frame metadata."
+    },
+    "brann-4way-v1.png": {
+      "sourceOutput": "exec-76fb114b-75ad-44e1-9667-8791f656d0a7.png",
+      "sha256": "fe3c859802dc0974107528d28c2980bf0b0e0584dcc132b4ff66571dc14ee54d",
+      "alphaMin": 0,
+      "transparentFraction": 0.6416,
+      "processing": "Unmodified PNG; four directional views with shared foot-aligned Phaser frame metadata."
     }
   }
 }

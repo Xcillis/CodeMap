@@ -1,0 +1,311 @@
+{
+  "sheet": {
+    "file": "brann-4way-v1.png",
+    "width": 1536,
+    "height": 1024,
+    "frames": {
+      "brann-down-0": {
+        "x": 71,
+        "y": 13,
+        "width": 179,
+        "height": 224,
+        "canvasWidth": 189,
+        "canvasHeight": 234,
+        "offsetX": 5,
+        "offsetY": 10
+      },
+      "brann-down-1": {
+        "x": 329,
+        "y": 13,
+        "width": 177,
+        "height": 224,
+        "canvasWidth": 189,
+        "canvasHeight": 234,
+        "offsetX": 6,
+        "offsetY": 10
+      },
+      "brann-down-2": {
+        "x": 573,
+        "y": 14,
+        "width": 187,
+        "height": 231,
+        "canvasWidth": 189,
+        "canvasHeight": 234,
+        "offsetX": 1,
+        "offsetY": 3
+      },
+      "brann-down-3": {
+        "x": 823,
+        "y": 14,
+        "width": 176,
+        "height": 228,
+        "canvasWidth": 189,
+        "canvasHeight": 234,
+        "offsetX": 6,
+        "offsetY": 6
+      },
+      "brann-down-4": {
+        "x": 1075,
+        "y": 14,
+        "width": 182,
+        "height": 230,
+        "canvasWidth": 189,
+        "canvasHeight": 234,
+        "offsetX": 3,
+        "offsetY": 4
+      },
+      "brann-down-5": {
+        "x": 1330,
+        "y": 13,
+        "width": 182,
+        "height": 227,
+        "canvasWidth": 189,
+        "canvasHeight": 234,
+        "offsetX": 3,
+        "offsetY": 7
+      },
+      "brann-up-0": {
+        "x": 61,
+        "y": 267,
+        "width": 183,
+        "height": 226,
+        "canvasWidth": 189,
+        "canvasHeight": 234,
+        "offsetX": 3,
+        "offsetY": 8
+      },
+      "brann-up-1": {
+        "x": 318,
+        "y": 268,
+        "width": 182,
+        "height": 225,
+        "canvasWidth": 189,
+        "canvasHeight": 234,
+        "offsetX": 3,
+        "offsetY": 9
+      },
+      "brann-up-2": {
+        "x": 568,
+        "y": 269,
+        "width": 184,
+        "height": 230,
+        "canvasWidth": 189,
+        "canvasHeight": 234,
+        "offsetX": 2,
+        "offsetY": 4
+      },
+      "brann-up-3": {
+        "x": 813,
+        "y": 268,
+        "width": 175,
+        "height": 228,
+        "canvasWidth": 189,
+        "canvasHeight": 234,
+        "offsetX": 7,
+        "offsetY": 6
+      },
+      "brann-up-4": {
+        "x": 1066,
+        "y": 268,
+        "width": 178,
+        "height": 232,
+        "canvasWidth": 189,
+        "canvasHeight": 234,
+        "offsetX": 5,
+        "offsetY": 2
+      },
+      "brann-up-5": {
+        "x": 1316,
+        "y": 268,
+        "width": 189,
+        "height": 222,
+        "canvasWidth": 189,
+        "canvasHeight": 234,
+        "offsetX": 0,
+        "offsetY": 12
+      },
+      "brann-left-0": {
+        "x": 87,
+        "y": 521,
+        "width": 123,
+        "height": 234,
+        "canvasWidth": 189,
+        "canvasHeight": 234,
+        "offsetX": 33,
+        "offsetY": 0
+      },
+      "brann-left-1": {
+        "x": 345,
+        "y": 522,
+        "width": 121,
+        "height": 230,
+        "canvasWidth": 189,
+        "canvasHeight": 234,
+        "offsetX": 34,
+        "offsetY": 4
+      },
+      "brann-left-2": {
+        "x": 575,
+        "y": 522,
+        "width": 150,
+        "height": 229,
+        "canvasWidth": 189,
+        "canvasHeight": 234,
+        "offsetX": 19,
+        "offsetY": 5
+      },
+      "brann-left-3": {
+        "x": 826,
+        "y": 521,
+        "width": 152,
+        "height": 230,
+        "canvasWidth": 189,
+        "canvasHeight": 234,
+        "offsetX": 18,
+        "offsetY": 4
+      },
+      "brann-left-4": {
+        "x": 1093,
+        "y": 522,
+        "width": 139,
+        "height": 232,
+        "canvasWidth": 189,
+        "canvasHeight": 234,
+        "offsetX": 25,
+        "offsetY": 2
+      },
+      "brann-left-5": {
+        "x": 1341,
+        "y": 521,
+        "width": 138,
+        "height": 224,
+        "canvasWidth": 189,
+        "canvasHeight": 234,
+        "offsetX": 25,
+        "offsetY": 10
+      },
+      "brann-right-0": {
+        "x": 89,
+        "y": 776,
+        "width": 132,
+        "height": 233,
+        "canvasWidth": 189,
+        "canvasHeight": 234,
+        "offsetX": 28,
+        "offsetY": 1
+      },
+      "brann-right-1": {
+        "x": 345,
+        "y": 776,
+        "width": 132,
+        "height": 233,
+        "canvasWidth": 189,
+        "canvasHeight": 234,
+        "offsetX": 28,
+        "offsetY": 1
+      },
+      "brann-right-2": {
+        "x": 593,
+        "y": 776,
+        "width": 143,
+        "height": 230,
+        "canvasWidth": 189,
+        "canvasHeight": 234,
+        "offsetX": 23,
+        "offsetY": 4
+      },
+      "brann-right-3": {
+        "x": 846,
+        "y": 775,
+        "width": 133,
+        "height": 231,
+        "canvasWidth": 189,
+        "canvasHeight": 234,
+        "offsetX": 28,
+        "offsetY": 3
+      },
+      "brann-right-4": {
+        "x": 1097,
+        "y": 776,
+        "width": 134,
+        "height": 230,
+        "canvasWidth": 189,
+        "canvasHeight": 234,
+        "offsetX": 27,
+        "offsetY": 4
+      },
+      "brann-right-5": {
+        "x": 1343,
+        "y": 776,
+        "width": 139,
+        "height": 230,
+        "canvasWidth": 189,
+        "canvasHeight": 234,
+        "offsetX": 25,
+        "offsetY": 4
+      }
+    }
+  },
+  "actors": {
+    "brann-down": {
+      "sheet": "brann",
+      "height": 234,
+      "idle": [
+        "brann-down-0",
+        "brann-down-1"
+      ],
+      "walk": [
+        "brann-down-2",
+        "brann-down-3",
+        "brann-down-4",
+        "brann-down-5"
+      ],
+      "sourceFacing": "directional"
+    },
+    "brann-up": {
+      "sheet": "brann",
+      "height": 234,
+      "idle": [
+        "brann-up-0",
+        "brann-up-1"
+      ],
+      "walk": [
+        "brann-up-2",
+        "brann-up-3",
+        "brann-up-4",
+        "brann-up-5"
+      ],
+      "sourceFacing": "directional"
+    },
+    "brann-left": {
+      "sheet": "brann",
+      "height": 234,
+      "idle": [
+        "brann-left-0",
+        "brann-left-1"
+      ],
+      "walk": [
+        "brann-left-2",
+        "brann-left-3",
+        "brann-left-4",
+        "brann-left-5"
+      ],
+      "sourceFacing": "directional"
+    },
+    "brann-right": {
+      "sheet": "brann",
+      "height": 234,
+      "idle": [
+        "brann-right-0",
+        "brann-right-1"
+      ],
+      "walk": [
+        "brann-right-2",
+        "brann-right-3",
+        "brann-right-4",
+        "brann-right-5"
+      ],
+      "sourceFacing": "directional"
+    }
+  }
+}

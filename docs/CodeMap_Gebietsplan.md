@@ -12,7 +12,7 @@ Ein von Bergwänden eingefasstes Tal enthält die Akademie, einen westlichen Üb
 | Eldren | Q02 Das Übungskonstrukt | Q01 | Angriffstutorial, passiver Kampf |
 | Eldren | Q03 Der lange Runenweg | Q02 | Schleifeneinführung, Rätsel |
 | Eldren | Q04 Der Musterpfad | Q03 | Mehrere Anweisungen gemeinsam wiederholen, Folge-Rätsel |
-| Brann, Westplatz `(440, 390)` | Q11 Branns Übungswache | Q02 | Eigene Schleifeneinführung, Kampf |
+| Brann, Talpatrouille (Start `(440, 390)`) | Q11 Branns Übungswache | Q02 | Eigene Schleifeneinführung, Kampf |
 | Brann | Q14 Glutlings Feuerprobe | Q02 | Feuerfähigkeit, Brand und Abklingzeit; unabhängig von den Schleifenreihen |
 | Mira, Ostpasslager `(1280, 650)` | Q09 Miras Runentreppe | Q02 | Eigene Einführung in Schleifen und verschachtelte Schleifen, Rätsel |
 | Mira | Q10 Miras Schlagmuster | Q09 | Verschachtelte Schleifen, Folge-Kampf |
@@ -84,3 +84,5 @@ Felsbock erscheint nach Q12 neben dem geräumten Ostpass bei `(1260, 560)`. Es m
 | Tala im Wald | Q20 Drei Arkana, ein Plan | Q19, alle drei aufgenommen | Glutling, Moosling und Felsbock mit eigenen Programmen gegen einen aktiven Wächter |
 
 Der Rückweg ins Tal verbindet die fortgeschrittenen Waldquests mit Felsbocks Fundort. Alte Spielstände behalten zwei Plätze, bis Q19 tatsächlich abgeschlossen wurde. Eine angenommene Einführung oder ein freies Training genügt dafür nicht.
+
+Brann läuft vom westlichen Startpunkt einen großen Rundgang über die zentrale und östliche Wiese bis in den Süden des Tals. Er hält bei Annäherung und in Dialogen an; seine Aufgaben werden an seiner aktuellen Position geöffnet. Tal und Wald besitzen jetzt durchgehenden Wiesen-/Waldboden ohne die früheren sandfarbenen Wege. Die begehbaren Verbindungen, Brücke und Gebietssperren bleiben erhalten.

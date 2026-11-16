@@ -14,15 +14,6 @@ export const RIVER_ROUTE: readonly Point[] = [
   { x: 248, y: 735 }, { x: 265, y: 810 }, { x: 340, y: 880 }, { x: 400, y: 950 }, { x: 470, y: 1020 },
 ];
 
-export const VALLEY_PATHS: readonly (readonly Point[])[] = [
-  [{ x: 70, y: 885 }, { x: 140, y: 805 }, { x: 248, y: 735 }, { x: 400, y: 735 }, { x: 600, y: 650 }, { x: 780, y: 620 }, { x: 915, y: 540 }, { x: 1110, y: 560 }, { x: 1280, y: 650 }],
-  [{ x: 600, y: 650 }, { x: 450, y: 570 }, { x: 440, y: 390 }],
-  [{ x: 450, y: 570 }, { x: 620, y: 455 }, { x: 760, y: 490 }, { x: 780, y: 620 }],
-  [{ x: 915, y: 540 }, { x: 1040, y: 465 }, { x: 1040, y: 408 }],
-  [{ x: 780, y: 620 }, { x: 850, y: 730 }, { x: 1000, y: 720 }],
-  [{ x: 1110, y: 560 }, { x: 1330, y: 530 }, { x: 1540, y: 520 }],
-];
-
 export const VALLEY_TREES: readonly ValleyTree[] = [
   { x: 105, y: 170, kind: 'pine', size: 1 }, { x: 320, y: 180, kind: 'broad', size: 1.1 },
   { x: 365, y: 265, kind: 'broad', size: .95 }, { x: 560, y: 220, kind: 'broad', size: 1.15 },

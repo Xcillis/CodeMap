@@ -2,14 +2,14 @@ import { readFileSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 import type Phaser from 'phaser';
 import { describe, expect, it, vi } from 'vitest';
-import { MOTION_MANIFEST, MOTION_KEYS, motionKey, type MotionActor, type MotionSheet } from './MotionCatalog';
+import { MOTION_MANIFEST, MOTION_KEYS, motionDirection, motionKey, type MotionActor, type MotionSheet } from './MotionCatalog';
 import { motionSprite, playMotion, preloadMotion, registerMotion } from './MotionSprites';
 import provenance from '../../public/assets/aetheria-motion-v1/provenance.json';
 
 describe('Idle- und Laufatlanten', () => {
-  it('enthält 72 Bildausschnitte für alle Figuren mit gemeinsamer Fußlinie je Identität', () => {
-    expect(Object.keys(MOTION_MANIFEST.actors)).toHaveLength(14);
-    expect(Object.values(MOTION_MANIFEST.sheets).flatMap((sheet) => Object.keys(sheet.frames))).toHaveLength(72);
+  it('enthält 96 Bildausschnitte für alle Figuren mit gemeinsamer Fußlinie je Identität', () => {
+    expect(Object.keys(MOTION_MANIFEST.actors)).toHaveLength(18);
+    expect(Object.values(MOTION_MANIFEST.sheets).flatMap((sheet) => Object.keys(sheet.frames))).toHaveLength(96);
     for (const actor of Object.values(MOTION_MANIFEST.actors)) {
       const sheet = MOTION_MANIFEST.sheets[actor.sheet as MotionSheet];
       const frames: Record<string, { x: number; y: number; width: number; height: number; canvasWidth: number; canvasHeight: number; offsetX: number; offsetY: number }> = sheet.frames;
@@ -21,13 +21,13 @@ describe('Idle- und Laufatlanten', () => {
         expect(frame.x + frame.width).toBeLessThanOrEqual(sheet.width); expect(frame.y + frame.height).toBeLessThanOrEqual(sheet.height);
       }
     }
-    expect(new Set(['hero-down', 'hero-up', 'hero-left', 'hero-right'].map((id) => MOTION_MANIFEST.actors[id as MotionActor].height)).size).toBe(1);
+    for (const actor of ['hero', 'brann']) expect(new Set(['down', 'up', 'left', 'right'].map((direction) => MOTION_MANIFEST.actors[`${actor}-${direction}` as MotionActor].height)).size).toBe(1);
   });
   it('liefert lokale RGBA-PNGs mit geprüfter Transparenz und unveränderter Herkunft', () => {
-    for (const [id, sheet] of Object.entries(MOTION_MANIFEST.sheets)) {
+    for (const sheet of Object.values(MOTION_MANIFEST.sheets)) {
       const bytes = readFileSync(`public/assets/aetheria-motion-v1/${sheet.file}`);
       expect(bytes.readUInt32BE(16)).toBe(sheet.width); expect(bytes.readUInt32BE(20)).toBe(sheet.height); expect(bytes[25]).toBe(6);
-      const info = provenance.assets[`${id}.png` as keyof typeof provenance.assets];
+      const info = provenance.assets[sheet.file as keyof typeof provenance.assets];
       expect(createHash('sha256').update(bytes).digest('hex')).toBe(info.sha256);
       expect(info.alphaMin).toBe(0); expect(info.transparentFraction).toBeGreaterThan(.4);
     }
@@ -39,7 +39,7 @@ describe('Idle- und Laufatlanten', () => {
     const create = vi.fn((config: { key: string; repeat: number; frames: unknown[] }) => { expect(config.repeat).toBe(-1); expect(config.frames.length).toBeGreaterThanOrEqual(2); clips.add(config.key); });
     const scene = { load: { image: load }, textures: { exists: (key: string) => keys.has(key), get: () => ({ has: (name: string) => frames.has(name), add }) }, anims: { exists: (key: string) => clips.has(key), create } } as unknown as Phaser.Scene;
     preloadMotion(scene); registerMotion(scene); preloadMotion(scene); registerMotion(scene);
-    expect(load).toHaveBeenCalledTimes(3); expect(add).toHaveBeenCalledTimes(72); expect(trim).toHaveBeenCalledTimes(72); expect(create).toHaveBeenCalledTimes(28);
+    expect(load).toHaveBeenCalledTimes(4); expect(add).toHaveBeenCalledTimes(96); expect(trim).toHaveBeenCalledTimes(96); expect(create).toHaveBeenCalledTimes(36);
   });
   it('wechselt zwischen Idle und Laufen ohne erneutes Starten desselben Clips und erhält die Fußskalierung', () => {
     const play = vi.fn(); const flip = vi.fn(); const origin = vi.fn(); const scale = vi.fn(); const figure = { play, setFlipX: flip, setOrigin: origin, setScale: scale };
@@ -50,7 +50,18 @@ describe('Idle- und Laufatlanten', () => {
     playMotion(sprite, 'hero-left', 'walk', -1); expect(play).toHaveBeenLastCalledWith(motionKey('hero-left', 'walk'), true); expect(flip).toHaveBeenLastCalledWith(false);
     playMotion(sprite, 'glutling', 'walk', 1); expect(flip).toHaveBeenLastCalledWith(true);
     playMotion(sprite, 'glutling', 'walk', -1); expect(flip).toHaveBeenLastCalledWith(false);
-    expect(Object.values(MOTION_KEYS)).toHaveLength(3);
+    for (const direction of ['down', 'up', 'left', 'right'] as const) {
+      playMotion(sprite, `brann-${direction}`, 'walk', -1); expect(flip).toHaveBeenLastCalledWith(false);
+      expect(play).toHaveBeenLastCalledWith(motionKey(`brann-${direction}`, 'walk'), true);
+    }
+    expect(Object.values(MOTION_KEYS)).toHaveLength(4);
+  });
+  it('wählt die wirkliche Laufrichtung und hält sie bei Idle und Pausen fest', () => {
+    expect(motionDirection(1, 0, 'up')).toBe('right'); expect(motionDirection(-1, 0, 'up')).toBe('left');
+    expect(motionDirection(0, 1, 'left')).toBe('down'); expect(motionDirection(0, -1, 'left')).toBe('up');
+    expect(motionDirection(0, 0, 'up')).toBe('up');
+    const down = MOTION_MANIFEST.actors['brann-down']; const up = MOTION_MANIFEST.actors['brann-up'];
+    expect(up.walk).not.toEqual(down.walk); expect(up.sheet).toBe('brann');
   });
   it('lässt fehlende Animationsbilder auf die vorhandenen statischen Figuren zurückfallen', () => {
     const scene = { textures: { exists: () => false } } as unknown as Phaser.Scene;
