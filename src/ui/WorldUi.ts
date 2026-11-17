@@ -89,7 +89,7 @@ export class WorldUi {
     this.el('world-panel-title').textContent = character ? 'Charakter' : this.tab === 'journal' ? 'Questjournal' : this.tab === 'giver' && this.giver ? QUEST_GIVERS[this.giver].name : 'Freie Trainingsarena';
     const intro = this.tab === 'collection' ? `${state.owned.length} von ${Object.keys(ARKANA_SPECIES).length} Arkana-Arten gesammelt. Hier findest du ihre Eigenschaften und gelernten Fähigkeiten.`
       : this.tab === 'team' ? `${team.length} von ${this.campaign.teamLimit} Teamplätzen belegt. Die Einführung jeder Lernquest nennt das benötigte Team. Im freien Training sind Solo und Team möglich; drei Arkana erst nach Freischaltung des dritten Platzes.`
-      : this.tab === 'glossary' ? `${learnedTerms(state.completed).length} Fachbegriffe gelernt. Lies Erklärungen und probiere die Beispiele mit den bereits gelernten Befehlen aus.`
+      : this.tab === 'glossary' ? `${learnedTerms(state.completed, state.legacyPassKnowledge).length} Fachbegriffe gelernt. Lies Erklärungen und probiere die Beispiele mit den bereits gelernten Befehlen aus.`
       : this.tab === 'journal' ? this.campaign.objective : this.tab === 'giver' && this.giver ? `${QUEST_GIVERS[this.giver].description} Die Übersicht zeigt deinen Fortschritt und offene nächste Schritte. Übungen im selben Schritt sind frei wählbar; „Vorher abschließen“ zeigt die Voraussetzungen.` : 'Alle implementierten Befehle sind hier verfügbar. Das Training verändert weder Lernfreigaben noch Questabschlüsse. Alte Arena-Entwürfe bleiben in den entsprechenden Trainingsaufgaben erhalten.';
     setLearningText(this.el('world-panel-intro'), intro);
     this.el('character-tabs').hidden = !character;

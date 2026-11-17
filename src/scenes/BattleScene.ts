@@ -142,7 +142,7 @@ export class BattleScene extends Phaser.Scene {
     const active = this.session instanceof LessonSession && this.session.lesson.kind === 'combat' && Boolean(this.session.lesson.adaptiveTrials?.length);
     if (state.lessonTrial) this.subtitle.setText(`Situation ${state.lessonTrial.current}/${state.lessonTrial.total} · ${state.lessonTrial.passed} geschafft · ${active ? 'Aktiver Wächter' : 'Ein Entscheidungsschritt'}`);
     const runes = runeProgress(state);
-    if (runes) this.subtitle.setText(`Runenfeld · ${runes.activated}/${runes.total} Runen leuchten · innen Felder, außen Reihen`);
+    if (runes) this.subtitle.setText(runes.kind === 'safeguards' ? runes.summary : `Runenfeld · ${runes.activated}/${runes.total} Runen leuchten · innen Felder, außen Reihen`);
     this.puzzleLabels.removeAll(true);
     this.grid.clear();
     for (let y = 0; y < 7; y += 1) {
@@ -161,7 +161,7 @@ export class BattleScene extends Phaser.Scene {
       const x = GRID_START_X + state.goal.x * TILE + TILE / 2; const y = GRID_START_Y + state.goal.y * TILE + TILE / 2;
       const ready = !runes || runes.activated === runes.total;
       this.grid.fillStyle(ready ? 0xf6d96d : 0x78817b).fillCircle(x, y, 12).lineStyle(3, 0xffe998).strokeCircle(x, y, 27);
-      this.goalLabel.setText(ready ? 'Ziel' : 'Erst alle blauen Runen').setPosition(x, y + 33);
+      this.goalLabel.setText(ready ? runes?.kind === 'safeguards' ? 'Runenwinde' : 'Ziel' : 'Erst alle blauen Runen').setPosition(x, y + 33);
       for (const rune of state.runes ?? []) {
         const rx = GRID_START_X + rune.x * TILE + TILE / 2; const ry = GRID_START_Y + rune.y * TILE + TILE / 2;
         this.grid.fillStyle(rune.activated ? 0x9fe78e : 0x78cbe6, .25).fillRoundedRect(rx - 30, ry - 30, 60, 60, 8);

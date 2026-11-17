@@ -10,6 +10,8 @@ import { INTERIORS, isInteriorId, VILLAGE_BUILDINGS, VILLAGE_RESIDENTS, type Int
 export interface CampaignState {
   version: 2;
   worldVersion: 1;
+  lessonRevision: 2;
+  legacyPassKnowledge?: true;
   region: RegionId;
   interior?: InteriorId;
   legacyForestAccess: boolean;
@@ -39,6 +41,7 @@ export function normalizeCampaign(value: unknown, legacyIntroduction = false): C
   const saved = raw.version === 2 ? lessonIds(raw.completed) : [];
   const legacyForestAccess = raw.legacyForestAccess === true || (raw.worldVersion !== 1 && saved.includes('q05-aufmerksam') && saved.includes('q02-basisangriff') && saved.includes('q01-glutspur'));
   const completed = normalizeCompletions(saved, legacyForestAccess);
+  const legacyPassKnowledge = completed.includes('q12-steinrutsch') && (raw.legacyPassKnowledge === true || raw.lessonRevision !== 2);
   const requestedRegion = isRegionId(raw.region) ? raw.region : legacyForestAccess ? 'forest' : 'valley';
   const region = requestedRegion !== 'valley' && !forestAccessible(completed, legacyForestAccess) ? 'valley' : requestedRegion;
   const introductions = [...new Set([...(raw.version === 2 ? lessonIds(raw.introductions) : []), ...completed])];
@@ -52,7 +55,7 @@ export function normalizeCampaign(value: unknown, legacyIntroduction = false): C
   }
   const legacyProgress = { completed: legacyIds(legacy.completed), discovered: legacyIds(legacy.discovered) };
   const team = Array.isArray(raw.team) ? [...new Set(raw.team)].filter((id): id is string => typeof id === 'string' && owned.some((item) => item.id === id)).slice(0, teamCapacity(completed, introductions, legacyProgress.completed)) : [];
-  return { version: 2, worldVersion: 1, region, ...(region === 'village' && isInteriorId(raw.interior) ? { interior: raw.interior } : {}), legacyForestAccess, introduced: raw.introduced === true || (raw.introduced === undefined && legacyIntroduction), owned, team,
+  return { version: 2, worldVersion: 1, lessonRevision: 2, ...(legacyPassKnowledge ? { legacyPassKnowledge: true as const } : {}), region, ...(region === 'village' && isInteriorId(raw.interior) ? { interior: raw.interior } : {}), legacyForestAccess, introduced: raw.introduced === true || (raw.introduced === undefined && legacyIntroduction), owned, team,
     discovered: [...new Set([...(raw.version === 2 ? lessonIds(raw.discovered) : []), ...completed])], completed, introductions, legacyProgress };
 }
 

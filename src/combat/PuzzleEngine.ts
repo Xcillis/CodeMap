@@ -13,6 +13,7 @@ export class PuzzleEngine {
     this.state = { tick: 0, outcome: 'ongoing', player: { id: species.id, name: species.name, hp: species.maxHp, maxHp: species.maxHp, attackPower: species.attack, guarding: false, ...this.definition.start },
       goal: { ...this.definition.goal }, walls: this.definition.walls.map((wall) => ({ ...wall })),
       ...(this.definition.runes?.length ? { runes: this.definition.runes.map((rune) => ({ ...rune, activated: false })) } : {}),
+      ...(this.definition.runeMode ? { runeMode: this.definition.runeMode } : {}),
       log: [`${species.name} wartet auf deine Anweisungen. Die goldene Rune ist das Ziel.`] };
   }
   step(action: CombatAction): void {
@@ -31,7 +32,7 @@ export class PuzzleEngine {
     if (rune) { rune.activated = true; this.state.log.push('Eine blaue Rune beginnt zu leuchten.'); }
     if (next.x === this.state.goal.x && next.y === this.state.goal.y) {
       const missing = this.state.runes?.filter((candidate) => !candidate.activated).length ?? 0;
-      if (missing) this.state.log.push(`Noch ${missing} blaue Runen fehlen. Bearbeite zuerst beide Reihen.`);
+      if (missing) this.state.log.push(this.state.runeMode === 'safeguards' ? `Noch ${missing} Sicherungsrunen fehlen. Aktiviere sie, bevor du zur Winde zurückkehrst.` : `Noch ${missing} blaue Runen fehlen. Bearbeite zuerst beide Reihen.`);
       else { this.state.outcome = 'victory'; this.state.log.push('Die goldene Rune ist erreicht.'); }
     }
   }

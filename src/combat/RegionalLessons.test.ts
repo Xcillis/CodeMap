@@ -54,10 +54,10 @@ describe('Verschachtelte Schleifen und bedingte Rätsel', () => {
     expect(evaluateCondition(engine.snapshot, 'pathRightClear', 'glutling')).toBe(true);
     const state = engine.snapshot; state.player.x = 6; expect(evaluateCondition(state, 'pathRightClear', 'moosling')).toBe(false);
   });
-  it('lernt die Verschachtelung bei Mira oder an der Gebietsaufgabe und die Weg-Abfrage erst im Wald', () => {
+  it('lernt die Verschachtelung bei Mira und die Runenwinde als Anwendung und die Weg-Abfrage erst im Wald', () => {
     expect(learnedTerms(['q03-wiederkehr']).some((t) => t.id === 'nested-loop')).toBe(false);
     expect(learnedTerms(['q09-schachtelpfad']).some((t) => t.id === 'nested-loop')).toBe(true);
-    expect(learnedTerms(['q12-steinrutsch']).some((t) => t.id === 'nested-loop')).toBe(true);
+    expect(learnedTerms(['q12-steinrutsch']).some((t) => t.id === 'nested-loop')).toBe(false);
     expect(learnedTerms(['q13-lichtpfad']).some((t) => t.id === 'query')).toBe(true);
   });
 });

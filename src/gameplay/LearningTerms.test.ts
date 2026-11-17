@@ -36,7 +36,19 @@ describe('Gelernte Fachbegriffe', () => {
     expect(learnedTerms(loaded.snapshot.completed).map((term) => term.id)).not.toContain('condition');
     loaded.completeMission('q05-aufmerksam');
     const completed = new Campaign(JSON.parse(JSON.stringify(loaded.snapshot)));
-    expect(learnedTerms(completed.snapshot.completed).map((term) => term.id)).toEqual(['instruction', 'sequence', 'health', 'loop', 'loop-body', 'condition', 'branch', 'nested-loop']);
+    expect(learnedTerms(completed.snapshot.completed).map((term) => term.id)).toEqual(['instruction', 'sequence', 'health', 'loop', 'loop-body', 'condition', 'branch']);
+  });
+  it('bewahrt die früher an der Runenwinde gelernten Begriffe nur für entsprechende alte Abschlüsse', () => {
+    const completed = ['q01-glutspur', 'q02-basisangriff', 'q03-wiederkehr', 'q12-steinrutsch'];
+    const old = new Campaign({ version: 2, worldVersion: 1, introduced: true, completed });
+    expect(old.snapshot.legacyPassKnowledge).toBe(true);
+    expect(learnedTerms(old.snapshot.completed, old.snapshot.legacyPassKnowledge).map((term) => term.id)).toEqual(expect.arrayContaining(['nested-loop', 'loop-body']));
+    const loaded = new Campaign(old.snapshot); expect(loaded.snapshot.legacyPassKnowledge).toBe(true);
+    const current = new Campaign({ version: 2, worldVersion: 1, lessonRevision: 2, introduced: true, completed });
+    expect(current.snapshot.legacyPassKnowledge).toBeUndefined();
+    expect(learnedTerms(current.snapshot.completed, current.snapshot.legacyPassKnowledge).map((term) => term.id)).not.toContain('nested-loop');
+    expect(current.forestUnlocked).toBe(true); expect(old.forestUnlocked).toBe(true);
+    expect(new Campaign({ version: 2, lessonRevision: 2, legacyPassKnowledge: true }).snapshot.legacyPassKnowledge).toBeUndefined();
   });
   it('übernimmt keine Begriffe aus alten Arenasiegen oder freiem Training', () => {
     const campaign = new Campaign({ version: 1, introduced: true, completed: [1, 2, 3], owned: [{ speciesId: 'glutling', learned: ['attack', 'repeat'] }] });

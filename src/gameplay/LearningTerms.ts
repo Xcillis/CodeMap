@@ -32,7 +32,7 @@ export const LEARNING_TERMS: readonly LearningTerm[] = [
     explanation: 'Du kannst Befehle automatisch mehrmals ausführen lassen. Das nennt man eine Schleife. Die Zahl beim Wiederholen legt fest, wie oft die Befehle im Inneren ausgeführt werden.',
     example: 'Dieser Wiederholungsblock lässt Glutling dreimal einen Schritt nach rechts gehen.', code: 'repeat(3, () => {\n  glutling.moveRight();\n});',
     furtherExamples: [{ lesson: 'q04-musterpfad', title: 'Mehrere Anweisungen gemeinsam wiederholen', example: 'Bei jedem Durchlauf geht Glutling zuerst nach rechts und danach nach oben. Zwei Durchläufe ergeben vier einzelne Bewegungen.', code: 'repeat(2, () => {\n  glutling.moveRight();\n  glutling.moveUp();\n});' }, adaptiveExample] },
-  { id: 'loop-body', label: 'Schleifenrumpf', aliases: ['Schleifenrumpf'], lesson: 'q04-musterpfad', alsoLessons: ['q09-schachtelpfad', 'q12-steinrutsch'], category: 'Programmieren',
+  { id: 'loop-body', label: 'Schleifenrumpf', aliases: ['Schleifenrumpf'], lesson: 'q04-musterpfad', alsoLessons: ['q09-schachtelpfad'], category: 'Programmieren',
     explanation: 'Die Befehle im Inneren eines Wiederholungsblocks werden bei jedem Durchlauf nacheinander ausgeführt. Dieses Innere heißt Schleifenrumpf. Es kann mehrere Anweisungen enthalten.',
     example: '„Nach rechts“ und „nach oben“ stehen beide im Schleifenrumpf. Glutling führt bei jedem Durchlauf beide Bewegungen in dieser Reihenfolge aus.', code: 'repeat(2, () => {\n  glutling.moveRight();\n  glutling.moveUp();\n});' },
   { id: 'condition', label: 'Bedingung', aliases: ['Bedingung', 'Bedingungen'], lesson: 'q05-aufmerksam', category: 'Programmieren',
@@ -51,7 +51,7 @@ export const LEARNING_TERMS: readonly LearningTerm[] = [
     explanation: 'Du planst die Wege und Angriffe zweier Arkana so, dass beide zum gemeinsamen Ziel beitragen und keine belegten Felder betreten. Dieses Abstimmen heißt Koordination. Jedes Objekt behält sein eigenes Programm.',
     example: 'Programm von Moosling: Es geht zweimal nach rechts und greift zweimal an. Seine beiden Treffer ziehen zusammen 2 LP ab.', code: 'repeat(2, () => { moosling.moveRight(); });\nrepeat(2, () => { moosling.vineStrike(); });',
     furtherExamples: [{ lesson: 'q08-team', title: 'Getrenntes Programm von Glutling', example: 'Glutling startet eine Zeile darüber, geht dreimal nach rechts und greift zweimal an. Seine Treffer ziehen zusammen weitere 4 LP ab. Beide Programme werden gemeinsam ausgeführt.', code: 'repeat(3, () => { glutling.moveRight(); });\nrepeat(2, () => { glutling.flameStrike(); });' }] },
-  { id: 'nested-loop', label: 'Verschachtelte Schleife', aliases: ['verschachtelte Schleife', 'verschachtelte Schleifen'], lesson: 'q09-schachtelpfad', alsoLessons: ['q12-steinrutsch'], category: 'Programmieren',
+  { id: 'nested-loop', label: 'Verschachtelte Schleife', aliases: ['verschachtelte Schleife', 'verschachtelte Schleifen'], lesson: 'q09-schachtelpfad', category: 'Programmieren',
     explanation: 'Eine äußere Wiederholung enthält eine weitere Wiederholung. Diese innere Schleife beginnt bei jedem äußeren Durchlauf neu. Das nennt man eine verschachtelte Schleife.',
     example: 'Die innere Schleife führt zwei Rechtsschritte auf einer Stufe aus. Danach folgt der Wechsel nach oben. Die äußere Schleife wiederholt die ganze Stufe.', code: 'repeat(2, () => {\n  repeat(2, () => { glutling.moveRight(); });\n  glutling.moveUp();\n});',
     furtherExamples: [{ lesson: 'q10-schachtelkampf', title: 'Ein Runenfeld Reihe für Reihe', example: 'Innen bearbeitet Glutling die beiden Felder einer Reihe. Rückweg und Wechsel gehören zum äußeren Reihenablauf. In der nächsten Reihe zählt die innere Wiederholung wieder ab 1.', code: 'repeat(2, () => {\n  repeat(2, () => { glutling.moveRight(); });\n  glutling.moveLeft();\n  glutling.moveLeft();\n  glutling.moveUp();\n});' }] },
@@ -60,8 +60,8 @@ export const LEARNING_TERMS: readonly LearningTerm[] = [
     example: 'Ist rechts ein Stein oder der Kartenrand, ergibt pathRightClear nein. Auf einem freien Nachbarfeld ergibt die Abfrage ja.', code: 'if (glutling.pathRightClear) {\n  glutling.moveRight();\n} else {\n  glutling.moveUp();\n}' },
 ];
 
-export function learnedTerms(completed: readonly LessonId[]): readonly LearningTerm[] {
-  return [...LEARNING_TERMS, ...COMBAT_TERMS].filter((term) => completed.includes(term.lesson) || term.alsoLessons?.some((lesson) => completed.includes(lesson)))
+export function learnedTerms(completed: readonly LessonId[], legacyPassKnowledge = false): readonly LearningTerm[] {
+  return [...LEARNING_TERMS, ...COMBAT_TERMS].filter((term) => completed.includes(term.lesson) || term.alsoLessons?.some((lesson) => completed.includes(lesson)) || (legacyPassKnowledge && (term.id === 'nested-loop' || term.id === 'loop-body')))
     .map((term) => ({ ...term, furtherExamples: term.furtherExamples?.filter((example) => completed.includes(example.lesson)) }));
 }
 

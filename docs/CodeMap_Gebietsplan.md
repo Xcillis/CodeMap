@@ -16,7 +16,7 @@ Ein von Bergwänden eingefasstes Tal enthält die Akademie, einen westlichen Üb
 | Brann | Q14 Glutlings Feuerprobe | Q02 | Feuerfähigkeit, Brand und Abklingzeit; unabhängig von den Schleifenreihen |
 | Mira, Ostpasslager `(1280, 650)` | Q09 Miras Runentreppe | Q02 | Eigene Einführung in Schleifen und verschachtelte Schleifen, Rätsel |
 | Mira | Q10 Miras Runenfeld | Q09 | Zwei Runenreihen mit demselben verschachtelten Reihenablauf, Folge-Rätsel |
-| Mira / Runenwinde vor dem Pass | Q12 Die Runenwinde am Steinrutsch | Q02 und **eine** aus Q03, Q09 oder Q11 | Verschachteltes Bewegungsrätsel, Gebietsfreigabe |
+| Mira / Runenwinde vor dem Pass | Q12 Die Runenwinde am Steinrutsch | Q02 und **eine** aus Q03, Q09 oder Q11 | Drei Sicherungsrunen aktivieren und zur Winde zurückkehren, Gebietsfreigabe |
 
 ```mermaid
 flowchart LR
@@ -30,7 +30,7 @@ flowchart LR
   G --> Q12 --> W[Ostpass zum Wald frei]
 ```
 
-Die Pfeile zum gemeinsamen Q12-Knoten bedeuten Alternativen. Es müssen nicht alle Aufgaben abgeschlossen werden. Q12 erklärt die Verschachtelung auch dann selbst, wenn die gewählte Einstiegsreihe nur einfache Schleifen verwendet hat. Eine neue Programmstruktur wird somit nicht vorausgesetzt, bevor sie erläutert wurde.
+Die Pfeile zum gemeinsamen Q12-Knoten bedeuten Alternativen. Es müssen nicht alle Aufgaben abgeschlossen werden. Q12 ist eine offene Anwendung bekannter Bewegungen: Drei Sicherungsrunen liegen um einen Felsblock. Nach ihrer Aktivierung führt der Rundweg zurück zur goldenen Winde. Es wird keine zusätzliche Programmstruktur vorausgesetzt; Einzelbefehle und bekannte Schleifen sind beide zulässig. Die Verschachtelung wird ausschließlich in Miras eigener Reihe gelernt und vertieft.
 
 ### Steinrutsch und Reise
 
@@ -126,3 +126,6 @@ Auenquell ist das dritte Außengebiet mit 3200 × 2080 Weltpixeln. Der Reisestei
 Die drei Innenräume messen je 960 × 720 Weltpixel. Sie besitzen eine eigene Kamera-/Physikbegrenzung, Möbelkollisionen und einen südlichen Ausgang. Beim Verlassen erscheint die Figur 65 Pixel vor der zugehörigen Haustür. Nur Bewohner der aktuellen Karte sind interaktiv. Die Bedienung entspricht den vorhandenen Dialogen über Tastatur und Touch. Journal und Charakterfenster berücksichtigen Dorf und Innenraum; aus einem Haus wird keine entfernte Trainings-/Weltquest gestartet.
 
 Das Dorf enthält in diesem Ausbau Orientierungsdialoge und den räumlichen Rahmen für spätere Aufgaben zu eigenen Blöcken. Bestehende Lernquests werden nicht verlegt, keine Fähigkeit oder Quest wird durch den Dorfbesuch automatisch vergeben.
+
+
+Seit der Inhaltsrevision 2 ist Q12 keine zweite Runentreppe mehr. Die blaue Sicherungsanzeige zählt 0/3 bis 3/3; die Winde am Start wird erst nach dem vollständigen Rundweg aktiviert. Nach einer ersten Tal-Einstiegsaufgabe kann die Gebietsaufgabe weiterhin frei gewählt werden. Alte Questabschlüsse und bereits geöffnete Pässe bleiben erhalten. Bereits früher an Q12 gelernte Fachbegriffe werden beim Laden über eine Wissensmarkierung bewahrt; neue Abschlüsse vergeben keine ungeübte Verschachtelung. Gespeicherte Text- und Blockentwürfe bleiben bearbeitbar erhalten.

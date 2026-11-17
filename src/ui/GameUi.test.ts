@@ -65,6 +65,18 @@ it('ändert den DOM-Hinweis nur bei neuem Text, auch wenn identische Meldungen p
 });
 
 describe('Platz für das Programm bei allen Aufgaben', () => {
+  it('zeigt an der Runenwinde Sicherungen und Rückkehr statt einer weiteren Reihen- oder Verschachtelungsübung', () => {
+    const lesson = getLesson('q12-steinrutsch'); const session = new LessonSession(lesson, lesson.allowed);
+    gameEvents.emit('battle-opened', lessonPrograms(lesson), lesson.id, { glutling: lesson.allowed }, { title: lesson.title, mode: 'lesson', instructions: lesson.introduction, objective: lesson.objective, hints: lesson.hints });
+    gameEvents.emit('battle-updated', session.snapshot, lesson.objective);
+    expect(document.getElementById('lesson-trial-summary')!.textContent).toBe('Sicherungsrunen 0/3');
+    expect(document.getElementById('lesson-trial')!.textContent).not.toContain('Reihe');
+    session.execute({ glutling: 'repeat(2, () => { glutling.moveUp(); }); repeat(2, () => { glutling.moveRight(); }); repeat(2, () => { glutling.moveDown(); });' }, true);
+    gameEvents.emit('battle-updated', session.snapshot, 'Rückweg offen');
+    expect(document.getElementById('lesson-trial-summary')!.textContent).toBe('Sicherungsrunen 3/3');
+    expect(document.getElementById('lesson-trial')!.textContent).toContain('Winde zurückkehren'); expect(session.snapshot.outcome).toBe('ongoing');
+    session.execute(QUEST_SOLUTIONS[lesson.id], true); gameEvents.emit('battle-updated', session.snapshot, 'Winde aktiviert'); expect(session.snapshot.outcome).toBe('victory');
+  });
   it('zeigt im Runenfeld Reihenfortschritt statt Gegner-LP und setzt ihn bei Neustart zurück', () => {
     const lesson = getLesson('q10-schachtelkampf'); const session = new LessonSession(lesson, lesson.allowed);
     gameEvents.emit('battle-opened', lessonPrograms(lesson), lesson.id, { glutling: lesson.allowed }, { title: lesson.title, mode: 'lesson', instructions: lesson.introduction, objective: lesson.objective, hints: lesson.hints });

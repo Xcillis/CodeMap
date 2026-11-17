@@ -62,7 +62,7 @@ export function renderCharacterView(content: HTMLElement, tab: CharacterTab, cam
     }
     content.append(section);
   } else {
-    const terms = learnedTerms(state.completed);
+    const terms = learnedTerms(state.completed, state.legacyPassKnowledge);
     if (!terms.length) content.append(paragraph('Dein Nachschlagebuch ist noch leer. Nach einer abgeschlossenen Lernquest findest du hier die gelernten Fachbegriffe mit Erklärungen und Beispielen.'));
     for (const term of terms) {
       const card = document.createElement('article'); card.className = 'glossary-card'; card.dataset.term = term.id;

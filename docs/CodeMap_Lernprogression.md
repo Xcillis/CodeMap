@@ -18,9 +18,9 @@ Die lokalen Folgequests bleiben bewusst abhängig von ihrer Einführung. Zwische
 
 ## Verbindender Gebietsabschluss
 
-Nach einer der Einstiegsaufgaben Q03, Q09 oder Q11 wird Miras Runenwinde Q12 verfügbar. Sie erklärt die Verschachtelung erneut anhand einer Stufe aus zwei Rechtsschritten und einem Aufwärtsschritt. Erfolgreiche innere Wiederholungen in mehreren äußeren Durchläufen öffnen den Ostpass. So ist eine transparente Grundlage für das folgende Gebiet vorhanden, während Vertiefungsquests optional bleiben.
+Nach einer der Einstiegsaufgaben Q03, Q09 oder Q11 wird Miras Runenwinde Q12 verfügbar. Drei blaue Sicherungsrunen liegen rund um einen Felsblock; nach dem Aktivieren muss Glutling zur goldenen Winde auf dem Startfeld zurückkehren. Dieser Rundweg wendet bekannte Bewegungen und auf Wunsch einfache Schleifen an. Unterschiedliche Laufrichtungen und ausgeschriebene Befehlsfolgen sind zulässig. Es gibt keine weitere Verschachtelungspflicht und keine Wiederholung der Runentreppe. Miras optionale Reihe Q09/Q10 bleibt die Einführung und Vertiefung der Verschachtelung.
 
-Die Blockade wird erst nach vollständig sichtbarer erfolgreicher Wiedergabe entfernt. Das bloße Erreichen der Rune ohne den genannten Schleifennachweis reicht nicht. Die Reise in den Wald und der spätere Rückweg sind ausdrückliche Aktionen. Offene Talquests verfallen nicht.
+Die Blockade wird erst nach vollständig sichtbarer erfolgreicher Wiedergabe entfernt. Bloße Rückkehr ohne alle Sicherungsrunen oder Aktivierung aller Runen ohne Rückweg reichen nicht. Reise und Rückweg sind ausdrückliche Aktionen. Offene Talquests verfallen nicht.
 
 ## Bedingungen im Wald
 
@@ -77,3 +77,8 @@ Das frühere zweifache Wiederholen eines Angriffspaares erklärt den Sinn der zw
 Das Aktivieren aller Runen allein weist die geübte Struktur noch nicht nach. Für beide Reihen muss derselbe innere Schleifenblock unter derselben äußeren Schleife die neuen Runen aktivieren. Leere Schleifen, nur verschachtelte Rückwege oder eine flache Abfolge zählen nicht als dieser Reihenablauf. Die Rückbewegung darf dagegen aus einzelnen Befehlen oder einer weiteren Schleife bestehen. Die Lösung benötigt zehn Aktionen und bleibt im bisherigen Budget von zwölf.
 
 Die Runentreppe Q09 erklärt Felder und Stufen jetzt in dieser konkreten Reihenfolge. Ihre Voraussetzungen und die unabhängige Gebietsaufgabe Q12 bleiben erhalten. Vorhandene Q10-Abschlüsse werden nicht entwertet; bisherige Angriffsprogramme bleiben als Entwurf gespeichert und werden vor Ausführung im neuen Rätsel als nicht freigegebene Befehle zurückgewiesen.
+
+
+## Inhaltsrevision 2 der Runenwinde
+
+Neue Q12-Abschlüsse schalten den Wald frei, vergeben aber keine Verschachtelungs- oder Schleifenrumpfbegriffe. Gültige ältere Q12-Abschlüsse behalten diese früher erworbenen Einträge über `legacyPassKnowledge`. `lessonRevision: 2` unterscheidet neue Abschlüsse von bestehenden Speicherständen; der bisherige Fortschritt und Programmentwürfe bleiben erhalten.

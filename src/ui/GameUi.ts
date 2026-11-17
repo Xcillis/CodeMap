@@ -322,8 +322,8 @@ export class GameUi {
     if (trial) this.el('lesson-trial-summary').textContent = `Situation ${trial.current}/${trial.total} · ${trial.passed}/${trial.total} geschafft`;
     if (trial) setLearningText(this.el('lesson-trial'), `Situation ${trial.current}/${trial.total}: ${trial.title}. ${trial.passed}/${trial.total} geschafft. ${trial.message}`);
     else if (runes) {
-      this.el('lesson-trial-summary').textContent = `Runen ${runes.activated}/${runes.total}`;
-      setLearningText(this.el('lesson-trial'), `${runes.summary}. Innen bearbeitest du eine Reihe; außen wiederholst du den ganzen Reihenablauf.`);
+      this.el('lesson-trial-summary').textContent = `${runes.kind === 'safeguards' ? 'Sicherungsrunen' : 'Runen'} ${runes.activated}/${runes.total}`;
+      setLearningText(this.el('lesson-trial'), runes.kind === 'safeguards' ? runes.summary : `${runes.summary}. Innen bearbeitest du eine Reihe; außen wiederholst du den ganzen Reihenablauf.`);
     }
     setLearningText(this.feedback, feedback); this.el('battle-round').textContent = String(state.tick);
     const intent = intentLabel(state); this.el('battle-intent').textContent = intent; this.el('battle-intent').hidden = !intent;
