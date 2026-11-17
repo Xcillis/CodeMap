@@ -33,9 +33,14 @@ Blockly.defineBlocksWithJsonArray([
 ]);
 
 /** Shared conversion also works on a headless Blockly workspace in tests. */
+function programStart(workspace: Blockly.Workspace): Blockly.Block | undefined {
+  const starts = workspace.getTopBlocks(false).filter((block) => block.type === 'cm_start' && block.isEnabled());
+  const connected = starts.filter((block) => block.getNextBlock());
+  if (connected.length > 1) throw new Error('Verbinde dein Programm mit genau einem aktiven Startblock. Leere und deaktivierte Startblöcke werden ignoriert.');
+  return connected[0] ?? starts[0];
+}
 export function workspaceNodes(workspace: Blockly.Workspace): ProgramNode[] {
-  const starts = workspace.getTopBlocks(false).filter((block) => block.type === 'cm_start');
-  if (starts.length > 1) throw new Error('Es darf nur einen Startblock geben.');
+  const start = programStart(workspace);
   const read = (first: Blockly.Block | null): ProgramNode[] => {
     const nodes: ProgramNode[] = [];
     for (let block = first; block; block = block.getNextBlock()) {
@@ -48,12 +53,12 @@ export function workspaceNodes(workspace: Blockly.Workspace): ProgramNode[] {
     }
     return nodes;
   };
-  return read(starts[0]?.getNextBlock() ?? null);
+  return read(start?.getNextBlock() ?? null);
 }
 
 export function blockAtPath(workspace: Blockly.Workspace, path: string): Blockly.Block | null {
   const parts = path.split('.');
-  let block = workspace.getTopBlocks(false).find((node) => node.type === 'cm_start')?.getNextBlock() ?? null;
+  let block = programStart(workspace)?.getNextBlock() ?? null;
   for (let index = 0; index < parts.length; index += 2) {
     const position = Number(parts[index]);
     let sibling = 0;
@@ -124,6 +129,27 @@ export function restoreWorkspaceState(saved: string): Record<string, unknown> {
   }) as Record<string, unknown>;
 }
 
+/** Text edits replace the executable stack; unrelated scratch work stays untouched. */
+export function mergeProgramWorkspace(saved: string, nodes: readonly ProgramNode[], actor: ArkanId): Record<string, unknown> {
+  const workspace = new Blockly.Workspace();
+  try {
+    const original = restoreWorkspaceState(saved);
+    Blockly.serialization.workspaces.load(original, workspace);
+    if (JSON.stringify(workspaceNodes(workspace)) === JSON.stringify(nodes)) return original;
+    const start = programStart(workspace);
+    const blocks = Blockly.serialization.workspaces.save(workspace).blocks as { blocks?: Record<string, unknown>[] } | undefined;
+    const roots = blocks?.blocks ?? [];
+    const previous = roots.find((block) => block.id === start?.id);
+    const unrelated = roots.filter((block) => block !== previous);
+    loadNodes(workspace, nodes, actor);
+    const updated = Blockly.serialization.workspaces.save(workspace);
+    const fresh = updated.blocks as { blocks: Record<string, unknown>[] };
+    const root = fresh.blocks[0];
+    if (previous) { root.id = previous.id; root.x = previous.x; root.y = previous.y; }
+    return { ...original, blocks: { ...blocks, ...fresh, blocks: [root, ...unrelated] } };
+  } finally { workspace.dispose(); }
+}
+
 export class SnapEditor {
   readonly workspace: Blockly.WorkspaceSvg;
   private loading = false;
@@ -146,7 +172,7 @@ export class SnapEditor {
     try {
       this.actor = actor;
       this.workspace.updateToolbox(snapToolbox(actor, mission, skills));
-      if (saved) Blockly.serialization.workspaces.load(restoreWorkspaceState(saved), this.workspace);
+      if (saved) Blockly.serialization.workspaces.load(mergeProgramWorkspace(saved, nodes, actor), this.workspace);
       else loadNodes(this.workspace, nodes, actor);
       labelAttacks(this.workspace, actor);
       this.workspace.clearUndo();

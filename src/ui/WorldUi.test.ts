@@ -45,14 +45,15 @@ describe('Sammlung und Questjournal', () => {
     expect((el('journal-quest-q14-feuerprobe') as HTMLButtonElement).disabled).toBe(true);
     expect(document.activeElement?.textContent).toContain('Reise zuerst'); expect(action).not.toHaveBeenCalled(); expect(campaign.snapshot).toEqual(before);
   });
-  it('nimmt verborgene Wiederholungsbuttons abgeschlossener Reihen nicht in die Fokusbegrenzung auf', () => {
+  it('nimmt den sichtbaren Wiederholungsbutton in die Fokusbegrenzung auf und überspringt geschlossene Details', () => {
     campaign = new Campaign({ version: 2, worldVersion: 1, region: 'forest', introduced: true, completed: LESSON_IDS,
       owned: [{ speciesId: 'glutling' }, { speciesId: 'moosling' }, { speciesId: 'felsbock' }], team: [instanceId('glutling')] });
     campaign.visitGiver('tala'); gameEvents.emit('campaign-updated', campaign.snapshot); gameEvents.emit('world-giver-open', 'tala');
     const backwards = new KeyboardEvent('keydown', { key: 'Tab', shiftKey: true, bubbles: true, cancelable: true }); document.dispatchEvent(backwards);
-    expect(backwards.defaultPrevented).toBe(true); expect(document.activeElement?.tagName).toBe('SUMMARY');
+    expect(backwards.defaultPrevented).toBe(true); expect(document.activeElement?.tagName).toBe('BUTTON');
     expect(document.activeElement?.closest('[data-series]')?.getAttribute('data-series')).toBe('trio');
-    expect(document.activeElement?.textContent).toContain('Schritt 1');
+    expect(document.activeElement?.textContent).toContain('Erneut spielen: Drei Arkana');
+    expect(document.activeElement?.closest('details')).toBeNull();
   });
   it('zeigt bei einem Questgeber nur seine Aufgabenreihe mit eigenen Voraussetzungen', () => {
     campaign = new Campaign({ version: 2, worldVersion: 1, region: 'valley', introduced: true, completed: LESSON_IDS.slice(0, 2), owned: [{ speciesId: 'glutling' }], team: [instanceId('glutling')] });

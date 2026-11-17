@@ -13,8 +13,21 @@ Alle Dateien enthalten RGBA mit freigestellten Figuren. [motion.json](motion.jso
 
 ## Verwendung
 
-`MotionSprites` registriert 36 wiederholte Clips und lädt vier Texturen einmal. Das zusätzliche [Brann-Manifest](brann-4way-v1.json) ergänzt die bisherigen 72 Ausschnitte um 24 neue; die Originalatlanten bleiben erhalten. Alle vier Brann-Ansichten teilen Figurengröße und Fußlinie. Seine Seitenansichten sind eigenständige Bilder, keine Spiegelung. Der Held wechselt entsprechend der Körpergeschwindigkeit zwischen vier Richtungen und Idle/Laufen. Arkana und Konstrukt nutzen in Welt und Arena dieselben Figuren; horizontale Bewegung spiegelt bei Bedarf die vorhandene Ansicht. Mira und Lyra verwenden zwei Laufposen mit horizontaler Spiegelung. Separate Angriffssprites und vollständige Richtungsatlanten für jede Kreatur bleiben ein späterer Ausbau.
+`MotionSprites` registriert insgesamt 60 wiederholte Clips und lädt sieben gemeinsam genutzte Texturen einmal. Das zusätzliche [Brann-Manifest](brann-4way-v1.json) ergänzt die bisherigen 72 Ausschnitte um 24 neue; die Originalatlanten bleiben erhalten. Alle vier Brann-Ansichten teilen Figurengröße und Fußlinie. Seine Seitenansichten sind eigenständige Bilder, keine Spiegelung. Der Held wechselt entsprechend der Körpergeschwindigkeit zwischen vier Richtungen und Idle/Laufen. Die Arkana nutzen nun die unten dokumentierten eigenen Richtungsatlanten. Das Konstrukt verwendet weiterhin seine bisherige Ansicht mit horizontaler Spiegelung. Mira und Lyra verwenden zwei Laufposen mit horizontaler Spiegelung. Separate Angriffssprites und vier Richtungen für das Konstrukt bleiben ein späterer Ausbau.
 
 Eldren, Neria und Tala stehen mit ruhigen Idle-Posen. Brann patrouilliert auf einem großen Rundgang durch das Tal, Mira und Lyra auf kurzen hindernisfreien Strecken mit Pausen; bei Annäherung oder offener Oberfläche halten sie an. Bestehende Questorte, Speicherstände und Heldenkollisionen bleiben erhalten. Die statischen v1-Porträts und der Grafik-Fallback werden weiter verwendet.
 
 Die Atlasbilder wurden visuell geprüft; Metadaten, Registrierungslogik und Patrouillen sind automatisiert getestet. Eine Sichtprüfung der laufenden Animationen in Edge war wegen fehlendem Browserzugriff nicht möglich.
+
+
+## Arkana in vier Richtungen
+
+Auf ausdrücklichen Nutzerauftrag am 17. November 2026 mit dem eingebauten **image_gen** erzeugt. Die bestehenden eigenen Kreaturen dienen ausschließlich als Identitäts- und Stilreferenz. Es werden keine fremden Spielgrafiken verwendet. Jede neue PNG ist eine unveränderte Toolausgabe mit 1536 × 1024 Pixeln, sechs Spalten und vier Zeilen. Die Zeilen zeigen unten, oben, links und rechts. Je Zeile sind die ersten beiden Bilder Idle-Posen, danach folgen vier Laufposen. Rück- und Seitenansichten sind eigenständig gezeichnet; der Renderer spiegelt oder rotiert diese Bilder nicht.
+
+- [glutling-4way-v1.png](glutling-4way-v1.png): 24 Bilder mit Flammenschwanz und eigener Rückansicht.
+- [moosling-4way-v1.png](moosling-4way-v1.png): 24 Bilder mit Blattkörper und wurzelartigen Füßen. Der erste Entwurf hatte keine ausreichende Transparenz; nur die mit Imagegen freigestellte Korrektur ist integriert.
+- [felsbock-4way-v1.png](felsbock-4way-v1.png): 24 Bilder mit Steinhörnern und Moosrücken.
+
+[arkana-4way-v1.json](arkana-4way-v1.json) enthält 72 Frame-Rechtecke und gemeinsame virtuelle Fußlinien je Arkana. Die Metadaten wurden anhand der Alphagrenzen vermessen; die PNG-Pixel wurden nicht zugeschnitten oder nachbearbeitet. [arkana-4way-prompts.json](arkana-4way-prompts.json) enthält die vollständigen finalen Prompts und die Transparenzkorrektur. [arkana-4way-provenance.json](arkana-4way-provenance.json) dokumentiert Originalausgaben, SHA-256, echte Alphatransparenz und Dateizuordnung. Die bisherigen Atlanten bleiben erhalten.
+
+`arkanaMotion` ordnet die logischen Blickrichtungen den Clips zu. Die Arena verwendet dieselbe Blickrichtung für Stand, Lauf und Rückwärtsgang, unabhängig von der Bewegungsrichtung auf dem Bildschirm. Drehen wechselt zur passenden Standansicht; Neustart und Pausen zeichnen den gespeicherten Zustand. Fundorte in der Welt verwenden die neue vordere Standansicht. Die Bilder wurden visuell und ihre Transparenz numerisch geprüft; Tests prüfen Frames, gemeinsame Fußlinien, Richtungswahl und Registrierung ohne Duplikate.

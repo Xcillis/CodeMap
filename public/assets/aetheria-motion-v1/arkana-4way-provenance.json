@@ -1,0 +1,28 @@
+{
+  "tool": "built-in image_gen",
+  "date": "2026-11-17",
+  "reference": "creatures.png",
+  "assets": {
+    "glutling-4way-v1.png": {
+      "sourceOutput": "exec-45f8c95e-bcac-4095-aa57-2573dedad6df.png",
+      "sha256": "6d235fb7e49c6af16b19d24243bd66ec3bdc8cc98be77c24506114e1023cbc1f",
+      "alphaMin": 0,
+      "transparentFraction": 0.6821,
+      "processing": "Unmodified generated PNG. Alpha-bound frame rectangles and shared per-species foot canvas are metadata only."
+    },
+    "felsbock-4way-v1.png": {
+      "sourceOutput": "exec-94bbf76b-12b6-4869-ab25-87f4aa3f2925.png",
+      "sha256": "5f6b509d14033b949b64f7acdecba9df4caed565cc2a4eb0285074e2ff9b73a0",
+      "alphaMin": 0,
+      "transparentFraction": 0.6094,
+      "processing": "Unmodified generated PNG. Alpha-bound frame rectangles and shared per-species foot canvas are metadata only."
+    },
+    "moosling-4way-v1.png": {
+      "sourceOutput": "exec-f973f8c2-6f50-4f13-94c5-5d1cb0e872a0.png",
+      "sha256": "c83599bb2efba30e0fb7ecccdfb8017ccf7778e6bf585330185fc3e9c3e43c44",
+      "alphaMin": 0,
+      "transparentFraction": 0.6252,
+      "processing": "Unmodified generated PNG. Alpha-bound frame rectangles and shared per-species foot canvas are metadata only."
+    }
+  }
+}

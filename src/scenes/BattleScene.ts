@@ -14,6 +14,7 @@ import { isAbility } from '../combat/Abilities';
 import { ART_KEYS } from '../art/ArtCatalog';
 import { characterImage, registerArtFrames } from '../art/ArtSprites';
 import { motionSprite, playMotion, registerMotion } from '../art/MotionSprites';
+import { arkanaMotion } from '../art/MotionCatalog';
 import { runeProgress } from '../combat/PuzzlePresentation';
 
 const TILE = 72;
@@ -181,12 +182,13 @@ export class BattleScene extends Phaser.Scene {
   }
 
   private drawActor(actor: Combatant, color: number, textColor: string): void {
+    const motionActor = actor.id === 'konstrukt' ? actor.id : arkanaMotion(actor.id, facingOf(actor));
     const x = GRID_START_X + actor.x * TILE + TILE / 2;
     const y = GRID_START_Y + actor.y * TILE + TILE / 2;
     let visual = this.visuals.get(actor.id);
     if (!visual || !visual.root.scene) {
-      const art = motionSprite(this, actor.id, 0, 27, 48) ?? characterImage(this, actor.id, 0, 27, 48);
-      if (art instanceof Phaser.GameObjects.Sprite) playMotion(art, actor.id, 'idle', actor.id === 'konstrukt' ? -1 : 1);
+      const art = motionSprite(this, motionActor, 0, 27, 48) ?? characterImage(this, actor.id, 0, 27, 48);
+      if (art instanceof Phaser.GameObjects.Sprite) playMotion(art, motionActor, 'idle');
       const marker = this.add.circle(0, 0, 24, color, art ? .13 : 1).setStrokeStyle(2, 0xffffff);
       if (actor.id !== 'konstrukt') marker.setInteractive({ useHandCursor: true }).on('pointerdown', () => gameEvents.emit('arkan-selected', actor.id));
       if (art && actor.id !== 'konstrukt') art.setInteractive({ useHandCursor: true }).on('pointerdown', () => gameEvents.emit('arkan-selected', actor.id));
@@ -198,7 +200,7 @@ export class BattleScene extends Phaser.Scene {
     visual.root.setPosition(x, y).setScale(1).setAlpha(actor.hp > 0 ? 1 : .3);
     if (visual.figure instanceof Phaser.GameObjects.Sprite) {
       visual.figure.setScale(48 / visual.figure.frame.realHeight);
-      if (actor.hp > 0) playMotion(visual.figure, actor.id, 'idle'); else visual.figure.anims.stop();
+      if (actor.hp > 0) playMotion(visual.figure, motionActor, 'idle'); else visual.figure.anims.stop();
     } else visual.figure.setScale(visual.figure instanceof Phaser.GameObjects.Image ? 48 / visual.figure.frame.height : 1);
     visual.figure.setAlpha(1);
     visual.marker.setScale(1).setAlpha(1).setStrokeStyle(actor.protection || actor.armor || actor.coveredBy ? 4 : 2, actor.protection || actor.armor || actor.coveredBy ? 0x8cc8e2 : 0xffffff);
@@ -217,7 +219,11 @@ export class BattleScene extends Phaser.Scene {
     const after = units(frame.after).find((actor) => actor.id === frame.actor)!;
     const visual = this.visuals.get(frame.actor)!;
     visual.marker.setStrokeStyle(5, 0xffdf6d);
-    if (isTurn(frame.action)) this.tweens.add({ targets: visual.direction, rotation: FACINGS.indexOf(facingOf(before)) * Math.PI / 2 + (frame.action === 'TURN_LEFT' ? -Math.PI / 2 : Math.PI / 2), duration, ease: 'Sine.easeInOut' });
+    const motionActor = after.id === 'konstrukt' ? after.id : arkanaMotion(after.id, facingOf(after));
+    if (isTurn(frame.action)) {
+      this.tweens.add({ targets: visual.direction, rotation: FACINGS.indexOf(facingOf(before)) * Math.PI / 2 + (frame.action === 'TURN_LEFT' ? -Math.PI / 2 : Math.PI / 2), duration, ease: 'Sine.easeInOut' });
+      if (visual.figure instanceof Phaser.GameObjects.Sprite) playMotion(visual.figure, motionActor, 'idle');
+    }
     const moved = before.x !== after.x || before.y !== after.y;
     let explanation = '';
     if (frame.effects?.length) {
@@ -232,8 +238,8 @@ export class BattleScene extends Phaser.Scene {
     } else if (isTurn(frame.action)) {
       explanation = `${ACTIONS[frame.action].label}; Blickrichtung ${FACING_LABELS[facingOf(after)]}`;
     } else if (moved) {
-      if (visual.figure instanceof Phaser.GameObjects.Sprite) playMotion(visual.figure, frame.actor, 'walk', after.x - before.x);
-      this.tweens.add({ targets: visual.root, x: GRID_START_X + after.x * TILE + TILE / 2, y: GRID_START_Y + after.y * TILE + TILE / 2, duration: duration * .6, ease: 'Sine.easeInOut', onComplete: () => { if (visual.figure instanceof Phaser.GameObjects.Sprite) playMotion(visual.figure, frame.actor, 'idle'); } });
+      if (visual.figure instanceof Phaser.GameObjects.Sprite) playMotion(visual.figure, motionActor, 'walk', after.x - before.x);
+      this.tweens.add({ targets: visual.root, x: GRID_START_X + after.x * TILE + TILE / 2, y: GRID_START_Y + after.y * TILE + TILE / 2, duration: duration * .6, ease: 'Sine.easeInOut', onComplete: () => { if (visual.figure instanceof Phaser.GameObjects.Sprite) playMotion(visual.figure, motionActor, 'idle'); } });
       explanation = ACTIONS[frame.action].label;
     } else if (isAbility(frame.action) || frame.action === 'WAIT') {
       explanation = frame.after.log.at(-1) ?? ACTIONS[frame.action].label;

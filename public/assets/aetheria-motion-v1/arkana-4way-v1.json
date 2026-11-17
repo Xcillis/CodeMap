@@ -1,0 +1,927 @@
+{
+  "sheets": {
+    "glutling": {
+      "file": "glutling-4way-v1.png",
+      "width": 1536,
+      "height": 1024,
+      "frames": {
+        "glutling-down-0": {
+          "x": 74,
+          "y": 31,
+          "width": 114,
+          "height": 195,
+          "canvasWidth": 205,
+          "canvasHeight": 203,
+          "offsetX": 45,
+          "offsetY": 8
+        },
+        "glutling-down-1": {
+          "x": 332,
+          "y": 31,
+          "width": 112,
+          "height": 195,
+          "canvasWidth": 205,
+          "canvasHeight": 203,
+          "offsetX": 46,
+          "offsetY": 8
+        },
+        "glutling-down-2": {
+          "x": 585,
+          "y": 32,
+          "width": 117,
+          "height": 193,
+          "canvasWidth": 205,
+          "canvasHeight": 203,
+          "offsetX": 44,
+          "offsetY": 10
+        },
+        "glutling-down-3": {
+          "x": 840,
+          "y": 32,
+          "width": 113,
+          "height": 193,
+          "canvasWidth": 205,
+          "canvasHeight": 203,
+          "offsetX": 46,
+          "offsetY": 10
+        },
+        "glutling-down-4": {
+          "x": 1092,
+          "y": 35,
+          "width": 120,
+          "height": 187,
+          "canvasWidth": 205,
+          "canvasHeight": 203,
+          "offsetX": 42,
+          "offsetY": 16
+        },
+        "glutling-down-5": {
+          "x": 1352,
+          "y": 31,
+          "width": 118,
+          "height": 193,
+          "canvasWidth": 205,
+          "canvasHeight": 203,
+          "offsetX": 43,
+          "offsetY": 10
+        },
+        "glutling-up-0": {
+          "x": 77,
+          "y": 291,
+          "width": 111,
+          "height": 180,
+          "canvasWidth": 205,
+          "canvasHeight": 203,
+          "offsetX": 47,
+          "offsetY": 23
+        },
+        "glutling-up-1": {
+          "x": 334,
+          "y": 294,
+          "width": 110,
+          "height": 177,
+          "canvasWidth": 205,
+          "canvasHeight": 203,
+          "offsetX": 47,
+          "offsetY": 26
+        },
+        "glutling-up-2": {
+          "x": 589,
+          "y": 285,
+          "width": 112,
+          "height": 186,
+          "canvasWidth": 205,
+          "canvasHeight": 203,
+          "offsetX": 46,
+          "offsetY": 17
+        },
+        "glutling-up-3": {
+          "x": 843,
+          "y": 291,
+          "width": 115,
+          "height": 180,
+          "canvasWidth": 205,
+          "canvasHeight": 203,
+          "offsetX": 45,
+          "offsetY": 23
+        },
+        "glutling-up-4": {
+          "x": 1099,
+          "y": 293,
+          "width": 114,
+          "height": 178,
+          "canvasWidth": 205,
+          "canvasHeight": 203,
+          "offsetX": 45,
+          "offsetY": 25
+        },
+        "glutling-up-5": {
+          "x": 1355,
+          "y": 293,
+          "width": 115,
+          "height": 178,
+          "canvasWidth": 205,
+          "canvasHeight": 203,
+          "offsetX": 45,
+          "offsetY": 25
+        },
+        "glutling-left-0": {
+          "x": 30,
+          "y": 556,
+          "width": 193,
+          "height": 167,
+          "canvasWidth": 205,
+          "canvasHeight": 203,
+          "offsetX": 6,
+          "offsetY": 36
+        },
+        "glutling-left-1": {
+          "x": 286,
+          "y": 556,
+          "width": 193,
+          "height": 167,
+          "canvasWidth": 205,
+          "canvasHeight": 203,
+          "offsetX": 6,
+          "offsetY": 36
+        },
+        "glutling-left-2": {
+          "x": 542,
+          "y": 552,
+          "width": 193,
+          "height": 171,
+          "canvasWidth": 205,
+          "canvasHeight": 203,
+          "offsetX": 6,
+          "offsetY": 32
+        },
+        "glutling-left-3": {
+          "x": 797,
+          "y": 550,
+          "width": 192,
+          "height": 172,
+          "canvasWidth": 205,
+          "canvasHeight": 203,
+          "offsetX": 6,
+          "offsetY": 31
+        },
+        "glutling-left-4": {
+          "x": 1052,
+          "y": 554,
+          "width": 194,
+          "height": 168,
+          "canvasWidth": 205,
+          "canvasHeight": 203,
+          "offsetX": 5,
+          "offsetY": 35
+        },
+        "glutling-left-5": {
+          "x": 1309,
+          "y": 554,
+          "width": 194,
+          "height": 169,
+          "canvasWidth": 205,
+          "canvasHeight": 203,
+          "offsetX": 5,
+          "offsetY": 34
+        },
+        "glutling-right-0": {
+          "x": 34,
+          "y": 808,
+          "width": 193,
+          "height": 171,
+          "canvasWidth": 205,
+          "canvasHeight": 203,
+          "offsetX": 6,
+          "offsetY": 32
+        },
+        "glutling-right-1": {
+          "x": 290,
+          "y": 809,
+          "width": 193,
+          "height": 170,
+          "canvasWidth": 205,
+          "canvasHeight": 203,
+          "offsetX": 6,
+          "offsetY": 33
+        },
+        "glutling-right-2": {
+          "x": 545,
+          "y": 810,
+          "width": 194,
+          "height": 169,
+          "canvasWidth": 205,
+          "canvasHeight": 203,
+          "offsetX": 5,
+          "offsetY": 34
+        },
+        "glutling-right-3": {
+          "x": 802,
+          "y": 810,
+          "width": 192,
+          "height": 169,
+          "canvasWidth": 205,
+          "canvasHeight": 203,
+          "offsetX": 6,
+          "offsetY": 34
+        },
+        "glutling-right-4": {
+          "x": 1056,
+          "y": 810,
+          "width": 195,
+          "height": 169,
+          "canvasWidth": 205,
+          "canvasHeight": 203,
+          "offsetX": 5,
+          "offsetY": 34
+        },
+        "glutling-right-5": {
+          "x": 1311,
+          "y": 809,
+          "width": 197,
+          "height": 171,
+          "canvasWidth": 205,
+          "canvasHeight": 203,
+          "offsetX": 4,
+          "offsetY": 32
+        }
+      }
+    },
+    "felsbock": {
+      "file": "felsbock-4way-v1.png",
+      "width": 1536,
+      "height": 1024,
+      "frames": {
+        "felsbock-down-0": {
+          "x": 47,
+          "y": 52,
+          "width": 162,
+          "height": 175,
+          "canvasWidth": 202,
+          "canvasHeight": 192,
+          "offsetX": 20,
+          "offsetY": 17
+        },
+        "felsbock-down-1": {
+          "x": 303,
+          "y": 52,
+          "width": 162,
+          "height": 175,
+          "canvasWidth": 202,
+          "canvasHeight": 192,
+          "offsetX": 20,
+          "offsetY": 17
+        },
+        "felsbock-down-2": {
+          "x": 559,
+          "y": 51,
+          "width": 163,
+          "height": 176,
+          "canvasWidth": 202,
+          "canvasHeight": 192,
+          "offsetX": 19,
+          "offsetY": 16
+        },
+        "felsbock-down-3": {
+          "x": 814,
+          "y": 52,
+          "width": 163,
+          "height": 176,
+          "canvasWidth": 202,
+          "canvasHeight": 192,
+          "offsetX": 19,
+          "offsetY": 16
+        },
+        "felsbock-down-4": {
+          "x": 1071,
+          "y": 49,
+          "width": 162,
+          "height": 179,
+          "canvasWidth": 202,
+          "canvasHeight": 192,
+          "offsetX": 20,
+          "offsetY": 13
+        },
+        "felsbock-down-5": {
+          "x": 1327,
+          "y": 48,
+          "width": 163,
+          "height": 179,
+          "canvasWidth": 202,
+          "canvasHeight": 192,
+          "offsetX": 19,
+          "offsetY": 13
+        },
+        "felsbock-up-0": {
+          "x": 50,
+          "y": 299,
+          "width": 157,
+          "height": 182,
+          "canvasWidth": 202,
+          "canvasHeight": 192,
+          "offsetX": 22,
+          "offsetY": 10
+        },
+        "felsbock-up-1": {
+          "x": 306,
+          "y": 298,
+          "width": 156,
+          "height": 181,
+          "canvasWidth": 202,
+          "canvasHeight": 192,
+          "offsetX": 23,
+          "offsetY": 11
+        },
+        "felsbock-up-2": {
+          "x": 562,
+          "y": 298,
+          "width": 157,
+          "height": 184,
+          "canvasWidth": 202,
+          "canvasHeight": 192,
+          "offsetX": 22,
+          "offsetY": 8
+        },
+        "felsbock-up-3": {
+          "x": 818,
+          "y": 298,
+          "width": 157,
+          "height": 182,
+          "canvasWidth": 202,
+          "canvasHeight": 192,
+          "offsetX": 22,
+          "offsetY": 10
+        },
+        "felsbock-up-4": {
+          "x": 1074,
+          "y": 298,
+          "width": 158,
+          "height": 184,
+          "canvasWidth": 202,
+          "canvasHeight": 192,
+          "offsetX": 22,
+          "offsetY": 8
+        },
+        "felsbock-up-5": {
+          "x": 1330,
+          "y": 298,
+          "width": 158,
+          "height": 183,
+          "canvasWidth": 202,
+          "canvasHeight": 192,
+          "offsetX": 22,
+          "offsetY": 9
+        },
+        "felsbock-left-0": {
+          "x": 30,
+          "y": 558,
+          "width": 193,
+          "height": 175,
+          "canvasWidth": 202,
+          "canvasHeight": 192,
+          "offsetX": 4,
+          "offsetY": 17
+        },
+        "felsbock-left-1": {
+          "x": 286,
+          "y": 559,
+          "width": 194,
+          "height": 174,
+          "canvasWidth": 202,
+          "canvasHeight": 192,
+          "offsetX": 4,
+          "offsetY": 18
+        },
+        "felsbock-left-2": {
+          "x": 543,
+          "y": 555,
+          "width": 194,
+          "height": 172,
+          "canvasWidth": 202,
+          "canvasHeight": 192,
+          "offsetX": 4,
+          "offsetY": 20
+        },
+        "felsbock-left-3": {
+          "x": 799,
+          "y": 555,
+          "width": 192,
+          "height": 175,
+          "canvasWidth": 202,
+          "canvasHeight": 192,
+          "offsetX": 5,
+          "offsetY": 17
+        },
+        "felsbock-left-4": {
+          "x": 1054,
+          "y": 555,
+          "width": 192,
+          "height": 173,
+          "canvasWidth": 202,
+          "canvasHeight": 192,
+          "offsetX": 5,
+          "offsetY": 19
+        },
+        "felsbock-left-5": {
+          "x": 1311,
+          "y": 554,
+          "width": 191,
+          "height": 179,
+          "canvasWidth": 202,
+          "canvasHeight": 192,
+          "offsetX": 5,
+          "offsetY": 13
+        },
+        "felsbock-right-0": {
+          "x": 35,
+          "y": 813,
+          "width": 191,
+          "height": 175,
+          "canvasWidth": 202,
+          "canvasHeight": 192,
+          "offsetX": 5,
+          "offsetY": 17
+        },
+        "felsbock-right-1": {
+          "x": 291,
+          "y": 813,
+          "width": 191,
+          "height": 175,
+          "canvasWidth": 202,
+          "canvasHeight": 192,
+          "offsetX": 5,
+          "offsetY": 17
+        },
+        "felsbock-right-2": {
+          "x": 544,
+          "y": 812,
+          "width": 194,
+          "height": 169,
+          "canvasWidth": 202,
+          "canvasHeight": 192,
+          "offsetX": 4,
+          "offsetY": 23
+        },
+        "felsbock-right-3": {
+          "x": 802,
+          "y": 812,
+          "width": 193,
+          "height": 176,
+          "canvasWidth": 202,
+          "canvasHeight": 192,
+          "offsetX": 4,
+          "offsetY": 16
+        },
+        "felsbock-right-4": {
+          "x": 1059,
+          "y": 811,
+          "width": 192,
+          "height": 173,
+          "canvasWidth": 202,
+          "canvasHeight": 192,
+          "offsetX": 5,
+          "offsetY": 19
+        },
+        "felsbock-right-5": {
+          "x": 1318,
+          "y": 811,
+          "width": 188,
+          "height": 178,
+          "canvasWidth": 202,
+          "canvasHeight": 192,
+          "offsetX": 7,
+          "offsetY": 14
+        }
+      }
+    },
+    "moosling": {
+      "file": "moosling-4way-v1.png",
+      "width": 1536,
+      "height": 1024,
+      "frames": {
+        "moosling-down-0": {
+          "x": 59,
+          "y": 56,
+          "width": 158,
+          "height": 175,
+          "canvasWidth": 176,
+          "canvasHeight": 199,
+          "offsetX": 9,
+          "offsetY": 24
+        },
+        "moosling-down-1": {
+          "x": 313,
+          "y": 55,
+          "width": 158,
+          "height": 176,
+          "canvasWidth": 176,
+          "canvasHeight": 199,
+          "offsetX": 9,
+          "offsetY": 23
+        },
+        "moosling-down-2": {
+          "x": 562,
+          "y": 51,
+          "width": 164,
+          "height": 179,
+          "canvasWidth": 176,
+          "canvasHeight": 199,
+          "offsetX": 6,
+          "offsetY": 20
+        },
+        "moosling-down-3": {
+          "x": 813,
+          "y": 48,
+          "width": 165,
+          "height": 180,
+          "canvasWidth": 176,
+          "canvasHeight": 199,
+          "offsetX": 5,
+          "offsetY": 19
+        },
+        "moosling-down-4": {
+          "x": 1069,
+          "y": 59,
+          "width": 161,
+          "height": 175,
+          "canvasWidth": 176,
+          "canvasHeight": 199,
+          "offsetX": 7,
+          "offsetY": 24
+        },
+        "moosling-down-5": {
+          "x": 1320,
+          "y": 41,
+          "width": 168,
+          "height": 191,
+          "canvasWidth": 176,
+          "canvasHeight": 199,
+          "offsetX": 4,
+          "offsetY": 8
+        },
+        "moosling-up-0": {
+          "x": 59,
+          "y": 296,
+          "width": 160,
+          "height": 182,
+          "canvasWidth": 176,
+          "canvasHeight": 199,
+          "offsetX": 8,
+          "offsetY": 17
+        },
+        "moosling-up-1": {
+          "x": 311,
+          "y": 303,
+          "width": 162,
+          "height": 174,
+          "canvasWidth": 176,
+          "canvasHeight": 199,
+          "offsetX": 7,
+          "offsetY": 25
+        },
+        "moosling-up-2": {
+          "x": 562,
+          "y": 293,
+          "width": 164,
+          "height": 183,
+          "canvasWidth": 176,
+          "canvasHeight": 199,
+          "offsetX": 6,
+          "offsetY": 16
+        },
+        "moosling-up-3": {
+          "x": 815,
+          "y": 291,
+          "width": 165,
+          "height": 184,
+          "canvasWidth": 176,
+          "canvasHeight": 199,
+          "offsetX": 5,
+          "offsetY": 15
+        },
+        "moosling-up-4": {
+          "x": 1068,
+          "y": 293,
+          "width": 162,
+          "height": 185,
+          "canvasWidth": 176,
+          "canvasHeight": 199,
+          "offsetX": 7,
+          "offsetY": 14
+        },
+        "moosling-up-5": {
+          "x": 1322,
+          "y": 291,
+          "width": 167,
+          "height": 186,
+          "canvasWidth": 176,
+          "canvasHeight": 199,
+          "offsetX": 4,
+          "offsetY": 13
+        },
+        "moosling-left-0": {
+          "x": 56,
+          "y": 551,
+          "width": 157,
+          "height": 177,
+          "canvasWidth": 176,
+          "canvasHeight": 199,
+          "offsetX": 9,
+          "offsetY": 22
+        },
+        "moosling-left-1": {
+          "x": 312,
+          "y": 550,
+          "width": 155,
+          "height": 177,
+          "canvasWidth": 176,
+          "canvasHeight": 199,
+          "offsetX": 10,
+          "offsetY": 22
+        },
+        "moosling-left-2": {
+          "x": 565,
+          "y": 550,
+          "width": 156,
+          "height": 174,
+          "canvasWidth": 176,
+          "canvasHeight": 199,
+          "offsetX": 10,
+          "offsetY": 25
+        },
+        "moosling-left-3": {
+          "x": 819,
+          "y": 545,
+          "width": 156,
+          "height": 179,
+          "canvasWidth": 176,
+          "canvasHeight": 199,
+          "offsetX": 10,
+          "offsetY": 20
+        },
+        "moosling-left-4": {
+          "x": 1071,
+          "y": 548,
+          "width": 158,
+          "height": 181,
+          "canvasWidth": 176,
+          "canvasHeight": 199,
+          "offsetX": 9,
+          "offsetY": 18
+        },
+        "moosling-left-5": {
+          "x": 1325,
+          "y": 544,
+          "width": 159,
+          "height": 180,
+          "canvasWidth": 176,
+          "canvasHeight": 199,
+          "offsetX": 8,
+          "offsetY": 19
+        },
+        "moosling-right-0": {
+          "x": 59,
+          "y": 800,
+          "width": 158,
+          "height": 179,
+          "canvasWidth": 176,
+          "canvasHeight": 199,
+          "offsetX": 9,
+          "offsetY": 20
+        },
+        "moosling-right-1": {
+          "x": 313,
+          "y": 802,
+          "width": 158,
+          "height": 179,
+          "canvasWidth": 176,
+          "canvasHeight": 199,
+          "offsetX": 9,
+          "offsetY": 20
+        },
+        "moosling-right-2": {
+          "x": 564,
+          "y": 799,
+          "width": 157,
+          "height": 180,
+          "canvasWidth": 176,
+          "canvasHeight": 199,
+          "offsetX": 9,
+          "offsetY": 19
+        },
+        "moosling-right-3": {
+          "x": 811,
+          "y": 797,
+          "width": 164,
+          "height": 182,
+          "canvasWidth": 176,
+          "canvasHeight": 199,
+          "offsetX": 6,
+          "offsetY": 17
+        },
+        "moosling-right-4": {
+          "x": 1071,
+          "y": 801,
+          "width": 158,
+          "height": 180,
+          "canvasWidth": 176,
+          "canvasHeight": 199,
+          "offsetX": 9,
+          "offsetY": 19
+        },
+        "moosling-right-5": {
+          "x": 1324,
+          "y": 797,
+          "width": 161,
+          "height": 187,
+          "canvasWidth": 176,
+          "canvasHeight": 199,
+          "offsetX": 7,
+          "offsetY": 12
+        }
+      }
+    }
+  },
+  "actors": {
+    "glutling-down": {
+      "sheet": "glutling",
+      "height": 203,
+      "idle": [
+        "glutling-down-0",
+        "glutling-down-1"
+      ],
+      "walk": [
+        "glutling-down-2",
+        "glutling-down-3",
+        "glutling-down-4",
+        "glutling-down-5"
+      ],
+      "sourceFacing": "directional"
+    },
+    "glutling-up": {
+      "sheet": "glutling",
+      "height": 203,
+      "idle": [
+        "glutling-up-0",
+        "glutling-up-1"
+      ],
+      "walk": [
+        "glutling-up-2",
+        "glutling-up-3",
+        "glutling-up-4",
+        "glutling-up-5"
+      ],
+      "sourceFacing": "directional"
+    },
+    "glutling-left": {
+      "sheet": "glutling",
+      "height": 203,
+      "idle": [
+        "glutling-left-0",
+        "glutling-left-1"
+      ],
+      "walk": [
+        "glutling-left-2",
+        "glutling-left-3",
+        "glutling-left-4",
+        "glutling-left-5"
+      ],
+      "sourceFacing": "directional"
+    },
+    "glutling-right": {
+      "sheet": "glutling",
+      "height": 203,
+      "idle": [
+        "glutling-right-0",
+        "glutling-right-1"
+      ],
+      "walk": [
+        "glutling-right-2",
+        "glutling-right-3",
+        "glutling-right-4",
+        "glutling-right-5"
+      ],
+      "sourceFacing": "directional"
+    },
+    "felsbock-down": {
+      "sheet": "felsbock",
+      "height": 192,
+      "idle": [
+        "felsbock-down-0",
+        "felsbock-down-1"
+      ],
+      "walk": [
+        "felsbock-down-2",
+        "felsbock-down-3",
+        "felsbock-down-4",
+        "felsbock-down-5"
+      ],
+      "sourceFacing": "directional"
+    },
+    "felsbock-up": {
+      "sheet": "felsbock",
+      "height": 192,
+      "idle": [
+        "felsbock-up-0",
+        "felsbock-up-1"
+      ],
+      "walk": [
+        "felsbock-up-2",
+        "felsbock-up-3",
+        "felsbock-up-4",
+        "felsbock-up-5"
+      ],
+      "sourceFacing": "directional"
+    },
+    "felsbock-left": {
+      "sheet": "felsbock",
+      "height": 192,
+      "idle": [
+        "felsbock-left-0",
+        "felsbock-left-1"
+      ],
+      "walk": [
+        "felsbock-left-2",
+        "felsbock-left-3",
+        "felsbock-left-4",
+        "felsbock-left-5"
+      ],
+      "sourceFacing": "directional"
+    },
+    "felsbock-right": {
+      "sheet": "felsbock",
+      "height": 192,
+      "idle": [
+        "felsbock-right-0",
+        "felsbock-right-1"
+      ],
+      "walk": [
+        "felsbock-right-2",
+        "felsbock-right-3",
+        "felsbock-right-4",
+        "felsbock-right-5"
+      ],
+      "sourceFacing": "directional"
+    },
+    "moosling-down": {
+      "sheet": "moosling",
+      "height": 199,
+      "idle": [
+        "moosling-down-0",
+        "moosling-down-1"
+      ],
+      "walk": [
+        "moosling-down-2",
+        "moosling-down-3",
+        "moosling-down-4",
+        "moosling-down-5"
+      ],
+      "sourceFacing": "directional"
+    },
+    "moosling-up": {
+      "sheet": "moosling",
+      "height": 199,
+      "idle": [
+        "moosling-up-0",
+        "moosling-up-1"
+      ],
+      "walk": [
+        "moosling-up-2",
+        "moosling-up-3",
+        "moosling-up-4",
+        "moosling-up-5"
+      ],
+      "sourceFacing": "directional"
+    },
+    "moosling-left": {
+      "sheet": "moosling",
+      "height": 199,
+      "idle": [
+        "moosling-left-0",
+        "moosling-left-1"
+      ],
+      "walk": [
+        "moosling-left-2",
+        "moosling-left-3",
+        "moosling-left-4",
+        "moosling-left-5"
+      ],
+      "sourceFacing": "directional"
+    },
+    "moosling-right": {
+      "sheet": "moosling",
+      "height": 199,
+      "idle": [
+        "moosling-right-0",
+        "moosling-right-1"
+      ],
+      "walk": [
+        "moosling-right-2",
+        "moosling-right-3",
+        "moosling-right-4",
+        "moosling-right-5"
+      ],
+      "sourceFacing": "directional"
+    }
+  }
+}

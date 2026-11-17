@@ -18,7 +18,7 @@ import { FOREST_OBSTACLES, FOREST_TRAINING, forestBlocked } from '../world/Fores
 import { ART_KEYS, groundDepth, heroFacing, type HeroFrame } from '../art/ArtCatalog';
 import { characterImage, environmentImage, preloadArt, registerArtFrames } from '../art/ArtSprites';
 import { motionSprite, playMotion, preloadMotion, registerMotion } from '../art/MotionSprites';
-import { motionDirection, type MotionDirection } from '../art/MotionCatalog';
+import { arkanaMotion, motionDirection, type MotionDirection } from '../art/MotionCatalog';
 import { NpcPatrol, NPC_BEHAVIORS, npcShouldPause } from '../gameplay/NpcPatrol';
 import { preloadValleyArt, registerValleyArt, valleyImage } from '../art/ValleyArt';
 import { addAcademyLights } from '../world/ValleyEffects';
@@ -210,7 +210,7 @@ export class WorldScene extends Phaser.Scene {
     if (isArkanId(id) && this.campaign.has(id)) return;
     const quest = !isArkanId(id);
     const shadow = this.add.ellipse(x, y + 18, 32, 10, 0x142c35, .3).setDepth(4);
-    const art = isArkanId(id) ? motionSprite(this, id, x, y + 18, 54) ?? characterImage(this, id, x, y + 18, 54) : (this.campaign.region === 'valley' ? valleyImage(this, 'runestone', x, y + 18, 32, 43) : undefined) ?? environmentImage(this, 'runestone', x, y + 18, 32, 43);
+    const art = isArkanId(id) ? motionSprite(this, arkanaMotion(id, 'south'), x, y + 18, 54) ?? characterImage(this, id, x, y + 18, 54) : (this.campaign.region === 'valley' ? valleyImage(this, 'runestone', x, y + 18, 32, 43) : undefined) ?? environmentImage(this, 'runestone', x, y + 18, 32, 43);
     if (art) art.setDepth(groundDepth(y + 18));
     const marker = art ?? (quest
       ? this.add.rectangle(x, y, 24, 34, color).setStrokeStyle(3, 0x3d4a41).setDepth(5)

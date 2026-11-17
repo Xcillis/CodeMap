@@ -45,7 +45,7 @@ function questCard(id: LessonId, campaign: Campaign, choose: (action: CampaignAc
   card.append(paragraph(completed ? '✓ Abgeschlossen' : id === next ? '▶ Als Nächstes verfügbar' : offer.action ? '▶ Bereit · frei wählbar' : 'Gesperrt · Vorbereitung nötig', 'quest-state'), title, paragraph(route.role));
   const prerequisites = requirements(id, state.completed, inspect);
   if (prerequisites) { if (prerequisites instanceof HTMLDetailsElement && !completed && !offer.action) prerequisites.open = true; card.append(prerequisites); }
-  if (!completed && !offer.action && error) card.append(paragraph(error, 'quest-blocked-reason'));
+  if (!offer.action && error) card.append(paragraph(error, 'quest-blocked-reason'));
   const info = document.createElement('details'); const intro = document.createElement('summary'); intro.textContent = completed ? 'Details & erneut spielen' : 'Aufgabe & Einführung'; info.append(intro);
   info.append(paragraph(`Questgeber: ${person.name} · ${REGIONS[route.region].name}`), paragraph(`Aufgabenraum: ${quest.target}`));
   if (discovered && campaign.questReady(id)) info.append(paragraph(quest.introduction));
@@ -53,7 +53,7 @@ function questCard(id: LessonId, campaign: Campaign, choose: (action: CampaignAc
   const button = document.createElement('button'); button.type = 'button'; button.id = `journal-quest-${id}`;
   button.textContent = completed ? 'Erneut spielen' : offer.action?.startsWith('prepare-lesson:') ? offer.actionLabel?.replace('Quest starten', 'starten') ?? 'Team wählen & starten' : 'Einführung annehmen';
   button.disabled = !offer.action; button.addEventListener('click', () => { if (offer.action) choose(offer.action); });
-  if (completed) { info.append(button); card.append(info); } else card.append(info, button);
+  card.append(info, button);
   return card;
 }
 
@@ -70,10 +70,23 @@ function renderSeries(series: QuestSeries, campaign: Campaign, choose: (action: 
     const name = document.createElement('span'); name.textContent = `Schritt ${index + 1}: ${stage.title}`;
     const count = document.createElement('span'); count.className = 'quest-step-count'; count.textContent = `${complete}/${stage.quests.length} abgeschlossen · ${allComplete ? 'Erledigt' : ready ? 'Bereit' : 'Gesperrt'}`;
     summary.append(number, name, count); details.append(summary);
+    if (allComplete) {
+      const replay = document.createElement('div'); replay.className = 'quest-replay-actions';
+      for (const id of stage.quests) {
+        const offer = campaign.lessonOffer(id); const button = document.createElement('button'); button.type = 'button';
+        button.textContent = `Erneut spielen: ${getLesson(id).title}`; button.disabled = !offer.action;
+        button.addEventListener('click', () => { if (offer.action) choose(offer.action); }); replay.append(button);
+        if (!offer.action) {
+          const reason = paragraph(campaign.missionError(id) ?? 'Beende zuerst die laufende Begegnung.', 'quest-blocked-reason');
+          reason.id = `replay-reason-${id}`; button.setAttribute('aria-describedby', reason.id); replay.append(reason);
+        }
+      }
+      li.append(replay);
+    }
     if (stage.note) details.append(paragraph(stage.note, 'quest-stage-note'));
     const grid = document.createElement('div'); grid.className = 'quest-board-grid';
     for (const id of stage.quests) grid.append(questCard(id, campaign, choose, next, inspect));
-    details.append(grid); li.append(details); stages.append(li);
+    details.append(grid); li.prepend(details); stages.append(li);
   });
   section.append(stages); return section;
 }

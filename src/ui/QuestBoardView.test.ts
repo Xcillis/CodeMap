@@ -12,6 +12,15 @@ let content: HTMLDivElement;
 beforeEach(() => { document.body.replaceChildren(); content = document.createElement('div'); document.body.append(content); });
 
 describe('Sichtbare Questreihen beim Questgeber', () => {
+  it('bietet erledigte Quests ohne Aufklappen zur Wiederholung an und behält den Abschluss', () => {
+    const campaign = saved([...early, 'q08-team', 'q15-wurzelschutz', 'q16-heilmoos']); const choose = vi.fn();
+    renderQuestBoard(content, campaign, choose, 'tala');
+    const replay = Array.from(content.querySelectorAll<HTMLButtonElement>('.quest-replay-actions button')).find((button) => button.textContent?.includes('Zwei Programme'))!;
+    expect(replay.disabled).toBe(false); expect(replay.closest('details')).toBeNull(); replay.click();
+    expect(choose).toHaveBeenCalledWith('prepare-lesson:q08-team');
+    const before = campaign.snapshot.completed; campaign.prepareMission('q08-team');
+    expect(campaign.finishMission('q08-team')?.repeated).toBe(true); expect(campaign.snapshot.completed).toEqual(before);
+  });
   it('zeigt im Dorf den Wald als Rückweg und bietet aus einem Haus keinen Gebietswechsel an', () => {
     const campaign = saved(); campaign.apply('travel-village'); const choose = vi.fn();
     renderQuestBoard(content, campaign, choose);

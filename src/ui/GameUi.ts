@@ -29,7 +29,7 @@ export class GameUi {
   private sources: ProgramSources = {};
   private drafts: Record<string, string> = {};
   private workspaceDrafts: Record<string, string> = {};
-  private loose: Record<string, boolean> = {};
+  private blockErrors: Record<string, string | undefined> = {};
   private pendingDialogAction: DialogPayload['action'];
   private snap?: SnapEditor;
   private readonly panel = this.el<HTMLElement>('battle-panel');
@@ -120,8 +120,7 @@ export class GameUi {
     this.text.addEventListener('input', () => {
       if (this.playbackState !== 'idle') return;
       this.programChanged();
-      this.workspaceDrafts[this.key()] = '';
-      this.loose[this.key()] = false;
+      this.blockErrors[this.key()] = undefined;
       this.capture();
     });
     this.el('command-entries').addEventListener('click', (event) => {
@@ -188,11 +187,6 @@ export class GameUi {
     for (const actor of Object.keys(programs).filter(isArkanId)) if (programs[actor] !== undefined) {
       const key = `${mission}:${actor}`;
       this.sources[actor] = this.drafts[key] ?? progress.programs[key] ?? programs[actor];
-      const saved = this.workspaceDrafts[key] ?? progress.blockWorkspaces[key];
-      try {
-        const top = saved ? (JSON.parse(saved) as { blocks?: { blocks?: { type: string }[] } }).blocks?.blocks ?? [] : [];
-        this.loose[key] = top.some((block) => block.type !== 'cm_start') || top.filter((block) => block.type === 'cm_start').length > 1;
-      } catch { this.loose[key] = true; }
     }
     this.selectedActor = Object.keys(programs).find(isArkanId) ?? 'moosling';
     this.renderActors();
@@ -229,9 +223,6 @@ export class GameUi {
   private setMode(mode: EditorMode, loading = false): void {
     this.drag.cancel();
     if (!loading && mode === this.editorMode) return;
-    if (mode === 'text' && this.editorMode === 'blocks' && this.snap?.hasLooseBlocks()) {
-      this.feedback.textContent = 'Verbinde lose Blöcke mit dem Startblock oder lösche sie vor dem Wechsel in den Textmodus.'; return;
-    }
     if (!loading) this.capture();
     const parsed = compileActionPlan(this.text.value, this.selectedActor);
     if (mode === 'blocks' && !parsed.nodes) { this.feedback.textContent = parsed.error ?? 'Ungültiger Text.'; return; }
@@ -259,11 +250,11 @@ export class GameUi {
   private capture(): void {
     if (this.editorMode === 'blocks' && this.snap) {
       this.workspaceDrafts[this.key()] = this.snap.save();
-      this.loose[this.key()] = this.snap.hasLooseBlocks();
       try {
         this.text.value = this.snap.source();
-        if (this.loose[this.key()]) this.feedback.textContent = 'Lose Blöcke werden erst ausgeführt, wenn sie am Startblock eingerastet sind.';
-      } catch (error) { this.feedback.textContent = String(error); this.loose[this.key()] = true; }
+        this.blockErrors[this.key()] = undefined;
+        if (this.snap.hasLooseBlocks()) this.feedback.textContent = 'Lose Blöcke bleiben als Entwurf liegen und werden beim Ausführen ignoriert.';
+      } catch (error) { this.feedback.textContent = String(error); this.blockErrors[this.key()] = String(error); }
     }
     this.sources[this.selectedActor] = this.text.value;
     this.drafts[this.key()] = this.text.value;
@@ -275,7 +266,8 @@ export class GameUi {
     if (event === 'battle-step' && this.playbackState === 'paused') { gameEvents.emit(event, {}); return; }
     if (this.playbackState !== 'idle') return;
     this.capture();
-    if (Object.keys(this.sources).some((actor) => this.loose[`${this.mission}:${actor}`])) { this.feedback.textContent = 'Verbinde zunächst alle losen Blöcke mit dem Startblock oder lösche sie.'; return; }
+    const blockError = Object.keys(this.sources).map((actor) => this.blockErrors[`${this.mission}:${actor}`]).find(Boolean);
+    if (blockError) { this.feedback.textContent = blockError; return; }
     gameEvents.emit(event, { ...this.sources });
   }
 
@@ -311,7 +303,7 @@ export class GameUi {
     const snippet = commandSource(command, this.selectedActor);
     this.text.setRangeText(`${this.text.value.trim() ? '\n' : ''}${snippet}`, this.text.selectionStart, this.text.selectionEnd, 'end');
     this.programChanged();
-    this.workspaceDrafts[this.key()] = ''; this.loose[this.key()] = false; this.capture();
+    this.blockErrors[this.key()] = undefined; this.capture();
   }
 
   private update(state: EncounterState, feedback: string): void {

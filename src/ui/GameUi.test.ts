@@ -29,7 +29,7 @@ vi.mock('./SnapEditor', () => ({ SnapEditor: class {
   constructor(_host: HTMLElement, private changed: () => void) { snaps.push(this); }
   load(nodes: ProgramNode[], actor: ArkanId, _mission: number, saved?: string) {
     const state = saved ? JSON.parse(saved) as { nodes: ProgramNode[]; loose: boolean } : { nodes, loose: false };
-    this.nodes = state.nodes; this.loose = state.loose; this.actor = actor;
+    this.nodes = nodes; this.loose = state.loose; this.actor = actor;
   }
   source() { return nodesToSource(this.nodes, this.actor); }
   save() { return JSON.stringify({ nodes: this.nodes, loose: this.loose }); }
@@ -577,13 +577,17 @@ describe('Editorzustand und Arkan-Zuordnung', () => {
     click('blocks-mode'); editor().mutate([]); click('text-mode'); expect(text().value).toBe('');
     click('blocks-mode'); expect(document.getElementById('block-editor')!.hidden).toBe(false);
   });
-  it('bewahrt lose Blockentwürfe und verhindert deren versehentlichen Verlust oder Ausführung', () => {
+  it('ignoriert lose Blockentwürfe beim Ausführen und bewahrt sie auch bei Textänderungen und Objektwechseln', () => {
     gameEvents.emit('battle-opened', missionPrograms(3), 3);
     editor().mutate([{ kind: 'action', action: 'ATTACK' }], true);
-    click('text-mode'); expect(text().hidden).toBe(true);
-    let ran = false; gameEvents.on('battle-run-program', () => { ran = true; }); click('battle-run-program'); expect(ran).toBe(false);
-    click('select-glutling'); click('select-moosling'); click('text-mode'); expect(text().hidden).toBe(true);
-    editor().mutate([{ kind: 'action', action: 'ATTACK' }]); click('text-mode'); expect(text().value).toBe('moosling.vineStrike();');
+    let submitted: unknown; gameEvents.on('battle-run-program', (programs: unknown) => { submitted = programs; });
+    click('battle-run-program'); expect(submitted).toMatchObject({ moosling: 'moosling.vineStrike();' });
+    click('text-mode'); expect(text().hidden).toBe(false); expect(text().value).toBe('moosling.vineStrike();');
+    type('moosling.moveForward();'); click('blocks-mode'); expect(text().value).toBe('moosling.moveForward();');
+    click('select-glutling'); click('select-moosling');
+    expect(JSON.parse(localStorage.getItem('codemap-m2-progress')!).blockWorkspaces['3:moosling']).toContain('"loose":true');
+    click('battle-step');
+    click('text-mode'); expect(text().value).toBe('moosling.moveForward();');
   });
   it('sendet beim Ausführen beide Programme und hält Missionsentwürfe getrennt', () => {
     gameEvents.emit('battle-opened', missionPrograms(3), 3); click('select-glutling'); click('text-mode'); type('glutling.attack();');

@@ -1,13 +1,32 @@
 // @vitest-environment jsdom
 import * as Blockly from 'blockly/core';
 import { describe, expect, it } from 'vitest';
-import { blockAtPath, loadNodes, workspaceNodes, snapToolbox, restoreWorkspaceState } from './SnapEditor';
+import { blockAtPath, loadNodes, workspaceNodes, snapToolbox, restoreWorkspaceState, mergeProgramWorkspace } from './SnapEditor';
 import { compileActionPlan, nodesToSource } from '../combat/DecisionProgram';
 import { BattleSession } from '../combat/BattleSession';
 import { getLesson, WORLD_QUESTS } from '../gameplay/WorldQuests';
 import { LessonSession } from '../combat/LessonSession';
 
 describe('Echte Blockly-Verbindungen', () => {
+  it('ignoriert lose und deaktivierte Blöcke sowie leere Startblöcke und erhält Entwürfe bei Textänderungen', () => {
+    const workspace = new Blockly.Workspace();
+    try {
+      loadNodes(workspace, [{ kind: 'action', action: 'MOVE_FORWARD' }], 'glutling');
+      const loose = workspace.newBlock('cm_repeat'); loose.moveBy(520, 180); loose.setFieldValue(6, 'COUNT');
+      const unsupported = workspace.newBlock('cm_healing_moss'); loose.getInput('BODY')!.connection!.connect(unsupported.previousConnection!);
+      workspace.newBlock('cm_start');
+      const disabled = workspace.newBlock('cm_attack'); disabled.setDisabledReason(true, 'user');
+      expect(workspaceNodes(workspace)).toEqual([{ kind: 'action', action: 'MOVE_FORWARD' }]);
+      const saved = JSON.stringify(Blockly.serialization.workspaces.save(workspace));
+      const nodes = compileActionPlan('glutling.turnLeft(); glutling.moveBackward();', 'glutling').nodes!;
+      Blockly.serialization.workspaces.load(mergeProgramWorkspace(saved, nodes, 'glutling'), workspace);
+      expect(workspaceNodes(workspace)).toEqual(nodes);
+      expect(workspace.getBlockById(loose.id)?.getRelativeToSurfaceXY()).toMatchObject({ x: 520, y: 180 });
+      expect(workspace.getBlockById(loose.id)?.getInputTargetBlock('BODY')?.id).toBe(unsupported.id);
+      expect(workspace.getBlockById(disabled.id)?.isEnabled()).toBe(false);
+      expect(blockAtPath(workspace, '1')?.type).toBe('cm_move_backward');
+    } finally { workspace.dispose(); }
+  });
   it('bietet nur Felsbocks gelernte Schutzblöcke und erhält deren Verbindungen beim Textwechsel', () => {
     const quest = getLesson('q19-deckung');
     const toolbox = snapToolbox('felsbock', 0, quest.allowed) as Blockly.utils.toolbox.ToolboxInfo;
