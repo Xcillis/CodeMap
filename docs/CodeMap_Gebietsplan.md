@@ -1,6 +1,6 @@
 # Gebiets- und Questplan: Tal und Aetherwald
 
-Stand: 15. November 2026. Die Gebietsstruktur und der Ausbau auf 20 Quests ersetzen den früheren linearen Durchlauf. Laufzeitdaten stehen in `WorldRegions.ts` und `QuestNetwork.ts`; Aufgabenziele und Lerntexte in `WorldQuests.ts`.
+Stand: 17. November 2026. Die Gebietsstruktur und der Ausbau auf 26 Quests ersetzen den früheren linearen Durchlauf. Laufzeitdaten stehen in `WorldRegions.ts` und `QuestNetwork.ts`; Aufgabenziele und Lerntexte in `WorldQuests.ts`.
 
 ## Tal von Aetheria
 
@@ -129,3 +129,16 @@ Das Dorf enthält in diesem Ausbau Orientierungsdialoge und den räumlichen Rahm
 
 
 Seit der Inhaltsrevision 2 ist Q12 keine zweite Runentreppe mehr. Die blaue Sicherungsanzeige zählt 0/3 bis 3/3; die Winde am Start wird erst nach dem vollständigen Rundweg aktiviert. Nach einer ersten Tal-Einstiegsaufgabe kann die Gebietsaufgabe weiterhin frei gewählt werden. Alte Questabschlüsse und bereits geöffnete Pässe bleiben erhalten. Bereits früher an Q12 gelernte Fachbegriffe werden beim Laden über eine Wissensmarkierung bewahrt; neue Abschlüsse vergeben keine ungeübte Verschachtelung. Gespeicherte Text- und Blockentwürfe bleiben bearbeitbar erhalten.
+
+## Erweiterung Q21–Q26
+
+| Quest | Ort / Geber | Voraussetzungen | Inhalt |
+| --- | --- | --- | --- |
+| Q21 Nerias wechselnde Wege | Sonnenlichtung / Neria | Q13 | Solange-Schleife, wechselnde Weglängen, null Durchläufe, Fortsetzung |
+| Q22 Solange der Wächter steht | Westlicher Wald / Lyra | Q06 und Q21 | Solange Gegner lebt mit erneuter innerer Entscheidung |
+| Q23 Branns Brandfolge | Talpatrouille / Brann | Q14 | Vorbereiteten Brand mit direktem Feuer ausnutzen |
+| Q24 Zweimal Kälte | Sonnenlichtung / Neria | Q13, Frostmolch aufgenommen | Zustand aufbauen, echte Aktion verhindern |
+| Q25 Talas Löschübung | Forscherhain / Tala | Q24, Q08, Q14, Glutling und Frostmolch aufgenommen | Gegner und Verbündeten löschen, getrennte Programme |
+| Q26 Der gefrorene Übergang | Sonnenlichtung / Neria | Q24, Frostmolch aufgenommen | Wasser→Eis, begehbarer Übergang |
+
+Frostmolch erscheint nach Q13 nahe Neria bei `(2510, 540)`. Wie jedes andere Arkana muss es ausdrücklich aufgenommen werden und verschwindet dann aus der Welt. Die Teamgröße bleibt zunächst 1, nach Team-Einführung 2 und nach Q19 höchstens 3; der vierte Sammlungsfund vergibt keinen zusätzlichen aktiven Platz. Neue Reihen stehen getrennt mit ihren Voraussetzungen im Journal. Bei demselben Geber bleiben direkte Folgequestbuttons nach Erfolg verfügbar; ortsfremde Folgeaufgaben erfordern die Reise. Alte Quest-IDs und Abschlüsse bleiben bestehen.

@@ -8,6 +8,24 @@ import { getLesson, WORLD_QUESTS } from '../gameplay/WorldQuests';
 import { LessonSession } from '../combat/LessonSession';
 
 describe('Echte Blockly-Verbindungen', () => {
+  it('erhält solange-Schleifen, ihre Rümpfe und Zustandsabfragen in beiden Sprachmodi', () => {
+    const workspace = new Blockly.Workspace();
+    try {
+      for (const condition of ['enemyAlive', 'enemyChilled', 'enemyFrozen', 'allyBurning', 'waterAhead', 'iceAhead'] as const) {
+        const source = `while (frostmolch.${condition}) { frostmolch.chill(); frostmolch.moveForward(); } frostmolch.extinguishAlly();`;
+        const nodes = compileActionPlan(source, 'frostmolch').nodes!;
+        loadNodes(workspace, nodes, 'frostmolch');
+        expect(blockAtPath(workspace, '0')?.type).toBe('cm_while');
+        expect(blockAtPath(workspace, '0.body.1')?.type).toBe('cm_move_forward');
+        expect(workspaceNodes(workspace)).toEqual(nodes);
+        expect(compileActionPlan(nodesToSource(workspaceNodes(workspace), 'frostmolch'), 'frostmolch').nodes).toEqual(nodes);
+      }
+      expect(JSON.stringify(snapToolbox('glutling', 0, getLesson('q01-glutspur').allowed))).not.toContain('cm_while');
+      expect(JSON.stringify(snapToolbox('glutling', 0, getLesson('q21-solangeweg').allowed))).toContain('cm_while');
+      const palette = JSON.stringify(snapToolbox('frostmolch', 0, getLesson('q25-loeschen').allowed));
+      expect(palette).toContain('cm_extinguish_ally'); expect(palette).not.toContain('cm_ignite');
+    } finally { workspace.dispose(); }
+  });
   it('ignoriert lose und deaktivierte Blöcke sowie leere Startblöcke und erhält Entwürfe bei Textänderungen', () => {
     const workspace = new Blockly.Workspace();
     try {

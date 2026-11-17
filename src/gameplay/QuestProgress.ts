@@ -31,6 +31,11 @@ export const QUEST_SERIES: readonly QuestSeries[] = [
     { title: 'Die Rollen im Kampf verbinden', quests: ['q17-teamrollen'] },
   ] },
   { id: 'trio', giver: 'tala', title: 'Das Dreierteam', note: 'Vorher bei Mira Steinpanzer und Deckung lernen; die offene Voraussetzung steht an der Quest.', stages: [{ title: 'Drei eigene Programme verbinden', quests: ['q20-dreiklang'] }] },
+  { id: 'while-path', giver: 'neria', title: 'Solange der Weg frei ist', stages: [{ title: 'Wechselnde Weglängen', quests: ['q21-solangeweg'] }] },
+  { id: 'while-battle', giver: 'lyra', title: 'Bedingte Wiederholung im Kampf', stages: [{ title: 'Solange der Gegner lebt', quests: ['q22-solangekampf'] }] },
+  { id: 'fire-combo', giver: 'brann', title: 'Zustände ausnutzen', stages: [{ title: 'Brandfolge', quests: ['q23-brandfolge'] }] },
+  { id: 'frost-combo', giver: 'neria', title: 'Wasser und Frost', stages: [{ title: 'Kälte aufbauen', quests: ['q24-frostfolge'] }, { title: 'Wasserflächen umwandeln', quests: ['q26-eisbruecke'] }] },
+  { id: 'extinguish', giver: 'tala', title: 'Brand aufheben', stages: [{ title: 'Löschen im Team', quests: ['q25-loeschen'] }] },
 ];
 
 export function giverProgress(campaign: Campaign, giver: QuestGiverId): { completed: number; total: number; ready: readonly LessonId[]; next?: LessonId; pending?: LessonId } {

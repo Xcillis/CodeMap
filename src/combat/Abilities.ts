@@ -1,9 +1,13 @@
 import type { SkillId } from '../gameplay/ArkanaCatalog';
 import type { ArkanId, BattleState, CombatAction, CombatEffect, CombatRole, Combatant } from './types';
 import { partyMembers } from './Party';
+import { applyCold, extinguish, freezeSurface, surfaceAhead } from './StateReactions';
 
-export type AbilityAction = 'IGNITE' | 'VINE_SNARE' | 'HEALING_MOSS' | 'BARK_GUARD' | 'STONE_ARMOR' | 'COVER_ALLY';
+export type AbilityAction = 'IGNITE' | 'VINE_SNARE' | 'HEALING_MOSS' | 'BARK_GUARD' | 'STONE_ARMOR' | 'COVER_ALLY' | 'CHILL' | 'EXTINGUISH_ENEMY' | 'EXTINGUISH_ALLY';
 export const ABILITIES: Record<AbilityAction, { skill: SkillId; role: CombatRole; range: number; cooldown: number; description: string }> = {
+  CHILL: { skill: 'chill', role: 'support', range: 3, cooldown: 1, description: 'Wasser / Frost · Kühlt den Gegner für 3 Schrittenden. Erneute Kälte vor Ablauf ersetzt Kühlung durch Eingefroren: genau die nächste reguläre Aktion fällt aus. Flaches Wasser direkt voraus wird stattdessen dauerhaft für diese Aufgabe zu begehbarem Eis.' },
+  EXTINGUISH_ENEMY: { skill: 'extinguishEnemy', role: 'support', range: 3, cooldown: 1, description: 'Löscht den Brand des Gegners in Reichweite 3. Ohne Brand keine Wirkung und keine Abklingzeit.' },
+  EXTINGUISH_ALLY: { skill: 'extinguishAlly', role: 'support', range: 3, cooldown: 1, description: 'Löscht das brennende lebende Teammitglied mit dem niedrigsten LP-Anteil in Reichweite 3, einschließlich dir selbst. Bei Gleichstand gilt die Teamreihenfolge.' },
   STONE_ARMOR: { skill: 'stoneArmor', role: 'tank', range: 0, cooldown: 3, description: 'Natur / Fels · Fängt zwei Schritte lang pro Treffer bis zu 2 Schaden ab. Lenkt das Ziel des Gegners nicht um. Nach 3 Schritten wieder bereit.' },
   COVER_ALLY: { skill: 'coverAlly', role: 'tank', range: 3, cooldown: 3, description: 'Deckt zwei Schritte lang das andere lebende Arkana mit dem niedrigsten LP-Anteil in Reichweite 3 (bei Gleichstand Teamreihenfolge). Felsbock übernimmt dessen Treffer, solange es lebt und höchstens 3 Felder entfernt ist. Sein Steinpanzer kann den übernommenen Schaden abfangen. Nach 3 Schritten wieder bereit.' },
   IGNITE: { skill: 'ignite', role: 'damage', range: 3, cooldown: 3, description: 'Feuer · Reichweite 3. Sofort 1 Schaden und an drei Schrittenden je 1 Brandschaden. Erneut nach 3 Schritten bereit.' },
@@ -19,11 +23,29 @@ export const allies = partyMembers;
 export function castAbility(state: BattleState, actor: Combatant, action: AbilityAction, log: (text: string) => void): CombatEffect[] {
   const rule = ABILITIES[action]; const source = actor.id as ArkanId;
   if ((actor.cooldowns?.[action] ?? 0) > 0) { log(`${actor.name}: Fähigkeit noch nicht bereit (${actor.cooldowns![action]} Schritte).`); return []; }
+  const surface = surfaceAhead(actor, state.surfaces);
+  if (action === 'CHILL' && surface?.kind === 'water') {
+    if (!freezeSurface(surface)) { log('Dieses tiefe Wasser lässt sich nicht als Übergang vereisen.'); return []; }
+    actor.cooldowns ??= {}; actor.cooldowns[action] = rule.cooldown;
+    const text = 'Gefrieren: Flaches Wasser wird zu begehbarem Eis.'; log(text);
+    return [{ kind: 'ice', source, target: actor.id, tile: { x: surface.x, y: surface.y }, amount: 1, text }];
+  }
+  if (action === 'EXTINGUISH_ALLY' || action === 'EXTINGUISH_ENEMY') {
+    const target = action === 'EXTINGUISH_ENEMY' ? state.enemy : allies(state).filter((unit) => unit.hp > 0 && unit.burning && distance(actor, unit) <= rule.range).sort((a, b) => a.hp / a.maxHp - b.hp / b.maxHp)[0];
+    if (!target || target.hp <= 0 || distance(actor, target) > rule.range || !extinguish(target)) { log('Löschen: Kein brennendes lebendes Ziel in Reichweite.'); return []; }
+    actor.cooldowns ??= {}; actor.cooldowns[action] = rule.cooldown;
+    const text = `${actor.name} löscht ${target.name}: Brand entfernt, weitere Brandimpulse entfallen.`; log(text);
+    return [{ kind: 'extinguish', source, target: target.id, amount: 1, text }];
+  }
   const target = action === 'HEALING_MOSS' || action === 'COVER_ALLY' ? allies(state).filter((unit) => unit.hp > 0 && (action === 'COVER_ALLY' ? unit.id !== actor.id : unit.hp < unit.maxHp) && distance(actor, unit) <= rule.range)
     .sort((a, b) => a.hp / a.maxHp - b.hp / b.maxHp)[0] : action === 'BARK_GUARD' || action === 'STONE_ARMOR' ? actor : state.enemy;
   if (!target || target.hp <= 0) { log(`${actor.name}: Kein passendes lebendes Ziel.`); return []; }
   if (distance(actor, target) > rule.range) { log(`${actor.name}: Ziel außerhalb der Reichweite ${rule.range}.`); return []; }
   actor.cooldowns ??= {}; actor.cooldowns[action] = rule.cooldown;
+  if (action === 'CHILL') {
+    const state = applyCold(target, source); const text = state === 'chilled' ? `${target.name}: Kälte 1/2, Kühlung für 3 Schrittenden.` : `${target.name}: Kälte 2/2 — eingefroren bis zur nächsten regulären Aktion.`; log(text);
+    return [{ kind: 'cold', source, target: target.id, amount: 1, text }];
+  }
   if (action === 'IGNITE') {
     const amount = Math.min(1, target.hp); target.hp -= amount; target.burning = { remaining: 3, source };
     const text = `${actor.name} entzündet ${target.name}: ${amount} Feuerschaden, Brand für 3 Schritte.`; log(text);
@@ -44,7 +66,7 @@ export function cooldownStep(state: BattleState): void {
   }
 }
 export function expireControl(state: BattleState): void {
-  for (const unit of [...allies(state), state.enemy]) for (const status of ['rooted', 'protection', 'armor', 'coveredBy'] as const) {
+  for (const unit of [...allies(state), state.enemy]) for (const status of ['rooted', 'protection', 'armor', 'coveredBy', 'chilled'] as const) {
     if (unit[status] && --unit[status]!.remaining <= 0) { delete unit[status]; if (status === 'protection') unit.guarding = false; }
   }
 }

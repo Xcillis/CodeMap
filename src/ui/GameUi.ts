@@ -324,6 +324,7 @@ export class GameUi {
     const descriptions = [...partyMembers(state), state.enemy].filter((unit) => Boolean(unit)).flatMap((unit) => {
       if (!unit) return []; const labels = [...statusLabels(unit), ...cooldownLabels(unit)]; return labels.length ? [`${unit.name}: ${labels.join(' · ')}`] : [];
     });
+    for (const surface of state.surfaces ?? []) descriptions.push(`Feld ${surface.x + 1}/${surface.y + 1}: ${surface.kind === 'water' ? 'Wasser, blockiert' : 'Eis, begehbar'}`);
     this.el('ability-state-text').textContent = descriptions.join('\n'); this.el('ability-state').hidden = !descriptions.length;
     for (const [prefix, actor] of [['player', state.player], ['companion', state.companion], ['enemy', state.enemy]] as const) {
       if (!actor) continue;
@@ -381,8 +382,8 @@ export class GameUi {
     this.highlightLine();
     if (!frame) return;
     const name = frame.actor === 'konstrukt' ? 'Konstrukt' : ARKANA_SPECIES[frame.actor].name;
-    const loops = frame.trace?.loops.map((loop) => `Durchlauf ${loop.iteration} von ${loop.total}`).join(' · ');
-    const queries = { pathAheadClear: 'Weg voraus frei', pathRightClear: 'Weg rechts frei', enemyAdjacent: 'Gegner direkt daneben', allyInjured: 'Verbündeter verletzt', enemyBurning: 'Gegner brennt' };
+    const loops = frame.trace?.loops.map((loop) => loop.kind === 'while' ? `Solange-Durchlauf ${loop.iteration}` : `Durchlauf ${loop.iteration} von ${loop.total}`).join(' · ');
+    const queries = { enemyAlive: 'Gegner lebt', enemyChilled: 'Gegner gekühlt', enemyFrozen: 'Gegner eingefroren', allyBurning: 'Verbündeter brennt', waterAhead: 'Wasser voraus', iceAhead: 'Eis voraus', pathAheadClear: 'Weg voraus frei', pathRightClear: 'Weg rechts frei', enemyAdjacent: 'Gegner direkt daneben', allyInjured: 'Verbündeter verletzt', enemyBurning: 'Gegner brennt' };
     const conditions = frame.trace?.conditions.map((condition) => `${queries[condition.condition ?? 'enemyAdjacent']}: ${condition.value ? 'ja' : 'nein'}`).join(' · ');
     trace.textContent = [name, frame.periodic ? 'Anhaltende Wirkung' : frame.actor === 'konstrukt' ? ACTIONS[frame.action].label : actionLabel(frame.action, frame.actor), loops, conditions].filter(Boolean).join(' · ');
   }

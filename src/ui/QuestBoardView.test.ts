@@ -32,7 +32,7 @@ describe('Sichtbare Questreihen beim Questgeber', () => {
   });
   it('zeigt Tala als Einstieg, drei parallele Übungen und Rollenkampf mit aktuellem Fortschritt', () => {
     const campaign = saved(); const before = campaign.snapshot; const choose = vi.fn(); renderQuestBoard(content, campaign, choose, 'tala');
-    const meter = content.querySelector('progress')!; expect(meter.value).toBe(1); expect(meter.max).toBe(6);
+    const meter = content.querySelector('progress')!; expect(meter.value).toBe(1); expect(meter.max).toBe(7);
     const stages = content.querySelectorAll<HTMLDetailsElement>('[data-series="moosling-team"] .quest-stage');
     expect(stages[0].open).toBe(false); expect(stages[1].open).toBe(true); expect(stages[2].open).toBe(false);
     expect(Array.from(stages[1].querySelectorAll<HTMLElement>('[data-quest]')).map((card) => card.dataset.quest)).toEqual(['q08-team', 'q15-wurzelschutz', 'q16-heilmoos']);
@@ -53,8 +53,8 @@ describe('Sichtbare Questreihen beim Questgeber', () => {
   });
   it('zeigt abgeschlossene Reihen kompakt und benennt auch Team-Wiederholungen eindeutig', () => {
     const choose = vi.fn(); renderQuestBoard(content, saved(LESSON_IDS), choose, 'tala');
-    expect(content.querySelector('progress')?.value).toBe(6); expect(content.querySelector('.quest-all-complete')?.textContent).toContain('Alle Aufgaben');
-    expect(content.querySelector('.quest-next-summary')).toBeNull(); expect(content.querySelectorAll('.quest-complete')).toHaveLength(6);
+    expect(content.querySelector('progress')?.value).toBe(7); expect(content.querySelector('.quest-all-complete')?.textContent).toContain('Alle Aufgaben');
+    expect(content.querySelector('.quest-next-summary')).toBeNull(); expect(content.querySelectorAll('.quest-complete')).toHaveLength(7);
     expect(Array.from(content.querySelectorAll<HTMLDetailsElement>('.quest-stage')).every((stage) => !stage.open)).toBe(true);
     const replay = content.querySelector<HTMLButtonElement>('#journal-quest-q08-team')!;
     expect(replay.textContent).toBe('Erneut spielen'); replay.click(); expect(choose).toHaveBeenCalledWith('prepare-lesson:q08-team');

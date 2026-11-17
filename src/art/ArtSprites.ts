@@ -19,9 +19,9 @@ export function registerArtFrames(scene: Phaser.Scene): void {
     if (tile) { tile.context.drawImage(scene.textures.get(ART_KEYS.grass).getSourceImage() as HTMLImageElement, 0, 0, 256, 256); tile.refresh(); }
   }
 }
-export function characterImage(scene: Phaser.Scene, frame: CharacterFrame, x: number, y: number, height = 64): Phaser.GameObjects.Image | undefined {
-  if (!scene.textures.exists(ART_KEYS.characters)) return;
-  const size = ART_MANIFEST.characters.frames[frame];
+export function characterImage(scene: Phaser.Scene, frame: string, x: number, y: number, height = 64): Phaser.GameObjects.Image | undefined {
+  if (!Object.hasOwn(ART_MANIFEST.characters.frames, frame) || !scene.textures.exists(ART_KEYS.characters)) return;
+  const size = ART_MANIFEST.characters.frames[frame as CharacterFrame];
   return scene.add.image(x, y, ART_KEYS.characters, frame).setOrigin(.5, 1).setDisplaySize(height * size.width / size.height, height);
 }
 export function environmentImage(scene: Phaser.Scene, frame: EnvironmentFrame, x: number, y: number, width: number, height?: number): Phaser.GameObjects.Image | undefined {

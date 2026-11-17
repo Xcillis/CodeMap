@@ -10,6 +10,7 @@ import { AbilityProgress } from './AbilityProgress';
 export class TeamLessonSession {
   private readonly battle: BattleSession;
   private readonly contributors = new Set<ArkanId>();
+  private readonly extinguished = new Set<string>();
   private actionFrames: ActionFrame[] = [];
   private readonly actors: readonly ArkanId[];
   private readonly abilities = new AbilityProgress();
@@ -17,18 +18,19 @@ export class TeamLessonSession {
     this.actors = lessonActors(lesson);
     const spawns = { ...Object.fromEntries(this.actors.map((actor, index) => [actor, lesson.allySpawns?.[actor] ?? (index === 0 ? lesson.start : index === 1 ? lesson.companion ?? { x: 1, y: 2 } : { x: 1, y: 4 })])), konstrukt: lesson.enemy };
     const allowed = Object.fromEntries(this.actors.map((actor) => [actor, (skills[actor] ?? []).filter((skill) => lesson.allowed.includes(skill))]));
-    this.battle = new BattleSession(3, this.actors, allowed, { spawns, enemyHp: lesson.enemyHp, enemyActive: lesson.enemyActive ?? false, enemyAttackPower: lesson.enemyAttackPower, initialHp: lesson.initialHp });
+    this.battle = new BattleSession(3, this.actors, allowed, { spawns, enemyHp: lesson.enemyHp, enemyActive: lesson.enemyActive ?? false, enemyAttackPower: lesson.enemyAttackPower, initialHp: lesson.initialHp, initialBurning: lesson.initialBurning, surfaces: lesson.surfaces });
   }
   get snapshot(): BattleState { return this.present(this.battle.snapshot); }
   get frames(): readonly ActionFrame[] { return this.actionFrames; }
-  reset(): void { this.contributors.clear(); this.abilities.clear(); this.actionFrames = []; this.battle.reset(); }
+  reset(): void { this.contributors.clear(); this.abilities.clear(); this.extinguished.clear(); this.actionFrames = []; this.battle.reset(); }
   execute(sources: ProgramSources, full = false): string {
     const feedback = this.battle.execute(sources, full); this.actionFrames = [];
-    if (this.battle.snapshot.tick === 0 || this.battle.frames[0]?.before.tick === 1) { this.contributors.clear(); this.abilities.clear(); }
+    if (this.battle.snapshot.tick === 0 || this.battle.frames[0]?.before.tick === 1) { this.contributors.clear(); this.abilities.clear(); this.extinguished.clear(); }
     for (const frame of this.battle.frames) {
       const before = this.present(frame.before);
       if (frame.actor !== 'konstrukt' && frame.after.enemy.hp < frame.before.enemy.hp) this.contributors.add(frame.actor);
       this.abilities.record(frame, this.lesson.healingTarget);
+      for (const effect of frame.effects ?? []) if (effect.kind === 'extinguish' && effect.amount > 0) this.extinguished.add(effect.target);
       this.actionFrames.push({ ...frame, before, after: this.present(frame.after) });
     }
     const state = this.snapshot;
@@ -42,12 +44,14 @@ export class TeamLessonSession {
   private present(raw: Readonly<BattleState>): BattleState {
     const state: BattleState = structuredClone(raw);
     const satisfied = this.lesson.abilityGoals?.length ? this.abilities.missing(this.lesson.abilityGoals).length === 0 : this.actors.every((actor) => this.contributors.has(actor));
-    if (state.outcome === 'victory' && !satisfied) state.outcome = 'incomplete';
+    if (state.outcome === 'victory' && (!satisfied || this.lesson.extinguishTargets?.some((id) => !this.extinguished.has(id)))) state.outcome = 'incomplete';
     return state;
   }
   private missingContribution(): string {
+    const targets = this.lesson.extinguishTargets?.filter((id) => !this.extinguished.has(id));
+    if (targets?.length) return `Löschen noch offen: ${targets.map((id) => id === 'konstrukt' ? 'Konstrukt' : ARKANA_SPECIES[id].name).join(', ')}.`;
     if (this.lesson.abilityGoals?.length) {
-      const names = { burn: 'Brandschaden', root: 'Bewegung durch Ranken verhindert', heal: 'Lebenspunkte geheilt', guard: 'Schaden mit Schutz abgefangen', cover: 'Treffer für einen Verbündeten übernommen' };
+      const names = { burn: 'Brandschaden', root: 'Bewegung durch Ranken verhindert', heal: 'Lebenspunkte geheilt', guard: 'Schaden mit Schutz abgefangen', cover: 'Treffer für einen Verbündeten übernommen', combo: 'Brand durch direkten Feuerangriff ausgenutzt', cold: 'Kälte angewendet', freeze: 'Reguläre Aktion durch Einfrieren verhindert', extinguish: 'Brand gelöscht', ice: 'Flaches Wasser vereist' };
       const missing = this.abilities.missing(this.lesson.abilityGoals);
       return missing.length ? `Fähigkeitsziele noch offen: ${missing.map((goal) => names[goal]).join(' · ')}.` : 'Alle Fähigkeitswirkungen gezeigt. Besiege jetzt das Konstrukt.';
     }

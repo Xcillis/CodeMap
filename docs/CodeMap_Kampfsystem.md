@@ -1,6 +1,6 @@
 # Arkana-Kampfsystem und Rollen
 
-Stand: 15. November 2026. Dieses Dokument konkretisiert den beauftragten Ausbau von generischen Angriffen zu artspezifischen Fähigkeiten. Die Arkana-Übersicht bleibt Grundlage für die fünf Typen. Die Werte sind Prototyp-Balancing.
+Stand: 17. November 2026. Dieses Dokument konkretisiert den beauftragten Ausbau von generischen Angriffen zu artspezifischen Fähigkeiten. Die Arkana-Übersicht bleibt Grundlage für die fünf Typen. Die Werte sind Prototyp-Balancing.
 
 ## Jetzt spielbar
 
@@ -8,7 +8,7 @@ Jedes aktive Arkana erhält ein eigenes Block- oder Textprogramm. Glutling über
 
 | Art / Typ | Fähigkeit | Wirkung | Reichweite / Abklingzeit |
 | --- | --- | --- | --- |
-| Glutling / Feuer | Glutstoß, `flameStrike()` | 2 direkter Schaden | 1 Feld / keine |
+| Glutling / Feuer | Glutstoß, `flameStrike()` | 2 direkter Schaden; 3 bei Brand, dabei Brand verbrauchen | 1 Feld / keine |
 | Glutling / Feuer | Entzünden, `ignite()` | 1 sofortiger Schaden und drei Schrittenden mit je 1 Brandschaden | 3 Felder / 3 Schritte |
 | Moosling / Natur | Rankenhieb, `vineStrike()` | 1 direkter Schaden | 1 Feld / keine |
 | Moosling / Natur | Rankenfessel, `vineSnare()` | Verhindert Bewegung während zwei gegnerischer Reaktionen; benachbarte Angriffe bleiben möglich | 3 Felder / 3 Schritte |
@@ -16,11 +16,11 @@ Jedes aktive Arkana erhält ein eigenes Block- oder Textprogramm. Glutling über
 | Felsbock / Natur | Steinstoß, `stoneStrike()` | 1 direkter Schaden | 1 Feld / keine |
 | Felsbock / Natur | Steinpanzer, `stoneArmor()` | Zwei Schritte bis zu 2 Schaden je Treffer abfangen, ohne Zielumlenkung | Selbst / 3 Schritte |
 | Felsbock / Natur | Verbündeten decken, `coverAlly()` | Treffer eines anderen Arkana übernehmen, solange Felsbock lebt und in Reichweite bleibt; Dauer 2 Schritte | 3 Felder / 3 Schritte |
-| Alle drei | Warten, `wait()` | Verbraucht einen Programmschritt, damit Zustände und Abklingzeiten weiterlaufen | keine |
+| Alle vier | Warten, `wait()` | Verbraucht einen Programmschritt, damit Zustände und Abklingzeiten weiterlaufen | keine |
 
 Ein Feld Reichweite ist ein horizontaler oder vertikaler Abstand. Heilmoos wählt unter lebenden verletzten Teammitgliedern in Reichweite den niedrigsten Anteil aktueller zu maximalen LP. Das eigene Arkana zählt mit. Bei gleichem Anteil gilt die feste Teamreihenfolge. Vollständige LP sind kein gültiges Heilziel; besiegte Arkana werden nicht wiederbelebt.
 
-Ein fehlendes oder zu weit entferntes Ziel verbraucht den Programmbefehl, aber keine neue Abklingzeit. Ein zu früher Einsatz während der Abklingzeit wirkt nicht. Zustände gleicher Art werden erneuert, nicht gestapelt. Nach einem Einsatz in Schritt 1 ist dieselbe Fähigkeit in Schritt 4 wieder bereit. Der Brand beziehungsweise das Heilmoos wirken erstmals am Ende ihres Einsatzschritts.
+Ein fehlendes oder zu weit entferntes Ziel verbraucht den Programmbefehl, aber keine neue Abklingzeit. Ein zu früher Einsatz während der Abklingzeit wirkt nicht. Brand, Ranken, Heilmoos und Schutz werden erneuert, nicht gestapelt. Kälte hat die unten beschriebene Aufbaureaktion. Nach einem Einsatz in Schritt 1 ist dieselbe Fähigkeit in Schritt 4 wieder bereit. Der Brand beziehungsweise das Heilmoos wirken erstmals am Ende ihres Einsatzschritts.
 
 ## Ablauf des Teamkampfs
 
@@ -63,7 +63,7 @@ Die fünf Typen und die vier Rollen sind unterschiedliche Eigenschaften: Ein Typ
 | Licht | Sofortheilung, Reinigung und angekündigte Treffer abfangen |
 | Schatten | Schwächung, Markierung und gezielter Folgeschaden |
 
-Weitere Arten, mehrere Gegner, frei wählbare Ziele, Bereitschaftsabfragen für einzelne Fähigkeiten und Typenvorteile mit Multiplikatoren sind spätere Ausbauschritte. Die aktuelle Fassung setzt drei Arten und einen Gegner pro Begegnung um. Das RPG-Konzept verwendet eigene Wesen, Begriffe und Fähigkeiten.
+Weitere Arten, mehrere Gegner, frei wählbare Ziele, Bereitschaftsabfragen für einzelne Fähigkeiten und Typenvorteile mit Multiplikatoren sind spätere Ausbauschritte. Die aktuelle Fassung setzt vier sammelbare Arten und einen Gegner pro Begegnung um; maximal drei Arkana stehen gleichzeitig im aktiven Team. Das RPG-Konzept verwendet eigene Wesen, Begriffe und Fähigkeiten.
 
 ## Kompatibilität
 
@@ -72,3 +72,36 @@ Alte `.attack()`-Programme bleiben gültig. Beim Erzeugen von Text aus Blöcken 
 Deckung wählt das andere lebende Teammitglied mit dem niedrigsten LP-Anteil in Reichweite 3; bei Gleichstand zählt die Teamreihenfolge. Es ist noch keine freie Zielauswahl. Nach Ablauf, Tod des Beschützers oder Verlassen der Reichweite werden Treffer nicht übernommen. Ein allein stehendes Felsbock hat kein Deckungsziel und verbraucht dafür keine Abklingzeit.
 
 Die Bibliothek fasst Schaden, Heilung, Unterstützung und Schutz unter **Kampf** zusammen; Rollen sind keine separaten Bibliothekskategorien. Rindenwacht ist bei Moosling entfernt. Alte `barkGuard()`-Texte und Block-IDs bleiben zur verlustfreien Anzeige alter Entwürfe lesbar, werden aber durch Freigabeprüfung und Engine zurückgewiesen. Q15 und Q17 behalten ihre IDs und bereits gespeicherte Abschlüsse; ihre neuen Ziele verlangen keinen Tankbeitrag von Moosling.
+
+## Zustände und Kombinationen – Prototypregeln
+
+Der [Nutzerauftrag](CodeMap_Zustaende_Kombinationen.md) ist die Grundlage. Alle folgenden Zahlen sind zunächst Testwerte. Frost gehört zu Wasser; Fels bleibt Natur. Es gibt weiterhin keine globale Typenvorteilstabelle.
+
+| Vorbereitung / Ziel | Folgeaktion und Auslösebedingung | Wirkung und Lebensdauer |
+| --- | --- | --- |
+| Ziel brennt durch Entzünden | Direkter Feuer-Nahkampf trifft erfolgreich in Reichweite 1 | 3 statt 2 Schaden; Brand wird vor dem Treffer entfernt, keine späteren Brandimpulse. Ein normaler Brandimpuls ist keine neue Anwendung. Die Quelle des Brands ist egal. |
+| Ziel wurde gekühlt | Noch einmal Kälte vor Ablauf der Kühlung | Kühlung wird durch Eingefroren ersetzt. Genau die nächste tatsächlich anstehende reguläre Aktion fällt aus, dann endet Frost. Keine automatische Entfernung bloß am Schrittende. |
+| Lebendes Ziel brennt | Passende löschende Wasserfähigkeit in Reichweite 3 | Brand endet sofort; spätere Brandimpulse entfallen. Getrennte Befehle für Gegner und Verbündete vermeiden versehentliche Zielwahl. |
+| Flaches Wasser direkt in Blickrichtung | Gefrieren trifft diese Fläche | Wasser wird zu begehbarem Eis und bleibt bis zum Aufgabenreset vereist. Tiefes Wasser bleibt gesperrt. Die Reaktion gilt im Kampf und Rätsel identisch. |
+
+Frostmolch hat 5 LP, 1 Wasserstoß-Schaden und eine Kontrollrolle. `waterStrike()` ist sein normaler Nahkampf. `chill()` (Gefrieren) verursacht keinen direkten Schaden: Es kühlt den Gegner in Reichweite 3, sofern kein Wasserfeld direkt voraus vorrangig vereist wird. Kühlung beginnt mit 3 Schrittenden; das Ende des Anwendungsschritts zählt bereits mit. Ohne rechtzeitige zweite Anwendung endet sie; danach beginnt Kälte wieder bei 1/2. Gefrieren hat 1 Schritt Abklingzeit und ist im nächsten gemeinsamen Schritt erneut bereit.
+
+Die Teamreihenfolge bleibt maßgeblich. Ein durch zwei Teamzauber eingefrorener aktiver Gegner verliert seine unmittelbar folgende Reaktion. Ein passiver Gegner behält Frost, bis er tatsächlich handeln würde. Ein eingefrorenes Arkana verbraucht seinen nächsten vorgesehenen Programmbefehl ohne dessen Wirkung. Ein beendetes Programm ist keine ausfallende Aktion. Ausgeschaltete Wesen handeln weiterhin nicht. Bestehender Brand/Heilmoos ticken am gemeinsamen Schrittende unabhängig davon; Einfrieren erzeugt weder Schaden noch zusätzliche Zeit.
+
+`extinguishEnemy()` löscht den Gegner; `extinguishAlly()` wählt das lebende brennende Teammitglied mit dem niedrigsten LP-Anteil in Reichweite 3, einschließlich Frostmolch selbst. Bei Gleichstand gilt Teamreihenfolge. Beide haben 1 Schritt Abklingzeit. Ohne Brand, lebendes Ziel oder Reichweite verbraucht der Befehl nur seine Aktion, keine neue Abklingzeit. Ein gewöhnlicher Wasserstoß löscht nicht automatisch. In der Löschübung müssen Gegner UND Glutling nachweislich gelöscht werden; ein bloßer Sieg reicht nicht.
+
+Neue Abfragen: `enemyAlive`, `enemyChilled`, `enemyFrozen`, `allyBurning`, `waterAhead`, `iceAhead`. Die letzten beiden beziehen sich auf das Feld direkt voraus. `pathAheadClear` erkennt Wasser als blockiert und Eis als begehbar, solange kein anderes Hindernis vorliegt. Palette und Parser verlangen erlernte, für die Aufgabe erlaubte und von der Art unterstützte Fähigkeiten. Alle Zauber stehen unter Kampf; Fragen unter Wahrnehmung. Statuszähler und Textmeldungen zeigen Kälte 1/2, Eingefroren und die tatsächliche ausgefallene Aktion.
+
+```javascript
+while (glutling.enemyAlive) {
+  if (glutling.enemyAdjacent) {
+    glutling.flameStrike();
+  } else {
+    glutling.moveTowardEnemy();
+  }
+}
+```
+
+Diese bedingte Wiederholung wird erst nach Bedingung/Verzweigung gelernt. Sie prüft vor jedem Durchlauf; eine zunächst falsche Bedingung ergibt null Durchläufe. Normale Begegnungen enden sofort bei Sieg/Niederlage. Es gibt keine Forever-Hintergrundschleife. Begrenzung: 64 Aktionen und 512 Kontrollschritte pro Arkana/Ausführung, danach verständlicher Stopp. Fragen selbst lassen Gegner und Zustandsdauer nicht weiterlaufen.
+
+Bestehende Q17-/Q20-Abschlüsse bleiben gültig. Ihre Testlösungen berücksichtigen jetzt, dass ein Glutstoß Brand verbraucht und dadurch weniger späterer Brandschaden entsteht. Gespeicherte Nutzerprogramme werden nicht überschrieben; zusätzliche Folgeangriffe können nötig sein. Noch offen: mehrere Gegner, frei wählbare Einzelziele, Eisgleiten/Auftauen und weitere Typenarten.

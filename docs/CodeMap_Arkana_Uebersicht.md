@@ -56,7 +56,7 @@ Bei Erkundungsrätseln dürfen mehrere Programme zum Ziel führen. Wenn eine Pfl
 
 ### Spielbarer Stand vom 15. November 2026
 
-Glutling besitzt Glutstoß und erlernbares Entzünden mit Brandschaden. Moosling besitzt Rankenhieb und erlernt Rankenfessel, Heilmoos und Rindenwacht. Die erste aktive Rollenbegegnung verwendet zwei gesammelte Arkana mit getrennten Programmen. Die Werte und Freischaltquests stehen in [CodeMap_Kampfsystem.md](CodeMap_Kampfsystem.md). Weitere Arten und die unten genannten Typenvorteile bleiben spätere Schritte. Die Fähigkeitennamen hier sind eigene CodeMap-Bezeichnungen.
+Glutling besitzt Glutstoß und erlernbares Entzünden mit Brandschaden. Moosling besitzt Rankenhieb und erlernt Rankenfessel und Heilmoos. Felsbock übernimmt die Tankrolle mit Steinpanzer und Deckung. Frostmolch ergänzt Wasserstoß, Kälteaufbau, Löschen und vereisbare Wasserflächen. Die erste aktive Rollenbegegnung verwendet zwei gesammelte Arkana mit getrennten Programmen. Die Werte und Freischaltquests stehen in [CodeMap_Kampfsystem.md](CodeMap_Kampfsystem.md). Weitere Arten und die unten genannten Typenvorteile bleiben spätere Schritte. Die Fähigkeitennamen hier sind eigene CodeMap-Bezeichnungen.
 
 - **Typenvorteile im Kampf.** Die früheren Vorschläge zu Schadensmultiplikatoren bleiben offen. Die Rollen und Fähigkeiten oben funktionieren als Grundlage für den ersten Prototyp.
 - **Balancing und Freischaltung.** Schadens- und Heilwerte, Abklingzeiten sowie die genaue Freischaltreihenfolge der Fähigkeiten sind noch offen.

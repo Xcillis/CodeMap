@@ -1,8 +1,12 @@
 # CodeMap – lokaler RPG-Prototyp
 
-Phaser-/TypeScript-RPG mit drei verbundenen Gebieten, 20 spielbaren Lernquests, sammelbaren Arkana und einem Block-/Texteditor. Alles funktioniert lokal. Der [Gebietsplan](docs/CodeMap_Gebietsplan.md) beschreibt Questgeber, Voraussetzungen und Reisewege; die [Lernprogression](docs/CodeMap_Lernprogression.md) erklärt die didaktische Struktur.
+Phaser-/TypeScript-RPG mit drei verbundenen Gebieten, 26 spielbaren Lernquests, vier sammelbaren Arkana und einem Block-/Texteditor. Alles funktioniert lokal. Der [Gebietsplan](docs/CodeMap_Gebietsplan.md) beschreibt Questgeber, Voraussetzungen und Reisewege; die [Lernprogression](docs/CodeMap_Lernprogression.md) erklärt die didaktische Struktur.
 
 ## Lokal starten
+
+Neue Erweiterung: **solange-Schleifen, Brandkombinationen, Kälte, Löschen und Eisflächen**. Nach Nerias Lichtpfad (Q13) findest du Frostmolch auf ihrer nordöstlichen Sonnenlichtung, nahe `(2510, 540)`. Nimm es ausdrücklich auf; Neria bietet danach Kälte- und Eisübungen an. Bei ihr beginnt außerdem die solange-Einführung, bei Lyra folgt die Kampfanwendung. Branns Brandfolge schließt an seine Feuerprobe an. Tala führt Löschen im Team nach Q24, Q08 und Q14 ein. Die sechs neuen Aufgaben ergänzen bestehende Spielstände ohne Reset. Regeln und Testwerte: [Kampfsystem](docs/CodeMap_Kampfsystem.md#zustände-und-kombinationen--prototypregeln). Die [Lernprogression](docs/CodeMap_Lernprogression.md#bedingte-wiederholung-und-zustände) nennt die genaue Reihenfolge.
+
+Solange-Schleifen funktionieren in Block- und Textmodus, mit Einzelschritten und Gesamtausführung. Fehlerhafte Programme halten spätestens bei 64 Aktionen beziehungsweise 512 Kontrollschritten mit einer Meldung an; es gibt keine unkontrollierte Forever-Schleife. Ein direkter Feuerangriff verursacht bei Brand 3 statt 2 Schaden und verbraucht den Brand. Bisherige Teamprogramme können deshalb weniger späteren Brandschaden verursachen; ergänze bei Bedarf Folgeangriffe. Frostmolchs originale 24 Stand-/Laufbilder und Generierungsprompt stehen im [Animationspaket](public/assets/aetheria-motion-v1/README.md#frostmolch).
 
 ```bash
 npm install
@@ -64,7 +68,7 @@ Die bekannte Abfrage `enemyAdjacent` prüft direkte Gegnernachbarschaft. Nerias 
 
 ## Sammlung, Team und Spielstände
 
-Neue Abenteuer beginnen **ohne Arkana**. Glutling, Moosling und Felsbock müssen in der Welt aufgenommen werden. Felsbock erscheint am geräumten Ostpass im Tal nach Q12; sein Fund schaltet weder Fähigkeiten noch den dritten Teamplatz automatisch frei. Aufgenommene Arkana verschwinden samt Beschriftung und Interaktion; sie bleiben nach dem Entfernen aus dem aktiven Team in der Sammlung. Moosling hat vorläufig 5 LP und 1 Rankenhieb-Schaden, Glutling 4 LP und 2 Glutstoß-Schaden. Die [Arkana-Übersicht](docs/CodeMap_Arkana_Uebersicht.md) bleibt Grundlage für die Typen. Elementmultiplikatoren sind noch nicht implementiert.
+Neue Abenteuer beginnen **ohne Arkana**. Glutling, Moosling, Felsbock und Frostmolch müssen in der Welt aufgenommen werden. Frostmolch erscheint nach Q13 auf Nerias Sonnenlichtung im Wald. Felsbock erscheint am geräumten Ostpass im Tal nach Q12; sein Fund schaltet weder Fähigkeiten noch den dritten Teamplatz automatisch frei. Aufgenommene Arkana verschwinden samt Beschriftung und Interaktion; sie bleiben nach dem Entfernen aus dem aktiven Team in der Sammlung. Moosling hat vorläufig 5 LP und 1 Rankenhieb-Schaden, Glutling 4 LP und 2 Glutstoß-Schaden. Die [Arkana-Übersicht](docs/CodeMap_Arkana_Uebersicht.md) bleibt Grundlage für die Typen. Elementmultiplikatoren sind noch nicht implementiert.
 
 ## Artspezifische Kampfrollen
 
@@ -82,7 +86,7 @@ Ein bisheriger Spielstand mit abgeschlossener Bedingungseinführung behält sein
 
 Für einen frischen Talstart: **C → Sammlung → Neues Abenteuer → Sichern & neu beginnen**. Erst die Bestätigung ersetzt den aktiven Stand. Zuvor werden Sammlung, Team, Gebiet, Quests und alle Entwürfe gesichert. **Gesicherten Spielstand laden** tauscht Sicherung und aktuellen Stand, sodass ein Rückwechsel möglich bleibt. Bei Speicherfehlern wird der Wechsel abgebrochen. Während Dialogen und Begegnungen ist diese Verwaltung gesperrt. Bei gesperrtem Browser-Speicher bleibt die laufende Sitzung im Arbeitsspeicher nutzbar.
 
-Blockly und seine Mediendateien werden lokal ausgeliefert; ein CDN ist nicht erforderlich. Der Parser wertet kein JavaScript aus. Grenzen: 1–6 Wiederholungen pro Schleife, 64 Aktionen pro Arkana im längsten möglichen Ablauf, einschließlich Drehungen, acht Verschachtelungsebenen und 150 Blöcke im Editor. Backend, NOVA und die vollständige Kompetenzengine bleiben spätere Vorhaben.
+Blockly und seine Mediendateien werden lokal ausgeliefert; ein CDN ist nicht erforderlich. Der Parser wertet kein JavaScript aus. Grenzen: 1–6 Wiederholungen pro Schleife, 64 Aktionen pro Arkana pro Ausführung (solange-Schleifen werden zusätzlich zur Laufzeit begrenzt), einschließlich Drehungen, acht Verschachtelungsebenen und 150 Blöcke im Editor. Backend, NOVA und die vollständige Kompetenzengine bleiben spätere Vorhaben.
 
 Technische Entscheidungen stehen in [architecture.md](docs/architecture.md), Nutzerbeschlüsse in [design-decisions.md](docs/design-decisions.md).
 

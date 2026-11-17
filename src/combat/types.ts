@@ -1,16 +1,17 @@
 import type { Facing } from './Movement';
-export type CombatAction = 'ATTACK' | 'MOVE_TOWARD' | 'MOVE_FORWARD' | 'MOVE_BACKWARD' | 'TURN_LEFT' | 'TURN_RIGHT' | 'MOVE_RIGHT' | 'MOVE_LEFT' | 'MOVE_UP' | 'MOVE_DOWN' | 'IGNITE' | 'VINE_SNARE' | 'HEALING_MOSS' | 'BARK_GUARD' | 'STONE_ARMOR' | 'COVER_ALLY' | 'WAIT';
-export type AbilityEvidence = 'burn' | 'root' | 'heal' | 'guard' | 'cover';
+export type CombatAction = 'CHILL' | 'EXTINGUISH_ENEMY' | 'EXTINGUISH_ALLY' | 'ATTACK' | 'MOVE_TOWARD' | 'MOVE_FORWARD' | 'MOVE_BACKWARD' | 'TURN_LEFT' | 'TURN_RIGHT' | 'MOVE_RIGHT' | 'MOVE_LEFT' | 'MOVE_UP' | 'MOVE_DOWN' | 'IGNITE' | 'VINE_SNARE' | 'HEALING_MOSS' | 'BARK_GUARD' | 'STONE_ARMOR' | 'COVER_ALLY' | 'WAIT';
+export type AbilityEvidence = 'burn' | 'root' | 'heal' | 'guard' | 'cover' | 'combo' | 'cold' | 'freeze' | 'extinguish' | 'ice';
 export type CombatRole = 'damage' | 'healing' | 'support' | 'tank';
 export interface TimedEffect { remaining: number; source: ArkanId }
-export interface CombatEffect { kind: AbilityEvidence | 'damage'; source: ArkanId; target: Combatant['id']; amount: number; text: string }
+export interface CombatEffect { kind: AbilityEvidence | 'damage'; source: ArkanId; target: Combatant['id']; amount: number; text: string; tile?: GridPosition }
 export type BattleOutcome = 'ongoing' | 'victory' | 'defeat' | 'incomplete';
-export type ArkanId = 'moosling' | 'glutling' | 'felsbock';
+export type ArkanId = 'moosling' | 'glutling' | 'felsbock' | 'frostmolch';
 export type ProgramSources = Partial<Record<ArkanId, string>>;
-export type ConditionId = 'enemyAdjacent' | 'pathRightClear' | 'pathAheadClear' | 'allyInjured' | 'enemyBurning';
+export type ConditionId = 'enemyAdjacent' | 'pathRightClear' | 'pathAheadClear' | 'allyInjured' | 'enemyBurning' | 'enemyAlive' | 'enemyChilled' | 'enemyFrozen' | 'allyBurning' | 'waterAhead' | 'iceAhead';
 export type ProgramNode =
   | { kind: 'action'; action: CombatAction }
   | { kind: 'repeat'; count: number; body: ProgramNode[] }
+  | { kind: 'while'; condition: ConditionId; body: ProgramNode[] }
   | { kind: 'if'; condition?: ConditionId; then: ProgramNode[]; otherwise: ProgramNode[] };
 
 export interface RepeatActionBlock {
@@ -47,6 +48,8 @@ export interface Combatant extends GridPosition {
   attackPower?: number;
   guarding: boolean;
   burning?: TimedEffect;
+  chilled?: TimedEffect;
+  frozen?: TimedEffect;
   rooted?: TimedEffect;
   regeneration?: TimedEffect;
   protection?: TimedEffect;
@@ -56,6 +59,7 @@ export interface Combatant extends GridPosition {
 }
 
 export interface BattleState {
+  surfaces?: Surface[];
   tick: number;
   outcome: BattleOutcome;
   player: Combatant;
@@ -76,7 +80,8 @@ export interface ActionPlanResult {
   error?: string;
 }
 
-export interface LoopTrace { path: string; iteration: number; total: number }
+export interface Surface extends GridPosition { kind: 'water' | 'ice'; shallow: boolean }
+export interface LoopTrace { path: string; iteration: number; total: number; kind?: 'while' }
 export interface ExecutionTrace {
   path: string;
   line?: number;

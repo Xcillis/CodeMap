@@ -1,0 +1,311 @@
+{
+  "sheet": {
+    "file": "frostmolch-4way-v1.png",
+    "width": 1536,
+    "height": 1024,
+    "frames": {
+      "frostmolch-down-0": {
+        "x": 54,
+        "y": 41,
+        "width": 151,
+        "height": 181,
+        "canvasWidth": 226,
+        "canvasHeight": 194,
+        "offsetX": 37,
+        "offsetY": 13
+      },
+      "frostmolch-down-1": {
+        "x": 311,
+        "y": 41,
+        "width": 151,
+        "height": 181,
+        "canvasWidth": 226,
+        "canvasHeight": 194,
+        "offsetX": 37,
+        "offsetY": 13
+      },
+      "frostmolch-down-2": {
+        "x": 568,
+        "y": 41,
+        "width": 148,
+        "height": 183,
+        "canvasWidth": 226,
+        "canvasHeight": 194,
+        "offsetX": 39,
+        "offsetY": 11
+      },
+      "frostmolch-down-3": {
+        "x": 824,
+        "y": 40,
+        "width": 144,
+        "height": 186,
+        "canvasWidth": 226,
+        "canvasHeight": 194,
+        "offsetX": 41,
+        "offsetY": 8
+      },
+      "frostmolch-down-4": {
+        "x": 1075,
+        "y": 40,
+        "width": 154,
+        "height": 185,
+        "canvasWidth": 226,
+        "canvasHeight": 194,
+        "offsetX": 36,
+        "offsetY": 9
+      },
+      "frostmolch-down-5": {
+        "x": 1337,
+        "y": 40,
+        "width": 149,
+        "height": 185,
+        "canvasWidth": 226,
+        "canvasHeight": 194,
+        "offsetX": 38,
+        "offsetY": 9
+      },
+      "frostmolch-up-0": {
+        "x": 59,
+        "y": 288,
+        "width": 140,
+        "height": 182,
+        "canvasWidth": 226,
+        "canvasHeight": 194,
+        "offsetX": 43,
+        "offsetY": 12
+      },
+      "frostmolch-up-1": {
+        "x": 316,
+        "y": 287,
+        "width": 141,
+        "height": 183,
+        "canvasWidth": 226,
+        "canvasHeight": 194,
+        "offsetX": 42,
+        "offsetY": 11
+      },
+      "frostmolch-up-2": {
+        "x": 574,
+        "y": 291,
+        "width": 136,
+        "height": 179,
+        "canvasWidth": 226,
+        "canvasHeight": 194,
+        "offsetX": 45,
+        "offsetY": 15
+      },
+      "frostmolch-up-3": {
+        "x": 829,
+        "y": 291,
+        "width": 139,
+        "height": 179,
+        "canvasWidth": 226,
+        "canvasHeight": 194,
+        "offsetX": 43,
+        "offsetY": 15
+      },
+      "frostmolch-up-4": {
+        "x": 1083,
+        "y": 292,
+        "width": 140,
+        "height": 178,
+        "canvasWidth": 226,
+        "canvasHeight": 194,
+        "offsetX": 43,
+        "offsetY": 16
+      },
+      "frostmolch-up-5": {
+        "x": 1339,
+        "y": 287,
+        "width": 141,
+        "height": 183,
+        "canvasWidth": 226,
+        "canvasHeight": 194,
+        "offsetX": 42,
+        "offsetY": 11
+      },
+      "frostmolch-left-0": {
+        "x": 22,
+        "y": 560,
+        "width": 213,
+        "height": 147,
+        "canvasWidth": 226,
+        "canvasHeight": 194,
+        "offsetX": 6,
+        "offsetY": 47
+      },
+      "frostmolch-left-1": {
+        "x": 278,
+        "y": 560,
+        "width": 214,
+        "height": 147,
+        "canvasWidth": 226,
+        "canvasHeight": 194,
+        "offsetX": 6,
+        "offsetY": 47
+      },
+      "frostmolch-left-2": {
+        "x": 533,
+        "y": 560,
+        "width": 215,
+        "height": 147,
+        "canvasWidth": 226,
+        "canvasHeight": 194,
+        "offsetX": 5,
+        "offsetY": 47
+      },
+      "frostmolch-left-3": {
+        "x": 789,
+        "y": 563,
+        "width": 213,
+        "height": 145,
+        "canvasWidth": 226,
+        "canvasHeight": 194,
+        "offsetX": 6,
+        "offsetY": 49
+      },
+      "frostmolch-left-4": {
+        "x": 1044,
+        "y": 566,
+        "width": 216,
+        "height": 142,
+        "canvasWidth": 226,
+        "canvasHeight": 194,
+        "offsetX": 5,
+        "offsetY": 52
+      },
+      "frostmolch-left-5": {
+        "x": 1300,
+        "y": 563,
+        "width": 215,
+        "height": 143,
+        "canvasWidth": 226,
+        "canvasHeight": 194,
+        "offsetX": 5,
+        "offsetY": 51
+      },
+      "frostmolch-right-0": {
+        "x": 20,
+        "y": 818,
+        "width": 215,
+        "height": 146,
+        "canvasWidth": 226,
+        "canvasHeight": 194,
+        "offsetX": 5,
+        "offsetY": 48
+      },
+      "frostmolch-right-1": {
+        "x": 275,
+        "y": 818,
+        "width": 216,
+        "height": 146,
+        "canvasWidth": 226,
+        "canvasHeight": 194,
+        "offsetX": 5,
+        "offsetY": 48
+      },
+      "frostmolch-right-2": {
+        "x": 530,
+        "y": 818,
+        "width": 217,
+        "height": 143,
+        "canvasWidth": 226,
+        "canvasHeight": 194,
+        "offsetX": 4,
+        "offsetY": 51
+      },
+      "frostmolch-right-3": {
+        "x": 787,
+        "y": 818,
+        "width": 216,
+        "height": 146,
+        "canvasWidth": 226,
+        "canvasHeight": 194,
+        "offsetX": 5,
+        "offsetY": 48
+      },
+      "frostmolch-right-4": {
+        "x": 1043,
+        "y": 820,
+        "width": 217,
+        "height": 142,
+        "canvasWidth": 226,
+        "canvasHeight": 194,
+        "offsetX": 4,
+        "offsetY": 52
+      },
+      "frostmolch-right-5": {
+        "x": 1299,
+        "y": 822,
+        "width": 218,
+        "height": 139,
+        "canvasWidth": 226,
+        "canvasHeight": 194,
+        "offsetX": 4,
+        "offsetY": 55
+      }
+    }
+  },
+  "actors": {
+    "frostmolch-down": {
+      "sheet": "frostmolch",
+      "height": 194,
+      "idle": [
+        "frostmolch-down-0",
+        "frostmolch-down-1"
+      ],
+      "walk": [
+        "frostmolch-down-2",
+        "frostmolch-down-3",
+        "frostmolch-down-4",
+        "frostmolch-down-5"
+      ],
+      "sourceFacing": "directional"
+    },
+    "frostmolch-up": {
+      "sheet": "frostmolch",
+      "height": 194,
+      "idle": [
+        "frostmolch-up-0",
+        "frostmolch-up-1"
+      ],
+      "walk": [
+        "frostmolch-up-2",
+        "frostmolch-up-3",
+        "frostmolch-up-4",
+        "frostmolch-up-5"
+      ],
+      "sourceFacing": "directional"
+    },
+    "frostmolch-left": {
+      "sheet": "frostmolch",
+      "height": 194,
+      "idle": [
+        "frostmolch-left-0",
+        "frostmolch-left-1"
+      ],
+      "walk": [
+        "frostmolch-left-2",
+        "frostmolch-left-3",
+        "frostmolch-left-4",
+        "frostmolch-left-5"
+      ],
+      "sourceFacing": "directional"
+    },
+    "frostmolch-right": {
+      "sheet": "frostmolch",
+      "height": 194,
+      "idle": [
+        "frostmolch-right-0",
+        "frostmolch-right-1"
+      ],
+      "walk": [
+        "frostmolch-right-2",
+        "frostmolch-right-3",
+        "frostmolch-right-4",
+        "frostmolch-right-5"
+      ],
+      "sourceFacing": "directional"
+    }
+  }
+}

@@ -326,7 +326,7 @@ describe('Editorzustand und Arkan-Zuordnung', () => {
     expect(document.getElementById('lesson-trial')!.hidden).toBe(true);
   });
   for (const [index, lesson] of WORLD_QUESTS.entries()) it(`${lesson.id}: zeigt den bestätigten Abschluss in der Arena und kehrt ohne Welt-Abschlussdialog zurück`, () => {
-    const campaign = new Campaign({ version: 2, worldVersion: 1, region: QUEST_ROUTES[lesson.id].region, legacyForestAccess: true, introduced: true, completed: LESSON_IDS.slice(0, index), owned: [{ speciesId: 'glutling' }, { speciesId: 'moosling' }, { speciesId: 'felsbock' }], team: [] });
+    const campaign = new Campaign({ version: 2, worldVersion: 1, region: QUEST_ROUTES[lesson.id].region, legacyForestAccess: true, introduced: true, completed: LESSON_IDS.slice(0, index), owned: [{ speciesId: 'glutling' }, { speciesId: 'moosling' }, { speciesId: 'felsbock' }, { speciesId: 'frostmolch' }], team: [] });
     campaign.interact(`lesson:${lesson.id}`); campaign.prepareMission(lesson.id);
     const presentation = { title: lesson.title, mode: 'lesson', instructions: lesson.introduction, objective: lesson.objective, hints: lesson.hints };
     gameEvents.emit('battle-opened', lessonPrograms(lesson), lesson.id, Object.fromEntries(lessonActors(lesson).map((actor) => [actor, lesson.allowed])), presentation);

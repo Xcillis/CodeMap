@@ -1,12 +1,14 @@
 import type { ArkanId, ProgramBlock, ProgramNode } from './types';
 import { blocksToNodes, nodesToSource } from './DecisionProgram';
-import { ARKANA_SPECIES, BASIC_MOVEMENT, type SkillId } from '../gameplay/ArkanaCatalog';
+import { ARKANA_SPECIES, ARKANA_TYPES, BASIC_MOVEMENT, type SkillId } from '../gameplay/ArkanaCatalog';
 import { ACTIONS, actionLabel, actionMethod } from './ActionCatalog';
 import { ABILITIES, type AbilityAction } from './Abilities';
 
 export type { SkillId } from '../gameplay/ArkanaCatalog';
 export type CommandCategory = 'movement' | 'combat' | 'senses' | 'flow';
-export type CommandId = 'moveForward' | 'moveBackward' | 'turnLeft' | 'turnRight' | 'move' | 'attack' | 'condition' | 'pathCondition' | 'repeat' | 'moveRight' | 'moveLeft' | 'moveUp' | 'moveDown' | 'ignite' | 'vineSnare' | 'healingMoss' | 'barkGuard' | 'wait' | 'allyInjured' | 'enemyBurning' | 'stoneArmor' | 'coverAlly';
+export type CommandId = 'while' | 'enemyAlive' | 'chill' | 'extinguishEnemy' | 'extinguishAlly' | 'enemyChilled' | 'enemyFrozen' | 'allyBurning' | 'waterAhead' | 'iceAhead' | 'moveForward' | 'moveBackward' | 'turnLeft' | 'turnRight' | 'move' | 'attack' | 'condition' | 'pathCondition' | 'repeat' | 'moveRight' | 'moveLeft' | 'moveUp' | 'moveDown' | 'ignite' | 'vineSnare' | 'healingMoss' | 'barkGuard' | 'wait' | 'allyInjured' | 'enemyBurning' | 'stoneArmor' | 'coverAlly';
+
+export const CONDITION_NAMES = { enemyAlive: 'Gegner lebt?', enemyChilled: 'Gegner gekühlt?', enemyFrozen: 'Gegner eingefroren?', allyBurning: 'Verbündeter brennt?', waterAhead: 'Wasser voraus?', iceAhead: 'Eis voraus?', enemyAdjacent: 'Gegner direkt daneben?', pathAheadClear: 'Weg voraus frei?', pathRightClear: 'Weg rechts frei?', allyInjured: 'Verbündeter verletzt?', enemyBurning: 'Gegner brennt?' };
 
 export const COMMAND_CATEGORIES: readonly { id: CommandCategory; label: string; color: string }[] = [
   { id: 'movement', label: 'Bewegung', color: '#559cf0' },
@@ -27,6 +29,7 @@ export const ARKAN_SKILLS: Record<ArkanId, {
       { mission: 2, skills: ['enemyAdjacent'] },
     ],
   },
+  frostmolch: { supported: ARKANA_SPECIES.frostmolch.supported, lessons: [{ mission: 1, skills: ['attack', 'repeat', 'moveTowardEnemy'] }] },
   felsbock: { supported: ARKANA_SPECIES.felsbock.supported, lessons: [{ mission: 3, skills: ['moveTowardEnemy', 'attack', 'repeat'] }] },
   glutling: {
     supported: ARKANA_SPECIES.glutling.supported,
@@ -45,6 +48,8 @@ export interface CommandDefinition {
 }
 
 export const COMMANDS: readonly CommandDefinition[] = [
+  { id: 'while', category: 'flow', label: 'Solange ... wiederholen', description: 'Prüft die gewählte Frage vor jedem Durchlauf. Bei nein geht es unter der Schleife weiter. Auch null Durchläufe sind möglich.', requires: ['while'], syntax: (actor) => `while (${actor}.pathAheadClear) { ... }`, block: () => ({ kind: 'action', count: 1, action: 'MOVE_FORWARD' }) },
+
   { id: 'move', category: 'movement', label: 'Zum nächsten Gegner gehen', description: 'Ein Feld zum nächsten Gegner. Direkt daneben bleibt das Arkana stehen. Belegte Felder blockieren die Bewegung.', requires: ['moveTowardEnemy'], syntax: (actor) => `${actor}.moveTowardEnemy()`, block: () => ({ kind: 'action', count: 1, action: 'MOVE_TOWARD' }) },
   ...(['MOVE_FORWARD', 'MOVE_BACKWARD', 'TURN_LEFT', 'TURN_RIGHT'] as const).map((action): CommandDefinition => ({
     id: ACTIONS[action].method, category: 'movement', label: ACTIONS[action].label,
@@ -62,7 +67,7 @@ export const COMMANDS: readonly CommandDefinition[] = [
       label: ACTIONS[action].label, description: rule.description, requires: [rule.skill], syntax: (actor) => `${actor}.${ACTIONS[action].method}()`, block: () => ({ kind: 'action', count: 1, action }) };
   }),
   { id: 'wait', category: 'flow', label: 'Einen Schritt warten', description: 'Wartet einen Programmschritt. Zustände und Abklingzeiten laufen weiter; Gegner handeln weiterhin.', requires: ['wait'], syntax: (actor) => `${actor}.wait()`, block: () => ({ kind: 'action', count: 1, action: 'WAIT' }) },
-  ...(['allyInjured', 'enemyBurning'] as const).map((condition): CommandDefinition => ({ id: condition, category: 'senses', label: condition === 'allyInjured' ? 'Verbündeter verletzt?' : 'Gegner brennt?', description: condition === 'allyInjured' ? 'Prüft einen lebenden verletzten Verbündeten in Reichweite 3; auch das ausgewählte Arkana selbst zählt.' : 'Prüft, ob der Gegner gerade brennt.', requires: [condition], syntax: (actor) => `${actor}.${condition}`, block: () => ({ kind: 'condition', condition, count: 1, whenTrue: 'WAIT', whenFalse: 'WAIT' }) })),
+  ...(['allyInjured', 'enemyBurning', 'enemyAlive', 'enemyChilled', 'enemyFrozen', 'allyBurning', 'waterAhead', 'iceAhead'] as const).map((condition): CommandDefinition => ({ id: condition, category: 'senses', label: CONDITION_NAMES[condition], description: `${CONDITION_NAMES[condition]} Liest den aktuellen Zustand vor der Entscheidung. Wasser und Eis beziehen sich auf das Feld direkt in Blickrichtung; Verbündete müssen leben und in Reichweite 3 sein.`, requires: [condition], syntax: (actor) => `${actor}.${condition}`, block: () => ({ kind: 'condition', condition, count: 1, whenTrue: 'WAIT', whenFalse: 'WAIT' }) })),
 ];
 
 export function learnedSkills(actor: ArkanId, mission: number): readonly SkillId[] {
@@ -71,8 +76,10 @@ export function learnedSkills(actor: ArkanId, mission: number): readonly SkillId
 
 export function availableCommands(actor: ArkanId, mission: number, learned = learnedSkills(actor, mission)): readonly CommandDefinition[] {
   const supported = ARKAN_SKILLS[actor].supported;
-  return COMMANDS.filter((command) => command.requires.every((skill) => supported.includes(skill) && learned.includes(skill))).map((command) => command.id === 'attack'
-    ? { ...command, label: actionLabel('ATTACK', actor), description: `${actor === 'glutling' ? 'Feuer' : 'Natur'} · Nahkampf auf ein benachbartes Ziel, ${ARKANA_SPECIES[actor].attack} Schaden.`, syntax: (id) => `${id}.${actionMethod('ATTACK', id)}()` } : command);
+  return COMMANDS.filter((command) => command.requires.every((skill) => supported.includes(skill) && learned.includes(skill))).map((command) => command.id === 'while'
+    ? { ...command, syntax: (id: ArkanId) => `while (${id}.${learned.includes('pathAheadClear') ? 'pathAheadClear' : learned.includes('enemyAlive') ? 'enemyAlive' : 'enemyAdjacent'}) {\n\n}` }
+    : command.id === 'attack'
+    ? { ...command, label: actionLabel('ATTACK', actor), description: `${ARKANA_TYPES[ARKANA_SPECIES[actor].basicAttack.element].name} · Nahkampf auf ein benachbartes Ziel, ${ARKANA_SPECIES[actor].attack} Schaden.${ARKANA_SPECIES[actor].basicAttack.element === 'fire' ? ' Bei Brand: 3 Schaden (Testwert), Brand wird verbraucht.' : ''}`, syntax: (id) => `${id}.${actionMethod('ATTACK', id)}()` } : command);
 }
 
 export function programCapabilityError(blocks: readonly ProgramBlock[], actor: ArkanId, mission: number): string | undefined {
@@ -86,6 +93,7 @@ export function nodesCapabilityError(nodes: readonly ProgramNode[], actor: Arkan
     for (const node of list) {
       if (node.kind === 'action') required.add(['MOVE_RIGHT', 'MOVE_LEFT', 'MOVE_UP', 'MOVE_DOWN'].includes(node.action) ? 'moveForward' : ACTIONS[node.action].method);
       else if (node.kind === 'repeat') { required.add('repeat'); visit(node.body); }
+      else if (node.kind === 'while') { required.add('while'); required.add(node.condition); visit(node.body); }
       else { required.add(node.condition === 'pathRightClear' ? 'pathAheadClear' : node.condition ?? 'enemyAdjacent'); visit(node.then); visit(node.otherwise); }
     }
   };
@@ -97,10 +105,11 @@ export function nodesCapabilityError(nodes: readonly ProgramNode[], actor: Arkan
 }
 
 export function commandSource(command: CommandDefinition, actor: ArkanId): string {
+  if (command.id === 'while') return command.syntax(actor);
   if (command.id === 'repeat') return nodesToSource([{ kind: 'repeat', count: 2, body: [] }], actor);
   if (command.id === 'condition') return `if (${actor}.enemyAdjacent) {\n\n} else {\n\n}`;
   if (command.id === 'pathCondition') return `if (${actor}.pathAheadClear) {\n\n} else {\n\n}`;
-  if (command.id === 'allyInjured' || command.id === 'enemyBurning') return `if (${actor}.${command.id}) {\n\n} else {\n\n}`;
+  if (command.id in CONDITION_NAMES) return `if (${actor}.${command.id}) {\n\n} else {\n\n}`;
   const block = command.block();
   return nodesToSource(blocksToNodes([block]).flatMap((node) => node.kind === 'repeat' && node.count === 1 ? node.body : [node]), actor);
 }

@@ -1,6 +1,6 @@
 # CodeMap – Lernprogression in offenen Gebieten
 
-Stand: 17. November 2026. Die Nutzerentscheidung zu Tal und Wald ersetzt die vorherige lineare Kette Q01–Q08. Der vollständige [Gebiets- und Questplan](CodeMap_Gebietsplan.md) zeigt die 20 implementierten Quests, ihre NPCs und Voraussetzungen.
+Stand: 17. November 2026. Die Nutzerentscheidung zu Tal und Wald ersetzt die vorherige lineare Kette Q01–Q08. Der vollständige [Gebiets- und Questplan](CodeMap_Gebietsplan.md) zeigt die 26 implementierten Quests, ihre NPCs und Voraussetzungen.
 
 ## Gemeinsamer Einstieg
 
@@ -89,3 +89,18 @@ Neue Q12-Abschlüsse schalten den Wald frei, vergeben aber keine Verschachtelung
 Bewegungs- und Drehbefehle sind konkrete Anweisungen. Der Musterpfad wiederholt vorwärts, links drehen, vorwärts, rechts drehen als gemeinsamen Rumpf. Der große Stufenweg zählt die beiden geraden Schritte innen und wiederholt die gesamte Stufe außen. Der Waldpfad fragt das Feld in Blickrichtung ab; bei einer blockierten Gerade führt ein Eckablauf um den Stein. Der Nachweis verwendet tatsächliche Ortsänderungen, keine bloßen Drehungen.
 
 Gespeicherte absolute Richtungsbefehle werden einmalig durch relative Folgen mit wiederhergestellter Ausgangsrichtung ersetzt. Die Originale bleiben gesichert. Der frühere automatische Vorwärtsbefehl wird ausdrücklich zu `moveTowardEnemy()`. Neue Programme verwenden `moveForward()` ausschließlich für einen Schritt in Blickrichtung. Kampftiming kann sich durch zusätzliche Drehungen ändern; Abschlüsse werden nicht entzogen.
+
+## Bedingte Wiederholung und Zustände
+
+Nach Abfragen und Verzweigungen folgt **solange / while**, vor eigenen Blöcken und Variablen. Q21 bei Neria setzt den Lichtpfad Q13 voraus: erst konkret gehen, bis der Weg blockiert ist, dann links drehen und weiter zur Rune. Erst danach wird die bedingte Schleife benannt. Derselbe unveränderte Ablauf wird mit drei freien Feldern, einem freien Feld und sofortiger Blockade geprüft. Dadurch werden Bedingungsprüfung, null Durchläufe und Fortsetzung unterhalb der Schleife sichtbar. Erfolg verlangt beobachteten Ausstieg und anschließende Aktion; bloße while-Präsenz oder eine ausgeschriebene Ersatzfolge genügt nicht.
+
+Q22 bei Lyra benötigt Q06 und Q21. Die äußere Frage lautet „solange der Gegner lebt“, die innere Entscheidung wählt Angriff oder Annäherung. Der tatsächliche Zustand beendet den Kampf; die Lernenden müssen keine Trefferzahl erraten. Beide Sprachmodi, Einzelschritt, Gesamtlauf, Pause und Tempo bleiben gleichwertig. Eine falsche Abbruchbedingung erhält spätestens bei 64 Aktionen oder 512 Kontrollschritten eine Rückmeldung.
+
+Die Zustandsreihen sind davon unabhängige Erweiterungen:
+
+- Q23 nach Q14 bei Brann: Entzünden vorbereitet, Glutstoß nutzt Brand und verbraucht ihn. Die Reihenfolge wird konkret erprobt.
+- Q24 nach Q13 bei Neria, Frostmolch selbst gefunden: zwei Kälteanwendungen bauen Einfrieren auf. Nachgewiesen wird die tatsächlich ausgefallene reguläre Aktion.
+- Q26 nach Q24 bei Neria: dieselbe Fähigkeit verändert Wasserflächen. Erst vereisen, dann gehen. Eine Befehlsfolge oder bekannte Wiederholung ist zulässig.
+- Q25 nach Q24, Q08 und Q14 bei Tala: Löschen mit passender Zielwahl im Zweierteam. Brand am Gegner und an Glutling muss tatsächlich entfernt werden.
+
+Begriffe und Beispiele werden erst nach den passenden Erfolgen ins Charakterfenster übernommen. Erstaufgaben führen keine ungelehrten Fachwörter als Voraussetzung ein. Eigene Blöcke und Variablen bleiben spätere Lernschritte im Dorf; sie sind hier noch nicht implementiert.

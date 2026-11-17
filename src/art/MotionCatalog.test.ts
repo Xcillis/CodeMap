@@ -8,9 +8,9 @@ import provenance from '../../public/assets/aetheria-motion-v1/provenance.json';
 import arkanaProvenance from '../../public/assets/aetheria-motion-v1/arkana-4way-provenance.json';
 
 describe('Idle- und Laufatlanten', () => {
-  it('enthält 168 Bildausschnitte für alle Figuren mit gemeinsamer Fußlinie je Identität', () => {
-    expect(Object.keys(MOTION_MANIFEST.actors)).toHaveLength(30);
-    expect(Object.values(MOTION_MANIFEST.sheets).flatMap((sheet) => Object.keys(sheet.frames))).toHaveLength(168);
+  it('enthält 192 Bildausschnitte für alle Figuren mit gemeinsamer Fußlinie je Identität', () => {
+    expect(Object.keys(MOTION_MANIFEST.actors)).toHaveLength(34);
+    expect(Object.values(MOTION_MANIFEST.sheets).flatMap((sheet) => Object.keys(sheet.frames))).toHaveLength(192);
     for (const actor of Object.values(MOTION_MANIFEST.actors)) {
       const sheet = MOTION_MANIFEST.sheets[actor.sheet as MotionSheet];
       const frames: Record<string, { x: number; y: number; width: number; height: number; canvasWidth: number; canvasHeight: number; offsetX: number; offsetY: number }> = sheet.frames;
@@ -22,7 +22,7 @@ describe('Idle- und Laufatlanten', () => {
         expect(frame.x + frame.width).toBeLessThanOrEqual(sheet.width); expect(frame.y + frame.height).toBeLessThanOrEqual(sheet.height);
       }
     }
-    for (const actor of ['hero', 'brann', 'glutling', 'moosling', 'felsbock']) expect(new Set(['down', 'up', 'left', 'right'].map((direction) => MOTION_MANIFEST.actors[`${actor}-${direction}` as MotionActor].height)).size).toBe(1);
+    for (const actor of ['hero', 'brann', 'glutling', 'moosling', 'felsbock', 'frostmolch']) expect(new Set(['down', 'up', 'left', 'right'].map((direction) => MOTION_MANIFEST.actors[`${actor}-${direction}` as MotionActor].height)).size).toBe(1);
   });
   it('liefert lokale RGBA-PNGs mit geprüfter Transparenz und unveränderter Herkunft', () => {
     for (const sheet of Object.values(MOTION_MANIFEST.sheets)) {
@@ -41,7 +41,7 @@ describe('Idle- und Laufatlanten', () => {
     const create = vi.fn((config: { key: string; repeat: number; frames: unknown[] }) => { expect(config.repeat).toBe(-1); expect(config.frames.length).toBeGreaterThanOrEqual(2); clips.add(config.key); });
     const scene = { load: { image: load }, textures: { exists: (key: string) => keys.has(key), get: () => ({ has: (name: string) => frames.has(name), add }) }, anims: { exists: (key: string) => clips.has(key), create } } as unknown as Phaser.Scene;
     preloadMotion(scene); registerMotion(scene); preloadMotion(scene); registerMotion(scene);
-    expect(load).toHaveBeenCalledTimes(7); expect(add).toHaveBeenCalledTimes(168); expect(trim).toHaveBeenCalledTimes(168); expect(create).toHaveBeenCalledTimes(60);
+    expect(load).toHaveBeenCalledTimes(8); expect(add).toHaveBeenCalledTimes(192); expect(trim).toHaveBeenCalledTimes(192); expect(create).toHaveBeenCalledTimes(68);
   });
   it('wechselt zwischen Idle und Laufen ohne erneutes Starten desselben Clips und erhält die Fußskalierung', () => {
     const play = vi.fn(); const flip = vi.fn(); const origin = vi.fn(); const scale = vi.fn(); const figure = { play, setFlipX: flip, setOrigin: origin, setScale: scale };
@@ -56,11 +56,11 @@ describe('Idle- und Laufatlanten', () => {
       playMotion(sprite, `brann-${direction}`, 'walk', -1); expect(flip).toHaveBeenLastCalledWith(false);
       expect(play).toHaveBeenLastCalledWith(motionKey(`brann-${direction}`, 'walk'), true);
     }
-    expect(Object.values(MOTION_KEYS)).toHaveLength(7);
+    expect(Object.values(MOTION_KEYS)).toHaveLength(8);
   });
   it('wählt für jedes Arkana echte Richtungsclips und spiegelt Rückwärtsbewegungen nicht', () => {
     const play = vi.fn(); const flip = vi.fn(); const sprite = { play, setFlipX: flip } as unknown as Phaser.GameObjects.Sprite;
-    for (const actor of ['glutling', 'moosling', 'felsbock'] as const) {
+    for (const actor of ['glutling', 'moosling', 'felsbock', 'frostmolch'] as const) {
       const keys = new Set<string>();
       for (const facing of ['east', 'south', 'west', 'north'] as const) {
         const identity = arkanaMotion(actor, facing); keys.add(identity);

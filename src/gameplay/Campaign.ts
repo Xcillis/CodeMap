@@ -120,6 +120,7 @@ export class Campaign {
     if (route.region !== this.region) return `Reise zuerst in das Gebiet ${REGIONS[route.region].name}.`;
     if (requireDiscovery && !this.state.discovered.includes(id)) return `Entdecke diese Aufgabe bei ${QUEST_GIVERS[route.giver].name} in der Spielwelt.`;
     if (!this.has('glutling')) return 'Finde zuerst Glutling am westlichen Akademieweg. Sprich es dort an und wähle „In Sammlung aufnehmen“.';
+    if (lessonActors(getLesson(id)).includes('frostmolch') && !this.has('frostmolch')) return 'Finde den Frostmolch an Nerias Sonnenlichtung nach dem Lichtpfad und nimm ihn auf.';
     if (lessonActors(getLesson(id)).includes('felsbock') && !this.has('felsbock')) return 'Finde Felsbock am geräumten Ostpass im Tal und nimm es in deine Sammlung auf.';
     if (lessonActors(getLesson(id)).includes('moosling') && !this.has('moosling')) return 'Finde zuerst Moosling im südöstlichen Hain. Sprich es dort an und wähle „In Sammlung aufnehmen“.';
   }
@@ -223,7 +224,7 @@ export class Campaign {
       if (!isArkanId(species)) return 'Unbekanntes Arkana.';
       if (this.has(species)) return `${ARKANA_SPECIES[species].name} ist bereits in deiner Sammlung.`;
       if (!this.state.introduced) return 'Sprich zuerst mit Arkanist Eldren. Er hilft dir, dein erstes Arkana zu finden.';
-      if (!encounterUnlocked(this.state, species)) return species === 'felsbock' ? 'Felsbock erscheint im Tal erst nach dem Räumen des Steinrutschs. Suche es dann neben dem Ostpass.' : 'Moosling wartet im südöstlichen Waldhain nach Lyras Einführung. Reise zuerst in den Wald und lerne dort die Bedingungen kennen.';
+      if (!encounterUnlocked(this.state, species)) return species === 'felsbock' ? 'Felsbock erscheint im Tal erst nach dem Räumen des Steinrutschs. Suche es dann neben dem Ostpass.' : species === 'frostmolch' ? 'Frostmolch erscheint an Nerias Sonnenlichtung im Wald, sobald du ihren Lichtpfad gelöst hast.' : 'Moosling wartet im südöstlichen Waldhain nach Lyras Einführung. Reise zuerst in den Wald und lerne dort die Bedingungen kennen.';
       const owned: OwnedArkana = { id: instanceId(species), speciesId: species, learned: [...new Set([...startingSkills(), ...this.state.introductions.flatMap((id) => getLesson(id).introduces)])].filter((skill) => ARKANA_SPECIES[species].supported.includes(skill)) };
       this.state.owned.push(owned);
       if (this.state.team.length < this.teamLimit) this.state.team.push(owned.id);

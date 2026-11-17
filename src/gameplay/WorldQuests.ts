@@ -3,7 +3,7 @@ import { BASIC_MOVEMENT, type SkillId } from './ArkanaCatalog';
 import type { QuestGiverId } from './QuestNetwork';
 import type { InteriorId } from './VillagePlaces';
 
-export const LESSON_IDS = ['q01-glutspur', 'q02-basisangriff', 'q03-wiederkehr', 'q04-musterpfad', 'q05-aufmerksam', 'q06-waechter', 'q07-moosling', 'q08-team', 'q09-schachtelpfad', 'q10-schachtelkampf', 'q11-schleifenwache', 'q12-steinrutsch', 'q13-lichtpfad', 'q14-feuerprobe', 'q15-wurzelschutz', 'q16-heilmoos', 'q17-teamrollen', 'q18-steinpanzer', 'q19-deckung', 'q20-dreiklang'] as const;
+export const LESSON_IDS = ['q01-glutspur', 'q02-basisangriff', 'q03-wiederkehr', 'q04-musterpfad', 'q05-aufmerksam', 'q06-waechter', 'q07-moosling', 'q08-team', 'q09-schachtelpfad', 'q10-schachtelkampf', 'q11-schleifenwache', 'q12-steinrutsch', 'q13-lichtpfad', 'q14-feuerprobe', 'q15-wurzelschutz', 'q16-heilmoos', 'q17-teamrollen', 'q18-steinpanzer', 'q19-deckung', 'q20-dreiklang', 'q21-solangeweg', 'q22-solangekampf', 'q23-brandfolge', 'q24-frostfolge', 'q25-loeschen', 'q26-eisbruecke'] as const;
 export type LessonId = typeof LESSON_IDS[number];
 export const isLessonId = (value: unknown): value is LessonId => LESSON_IDS.some((id) => value === id);
 export type RepeatGoal = 'none' | 'movement' | 'movement-sequence' | 'effective' | 'nested';
@@ -24,6 +24,9 @@ const stairWalls = (startX: number, stages: number) => {
 };
 
 interface QuestBase {
+  surfaces?: import('../combat/types').Surface[];
+  whileGoal?: 'path' | 'combat';
+  puzzleTrials?: readonly { title: string; start: GridPosition; goal: GridPosition; walls: readonly GridPosition[] }[];
   id: LessonId;
   title: string;
   target: string;
@@ -42,10 +45,58 @@ interface QuestBase {
 }
 export type WorldQuest = QuestBase & (
   | { kind: 'puzzle'; goal: GridPosition; walls: readonly GridPosition[]; repeatGoal: RepeatGoal; branchGoal?: boolean; runes?: readonly GridPosition[]; runeRowGoal?: boolean; runeMode?: 'rows' | 'safeguards' }
-  | { kind: 'combat'; enemy: GridPosition; enemyHp: number; decisionTrials?: readonly DecisionTrial[]; adaptiveTrials?: readonly DecisionTrial[]; companion?: GridPosition; allySpawns?: Partial<Record<ArkanId, GridPosition>>; repeatGoal?: RepeatGoal; abilityGoals?: readonly AbilityEvidence[]; enemyActive?: boolean; enemyAttackPower?: number; initialHp?: Partial<Record<ArkanId, number>>; healingTarget?: ArkanId }
+  | { kind: 'combat'; enemy: GridPosition; enemyHp: number; decisionTrials?: readonly DecisionTrial[]; adaptiveTrials?: readonly DecisionTrial[]; companion?: GridPosition; allySpawns?: Partial<Record<ArkanId, GridPosition>>; repeatGoal?: RepeatGoal; abilityGoals?: readonly AbilityEvidence[]; enemyActive?: boolean; enemyAttackPower?: number; initialHp?: Partial<Record<ArkanId, number>>; initialBurning?: readonly (ArkanId | 'konstrukt')[]; extinguishTargets?: readonly (ArkanId | 'konstrukt')[]; healingTarget?: ArkanId }
 );
 
 const QUEST_DEFINITIONS: readonly WorldQuest[] = [
+  { id: 'q21-solangeweg', title: 'Nerias wechselnde Wege', target: 'Runenkundige Neria', x: 2440, y: 500,
+    kind: 'puzzle', start: { x: 1, y: 3 }, goal: { x: 4, y: 2 }, walls: [{ x: 5, y: 3 }], repeatGoal: 'none', whileGoal: 'path',
+    puzzleTrials: [
+      { title: 'Drei freie Schritte', start: { x: 1, y: 3 }, goal: { x: 4, y: 2 }, walls: [{ x: 5, y: 3 }] },
+      { title: 'Nur ein freier Schritt', start: { x: 1, y: 3 }, goal: { x: 2, y: 2 }, walls: [{ x: 3, y: 3 }] },
+      { title: 'Sofort blockiert: null Durchläufe', start: { x: 1, y: 3 }, goal: { x: 1, y: 2 }, walls: [{ x: 2, y: 3 }] },
+    ],
+    introduction: 'Gehe vorwärts, solange das nächste Feld frei ist. Prüfe die Frage vor jedem Schritt neu. Sobald ein Stein voraus liegt, hörst du auf. Danach drehst du links und gehst einen Schritt zur Rune.\n\nDas heißt bedingte Schleife. Im Block steht „solange Weg voraus frei“, im Text while (glutling.pathAheadClear). Die Bedingung bestimmt die Zahl der Durchläufe, nicht eine vorher gewählte Zahl. Ist der Weg schon am Anfang blockiert, wird der Rumpf gar nicht ausgeführt. Die Befehle unter der Schleife folgen trotzdem.\n\nDasselbe unveränderte Programm wird an drei Weglängen geprüft. Nutze Einzelschritte und beobachte auch den ersten Befehl nach der Schleife.',
+    objective: 'Erreiche alle drei Runen mit demselben Programm: solange der Weg frei ist vorwärts; danach links drehen und vorwärts. Auch null Durchläufe kommen vor.',
+    introduces: ['while'], allowed: ['while', 'pathAheadClear'], starter: 'while (glutling.pathAheadClear) {\n\n}\nglutling.turnLeft();\nglutling.moveForward();',
+    reward: 'Drei verschiedene Weglängen, dasselbe Programm! Die Frage wurde vor jedem Durchlauf neu geprüft. Bei nein ging es unter der Schleife weiter, auch wenn der Rumpf kein einziges Mal lief. Lyra bietet jetzt die Anwendung im Kampf an.',
+    hints: ['In den Rumpf kommt genau ein Vorwärtsschritt. Die Frage wird vor dem nächsten Durchlauf erneut geprüft.', 'Links drehen und der letzte Vorwärtsschritt stehen unter der Schleife, nicht in ihrem Rumpf.', 'Wenn direkt vor Glutling ein Stein liegt, wird der Rumpf ausgelassen. Der erste ausgeführte Befehl ist dann links drehen.'] },
+  { id: 'q22-solangekampf', title: 'Solange der Wächter steht', target: 'Waldhüterin Lyra', x: 700, y: 1450,
+    kind: 'combat', start: { x: 1, y: 3 }, enemy: { x: 5, y: 3 }, enemyHp: 6, enemyActive: true, whileGoal: 'combat',
+    introduction: 'Der Wächter bewegt sich und greift an. Du musst seine nötige Schrittzahl nicht vorher erraten. Wiederhole, solange der Gegner noch lebt. Die Frage enemyAlive bedeutet: Der Gegner hat noch Lebenspunkte.\n\nIm Rumpf entscheidest du wie bisher: direkt daneben Glutstoß, sonst zum nächsten Gegner gehen. Die äußere Frage entscheidet, ob weiter wiederholt wird. Die innere Frage wählt die passende Aktion. Der Kampf endet wie gewohnt beim Sieg oder bei einer Niederlage.',
+    objective: 'Besiege den aktiven Wächter mit einer solange-Schleife, die enemyAlive prüft, und einer passenden Entscheidung im Inneren.',
+    introduces: ['enemyAlive'], allowed: ['while', 'enemyAlive', 'enemyAdjacent', 'attack', 'moveTowardEnemy'], starter: 'while (glutling.enemyAlive) {\n  if (glutling.enemyAdjacent) {\n\n  } else {\n\n  }\n}',
+    reward: 'Dein Programm reagiert auf den Zustand des Gegners. Die äußere Schleife fragt, ob er noch lebt; die innere Verzweigung wählt Bewegung oder Angriff.',
+    hints: ['Die solange-Frage ist Gegner lebt. Gegner direkt daneben gehört zur inneren Entscheidung.', 'Bei direkter Nachbarschaft Glutstoß, sonst zum nächsten Gegner gehen.', 'Anders als bei wiederhole 5-mal bestimmt der Zustand, wie oft der Rumpf gebraucht wird.'] },
+  { id: 'q23-brandfolge', title: 'Branns Brandfolge', target: 'Wächter Brann auf Talpatrouille', x: 440, y: 390,
+    kind: 'combat', start: { x: 1, y: 3 }, enemy: { x: 2, y: 3 }, enemyHp: 5, abilityGoals: ['combo'],
+    introduction: 'Entzünden setzt den Gegner in Brand. Ein direkter Glutstoß gegen ein brennendes Ziel verursacht jetzt 3 statt 2 Schaden und verbraucht den Brand. Weitere Brandimpulse entfallen dann.\n\nDie Reihenfolge ist wichtig: erst Entzünden, danach Glutstoß, solange das Ziel noch brennt. Du nutzt einen vorbereiteten Zustand mit einer Folgeaktion aus. Das heißt Kombination. Du kannst alternativ warten und den Brand weiterwirken lassen, aber hier sollst du die Kombination zeigen. Die Zahl 3 ist ein Testwert des Prototyps.',
+    objective: 'Besiege das benachbarte Konstrukt und nutze seinen Brand mit einem direkten Glutstoß aus.',
+    introduces: ['enemyBurning'], allowed: ['ignite', 'attack', 'wait', 'enemyBurning', 'repeat'], starter: '',
+    reward: 'Brand vorbereitet, mit Glutstoß ausgenutzt und dabei verbraucht! Die Reihenfolge und der aktuelle Zustand bestimmen die Wirkung.',
+    hints: ['Entzünden wirkt sofort und danach an den Schrittenden.', 'Glutstoß trifft ein benachbartes Ziel. Wenn es noch brennt, erhält der Treffer die Verstärkung.', 'Entzünden und danach Glutstoß reichen hier. Bloße Brandimpulse sind keine neuen Anwendungen.'] },
+  { id: 'q24-frostfolge', title: 'Zweimal Kälte', target: 'Runenkundige Neria', x: 2440, y: 500,
+    kind: 'combat', team: ['frostmolch'], start: { x: 1, y: 3 }, enemy: { x: 2, y: 3 }, enemyHp: 2, enemyActive: true, abilityGoals: ['freeze'],
+    introduction: 'Finde den Frostmolch an Nerias Sonnenlichtung und nimm ihn auf. Er gehört zum Typ Wasser; Frost ist eine Wasserfähigkeit.\n\nGefrieren kühlt ein lebendes Ziel in Reichweite 3. Die Anzeige zeigt Kälte 1/2. Trifft vor Ablauf der drei Schrittenden erneut Kälte, wird Kühlung durch Eingefroren ersetzt. Das Ziel verliert genau seine nächste reguläre Aktion. Erst danach endet Einfrieren. Die zweite Anwendung kann später auch von einem anderen Wasser-Arkana kommen.\n\nGefrieren ist im nächsten gemeinsamen Schritt wieder bereit. Der Wasserstoß verursacht 1 Schaden. Lass den aktiven Wächter wirklich eine Aktion verlieren und besiege ihn danach.',
+    objective: 'Kühle und friere den aktiven Wächter ein, sodass eine reguläre Aktion ausfällt. Besiege ihn mit dem Frostmolch.',
+    introduces: ['chill', 'attack', 'wait', 'enemyChilled', 'enemyFrozen'], allowed: ['chill', 'attack', 'wait', 'enemyChilled', 'enemyFrozen', 'repeat'], starter: 'frostmolch.chill();',
+    reward: 'Zweimal rechtzeitige Kälte hat Einfrieren ausgelöst. Die Anzeige blieb bis zur tatsächlich ausgefallenen Aktion bestehen. Neria zeigt dir als Nächstes Eis als Übergang.',
+    hints: ['Gefrieren zweimal direkt nacheinander setzt Kälte 1/2 in Eingefroren um.', 'Ein Zustand verschwindet nicht schon deshalb, weil die Figur zuletzt im Team handelt. Er bleibt bis zur ausgefallenen Aktion.', 'Zweimal Gefrieren und zwei Wasserstöße genügen hier.'] },
+  { id: 'q25-loeschen', title: 'Talas Löschübung', target: 'Arkana-Forscherin Tala', x: 2580, y: 1550,
+    kind: 'combat', team: ['glutling', 'frostmolch'], start: { x: 1, y: 3 }, companion: { x: 1, y: 2 }, enemy: { x: 2, y: 3 }, enemyHp: 2, initialBurning: ['glutling', 'konstrukt'], extinguishTargets: ['glutling', 'konstrukt'], abilityGoals: ['extinguish'],
+    introduction: 'Glutling und der Wächter beginnen diese vorbereitete Übung brennend. Der Frostmolch kann Brand entfernen: Gegner löschen wählt den Gegner; Verbündeten löschen wählt das brennende lebende Teammitglied mit dem niedrigsten LP-Anteil in Reichweite 3. Auch der Frostmolch selbst kann dieses Ziel sein.\n\nLöschen beendet den Brand sofort, bevor am Schrittende weiterer Brandschaden entsteht. Ohne Brand hat der Befehl keine Wirkung. Glutling handelt vor dem Frostmolch. Plane Warten und Löschen so, dass beide Brände entfernt werden, bevor ihr das Konstrukt ausschaltet.',
+    objective: 'Lösche den Brand des Gegners UND von Glutling mit dem Frostmolch und besiege danach das Konstrukt.',
+    introduces: ['extinguishEnemy', 'extinguishAlly', 'allyBurning'], allowed: ['extinguishEnemy', 'extinguishAlly', 'allyBurning', 'wait', 'attack', 'repeat'], starter: '', starters: { glutling: '', frostmolch: '' },
+    reward: 'Wasser hat die Brände beendet. Die passende Zielwahl hilft auch Verbündeten. Löschen verstärkt den Brand nicht, sondern hebt ihn auf.',
+    hints: ['Glutling kann zuerst warten. Der Frostmolch löscht zunächst den Gegner und dann Glutling.', 'Lass Glutling erst nach beiden Löschaktionen angreifen.', 'Im Text heißen die Befehle frostmolch.extinguishEnemy() und frostmolch.extinguishAlly().'] },
+  { id: 'q26-eisbruecke', title: 'Der gefrorene Übergang', target: 'Runenkundige Neria', x: 2440, y: 500,
+    kind: 'puzzle', team: ['frostmolch'], start: { x: 1, y: 3 }, goal: { x: 5, y: 3 }, walls: Array.from({ length: 49 }, (_, i) => ({ x: i % 7, y: Math.floor(i / 7) })).filter((tile) => tile.y !== 3 || tile.x === 0 || tile.x === 6),
+    surfaces: [2, 3, 4].map((x) => ({ x, y: 3, kind: 'water' as const, shallow: true })), repeatGoal: 'none',
+    introduction: 'Drei flache Wasserfelder versperren den Weg. Die bekannte Fähigkeit Gefrieren reagiert auch auf Flächen: Flaches Wasser direkt vor dem Frostmolch wird zu begehbarem Eis. Die Fläche bleibt für diese Aufgabe vereist. Tiefes Wasser würde keinen Übergang bilden.\n\nErst Gefrieren, dann vorwärts gehen. Das ist dieselbe Zustandsänderung wie im Kampf, mit einem anderen Ziel. Wasser voraus und Eis voraus sind abfragbar. Ein nicht vereistes Wasserfeld blockiert die Bewegung.',
+    objective: 'Vereise die drei flachen Wasserfelder mit Gefrieren und überquere sie bis zur goldenen Rune.',
+    introduces: ['waterAhead', 'iceAhead'], allowed: ['chill', 'repeat', 'waterAhead', 'iceAhead'], starter: 'frostmolch.chill();',
+    reward: 'Aus Wasser wurde Eis, aus einer Blockade ein begehbarer Übergang. Dieselbe Kältefähigkeit kann auf Wesen und auf passende Flächen reagieren.',
+    hints: ['Gefrieren wirkt hier auf das Wasserfeld direkt in Blickrichtung.', 'Nach jedem Vereisen kann der Frostmolch auf das neue Eisfeld gehen.', 'Wiederhole Gefrieren und vorwärts dreimal. Am anderen Ufer folgt noch ein Vorwärtsschritt zur Rune.'] },
   { id: 'q01-glutspur', title: 'Glutlings erste Schritte', target: 'Runenstein am Weg', x: 790, y: 690,
     kind: 'puzzle', start: { x: 1, y: 3 }, goal: { x: 3, y: 2 }, walls: [{ x: 1, y: 2 }, { x: 2, y: 2 }], repeatGoal: 'none',
     introduction: 'Glutling schaut zu Beginn nach rechts. Der Richtungspfeil zeigt, wohin es blickt. „Gehe vorwärts“ bewegt es genau ein Feld in diese Richtung. Führe diesen ersten Befehl einzeln aus und beobachte ihn.\n\nDie Rune liegt hinter einer Ecke. „Drehe 90° nach links“ ändert nur die Blickrichtung; Glutling bleibt dabei auf seinem Feld stehen. Der nächste Vorwärtsschritt geht in die neue Richtung. „Gehe rückwärts“ bewegt es entgegen der Blickrichtung, ohne es umzudrehen. Eine Rechtsdrehung funktioniert entsprechend.\n\nErgänze die Befehle so, dass Glutling die goldene Rune erreicht und die Steine umgeht. Ein solcher einzelner Befehl heißt Anweisung. Mehrere nacheinander ausgeführte Anweisungen bilden eine Befehlsfolge. Ihre Reihenfolge ist wichtig.',
@@ -199,7 +250,7 @@ const QUEST_DEFINITIONS: readonly WorldQuest[] = [
     hints: ['Alle drei können sofort beitragen: Glutling entzündet, Moosling heilt und Felsbock deckt.', 'Aktiviere Felsbocks Steinpanzer, während seine Deckung noch wirkt. Verwende Glutstöße, während Brand und Heilmoos weiterlaufen.', 'Nach drei Schritten sind Deckung und Heilmoos erneut bereit. Plane genügend Aktionen auch dann, wenn ein anderes Programm bereits beendet ist.'] },
 ];
 /** Relative movement is universal, even when a lesson only needs a subset to reach its goal. */
-export const WORLD_QUESTS: readonly WorldQuest[] = QUEST_DEFINITIONS.map((quest) => ({
+export const WORLD_QUESTS: readonly WorldQuest[] = LESSON_IDS.map((id) => QUEST_DEFINITIONS.find((quest) => quest.id === id)!).map((quest) => ({
   ...quest, allowed: [...new Set<SkillId>([...BASIC_MOVEMENT, ...quest.allowed])],
 }));
 export const getLesson = (id: LessonId): WorldQuest => WORLD_QUESTS.find((quest) => quest.id === id)!;

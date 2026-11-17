@@ -47,12 +47,12 @@ describe('Sammlung und Questjournal', () => {
   });
   it('nimmt den sichtbaren Wiederholungsbutton in die Fokusbegrenzung auf und überspringt geschlossene Details', () => {
     campaign = new Campaign({ version: 2, worldVersion: 1, region: 'forest', introduced: true, completed: LESSON_IDS,
-      owned: [{ speciesId: 'glutling' }, { speciesId: 'moosling' }, { speciesId: 'felsbock' }], team: [instanceId('glutling')] });
+      owned: [{ speciesId: 'glutling' }, { speciesId: 'moosling' }, { speciesId: 'felsbock' }, { speciesId: 'frostmolch' }], team: [instanceId('glutling')] });
     campaign.visitGiver('tala'); gameEvents.emit('campaign-updated', campaign.snapshot); gameEvents.emit('world-giver-open', 'tala');
     const backwards = new KeyboardEvent('keydown', { key: 'Tab', shiftKey: true, bubbles: true, cancelable: true }); document.dispatchEvent(backwards);
     expect(backwards.defaultPrevented).toBe(true); expect(document.activeElement?.tagName).toBe('BUTTON');
-    expect(document.activeElement?.closest('[data-series]')?.getAttribute('data-series')).toBe('trio');
-    expect(document.activeElement?.textContent).toContain('Erneut spielen: Drei Arkana');
+    expect(document.activeElement?.closest('[data-series]')?.getAttribute('data-series')).toBe('extinguish');
+    expect(document.activeElement?.textContent).toContain('Erneut spielen: Talas Löschübung');
     expect(document.activeElement?.closest('details')).toBeNull();
   });
   it('zeigt bei einem Questgeber nur seine Aufgabenreihe mit eigenen Voraussetzungen', () => {

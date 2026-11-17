@@ -142,7 +142,7 @@ export class BattleScene extends Phaser.Scene {
 
   private render(state: Readonly<EncounterState>): void {
     const active = this.session instanceof LessonSession && this.session.lesson.kind === 'combat' && Boolean(this.session.lesson.adaptiveTrials?.length);
-    if (state.lessonTrial) this.subtitle.setText(`Situation ${state.lessonTrial.current}/${state.lessonTrial.total} · ${state.lessonTrial.passed} geschafft · ${active ? 'Aktiver Wächter' : 'Ein Entscheidungsschritt'}`);
+    if (state.lessonTrial) this.subtitle.setText(`Situation ${state.lessonTrial.current}/${state.lessonTrial.total} · ${state.lessonTrial.passed} geschafft · ${'goal' in state ? 'Wechselnde Weglänge' : active ? 'Aktiver Wächter' : 'Ein Entscheidungsschritt'}`);
     const runes = runeProgress(state);
     if (runes) this.subtitle.setText(runes.kind === 'safeguards' ? runes.summary : `Runenfeld · ${runes.activated}/${runes.total} Runen leuchten · innen Felder, außen Reihen`);
     this.puzzleLabels.removeAll(true);
@@ -152,6 +152,11 @@ export class BattleScene extends Phaser.Scene {
         const tileColor = (x + y) % 2 === 0 ? 0x35585a : 0x2b4b4e;
         this.grid.fillStyle(tileColor, this.textures.exists(ART_KEYS.groundTile) ? .42 : 1).fillRect(GRID_START_X + x * TILE, GRID_START_Y + y * TILE, TILE - 3, TILE - 3);
       }
+    }
+    for (const surface of state.surfaces ?? []) {
+      const x = GRID_START_X + surface.x * TILE; const y = GRID_START_Y + surface.y * TILE;
+      this.grid.fillStyle(surface.kind === 'water' ? 0x277bab : 0xafe9f4, .95).fillRoundedRect(x + 2, y + 2, TILE - 7, TILE - 7, 5);
+      this.puzzleLabels.add(this.add.text(x + TILE / 2, y + TILE / 2, surface.kind === 'water' ? '≈ Wasser' : '❄ Eis', { fontSize: '13px', color: surface.kind === 'water' ? '#ffffff' : '#173d54' }).setOrigin(.5));
     }
     this.goalLabel.setVisible('goal' in state);
     if ('goal' in state) {
@@ -208,7 +213,10 @@ export class BattleScene extends Phaser.Scene {
     visual.label.setText(this.actorLabel(actor));
   }
 
-  private actorLabel(actor: Combatant): string { return `${actor.id === 'konstrukt' ? 'Konstrukt' : actor.name} ${actor.hp}/${actor.maxHp}`; }
+  private actorLabel(actor: Combatant): string {
+    const statuses = [actor.burning ? `Brand ${actor.burning.remaining}` : '', actor.chilled ? `Kälte 1/2 · ${actor.chilled.remaining}` : '', actor.frozen ? 'Eingefroren · nächste Aktion entfällt' : ''].filter(Boolean);
+    return `${actor.id === 'konstrukt' ? 'Konstrukt' : actor.name} ${actor.hp}/${actor.maxHp}${statuses.length ? `\n${statuses.join(' · ')}` : ''}`;
+  }
 
   private animateFrame(frame: ActionFrame<EncounterState>, duration: number): void {
     this.currentFrame = frame;
@@ -220,7 +228,7 @@ export class BattleScene extends Phaser.Scene {
     const visual = this.visuals.get(frame.actor)!;
     visual.marker.setStrokeStyle(5, 0xffdf6d);
     const motionActor = after.id === 'konstrukt' ? after.id : arkanaMotion(after.id, facingOf(after));
-    if (isTurn(frame.action)) {
+    if (isTurn(frame.action) && !before.frozen) {
       this.tweens.add({ targets: visual.direction, rotation: FACINGS.indexOf(facingOf(before)) * Math.PI / 2 + (frame.action === 'TURN_LEFT' ? -Math.PI / 2 : Math.PI / 2), duration, ease: 'Sine.easeInOut' });
       if (visual.figure instanceof Phaser.GameObjects.Sprite) playMotion(visual.figure, motionActor, 'idle');
     }
@@ -230,7 +238,7 @@ export class BattleScene extends Phaser.Scene {
       for (const effect of frame.effects) {
         const target = this.visuals.get(effect.target); if (!target) continue;
         const unit = units(frame.after).find((candidate) => candidate.id === effect.target); if (unit) this.drawActor(unit, unit.id === 'konstrukt' ? 0xc95e58 : ARKANA_SPECIES[unit.id].color, '#eff5dc');
-        const text = this.add.text(target.root.x, target.root.y - 18, effect.kind === 'heal' ? `+${effect.amount} LP` : effect.kind === 'cover' ? `Deckung` : effect.kind === 'guard' ? `Schutz ${effect.amount}` : effect.kind === 'root' ? 'Festgehalten' : `−${effect.amount}`, { fontSize: '19px', color: effect.kind === 'heal' ? '#acf59b' : effect.kind === 'guard' || effect.kind === 'cover' ? '#aadfff' : effect.kind === 'root' ? '#b8e69d' : '#ffc179', stroke: '#142c35', strokeThickness: 4 }).setOrigin(.5);
+        const text = this.add.text(effect.tile ? GRID_START_X + effect.tile.x * TILE + TILE / 2 : target.root.x, effect.tile ? GRID_START_Y + effect.tile.y * TILE : target.root.y - 18, effect.kind === 'heal' ? `+${effect.amount} LP` : effect.kind === 'cover' ? `Deckung` : effect.kind === 'guard' ? `Schutz ${effect.amount}` : effect.kind === 'root' ? 'Festgehalten' : effect.kind === 'freeze' ? '❄ Aktion entfällt' : effect.kind === 'cold' ? '❄ Kälte' : effect.kind === 'combo' ? 'Brandfolge' : effect.kind === 'extinguish' ? 'Gelöscht' : effect.kind === 'ice' ? '❄ Eis' : `−${effect.amount}`, { fontSize: '19px', color: effect.kind === 'heal' ? '#acf59b' : effect.kind === 'guard' || effect.kind === 'cover' ? '#aadfff' : effect.kind === 'root' ? '#b8e69d' : '#ffc179', stroke: '#142c35', strokeThickness: 4 }).setOrigin(.5);
         this.effects.add(text); this.tweens.add({ targets: text, y: text.y - 35, alpha: 0, duration: duration * .7 });
         this.tweens.add({ targets: target.figure, alpha: .35, duration: duration * .13, repeat: 1, yoyo: true });
       }

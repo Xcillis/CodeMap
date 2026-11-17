@@ -4,6 +4,7 @@ import { describe, expect, it, vi } from 'vitest';
 import { ART_KEYS, ART_MANIFEST, groundDepth, heroFacing } from './ArtCatalog';
 import { characterImage, environmentImage, preloadArt, registerArtFrames } from './ArtSprites';
 import { ARKANA_IDS } from '../gameplay/ArkanaCatalog';
+import { MOTION_MANIFEST } from './MotionCatalog';
 import { QUEST_GIVERS } from '../gameplay/QuestNetwork';
 
 describe('Generierte lokale Spielgrafiken', () => {
@@ -23,7 +24,8 @@ describe('Generierte lokale Spielgrafiken', () => {
     }
   });
   it('enthält alle Questgeber, gesammelten Arten und vier Blickrichtungen des Helden', () => {
-    for (const id of [...Object.keys(QUEST_GIVERS), ...ARKANA_IDS, 'konstrukt', 'hero-up', 'hero-down', 'hero-left', 'hero-right']) expect(ART_MANIFEST.characters.frames).toHaveProperty(id);
+    for (const id of [...Object.keys(QUEST_GIVERS), ...ARKANA_IDS.filter((id) => id !== 'frostmolch'), 'konstrukt', 'hero-up', 'hero-down', 'hero-left', 'hero-right']) expect(ART_MANIFEST.characters.frames).toHaveProperty(id);
+    expect(MOTION_MANIFEST.actors['frostmolch-down']).toBeDefined();
     expect(heroFacing(0, 1)).toBe('hero-down'); expect(heroFacing(0, -1)).toBe('hero-up');
     expect(heroFacing(-1, 0)).toBe('hero-left'); expect(heroFacing(1, 0)).toBe('hero-right');
     expect(heroFacing(0, 0, 'hero-left')).toBe('hero-left'); expect(heroFacing(1, -2)).toBe('hero-up');

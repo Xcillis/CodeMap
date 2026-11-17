@@ -3,7 +3,7 @@ import { ACTIONS } from './ActionCatalog';
 import type { CombatAction, Combatant, EncounterState } from './types';
 
 export function statusLabels(unit: Combatant): string[] {
-  return (['burning', 'rooted', 'regeneration', 'protection', 'armor', 'coveredBy'] as const).flatMap((key) => unit[key] ? [`${{ burning: 'Brand', rooted: 'Ranken', regeneration: 'Heilmoos', protection: 'Rindenschutz', armor: 'Steinpanzer', coveredBy: 'In Deckung' }[key]}: ${unit[key]!.remaining}`] : []);
+  return (['burning', 'rooted', 'regeneration', 'protection', 'armor', 'coveredBy', 'chilled', 'frozen'] as const).flatMap((key) => unit[key] ? [`${{ burning: 'Brand', rooted: 'Ranken', regeneration: 'Heilmoos', protection: 'Rindenschutz', armor: 'Steinpanzer', coveredBy: 'In Deckung', chilled: '❄ Kälte 1/2 · Schritte', frozen: '❄ Eingefroren · nächste Aktion entfällt' }[key]}: ${unit[key]!.remaining}`] : []);
 }
 export function cooldownLabels(unit: Combatant): string[] {
   return (Object.keys(unit.cooldowns ?? {}) as CombatAction[]).filter((action) => (unit.cooldowns?.[action] ?? 0) > 0).map((action) => `${ACTIONS[action].label}: ${unit.cooldowns![action]}`);

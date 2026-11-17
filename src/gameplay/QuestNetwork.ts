@@ -13,6 +13,13 @@ export type QuestGiverId = keyof typeof QUEST_GIVERS;
 export const isQuestGiverId = (value: unknown): value is QuestGiverId => typeof value === 'string' && Object.hasOwn(QUEST_GIVERS, value);
 interface Route { region: RegionId; giver: QuestGiverId; all: readonly LessonId[]; any?: readonly LessonId[]; role: string }
 export const QUEST_ROUTES: Record<LessonId, Route> = {
+  'q21-solangeweg': { region: 'forest', giver: 'neria', all: ['q13-lichtpfad'], role: 'Einführung · Bedingte Wiederholung' },
+  'q22-solangekampf': { region: 'forest', giver: 'lyra', all: ['q06-waechter', 'q21-solangeweg'], role: 'Folgequest · Solange im Kampf' },
+  'q23-brandfolge': { region: 'valley', giver: 'brann', all: ['q14-feuerprobe'], role: 'Folgequest · Zustand ausnutzen' },
+  'q24-frostfolge': { region: 'forest', giver: 'neria', all: ['q13-lichtpfad'], role: 'Wasser-Arkana · Zustand aufbauen' },
+  'q25-loeschen': { region: 'forest', giver: 'tala', all: ['q24-frostfolge', 'q08-team', 'q14-feuerprobe'], role: 'Teamquest · Zustände aufheben' },
+  'q26-eisbruecke': { region: 'forest', giver: 'neria', all: ['q24-frostfolge'], role: 'Folgequest · Flächen umwandeln' },
+
   'q18-steinpanzer': { region: 'valley', giver: 'mira', all: ['q17-teamrollen'], role: 'Folgequest · Felsbocks Schutz' },
   'q19-deckung': { region: 'valley', giver: 'mira', all: ['q18-steinpanzer'], role: 'Koordinationsquest · Dritter Teamplatz' },
   'q20-dreiklang': { region: 'forest', giver: 'tala', all: ['q19-deckung'], role: 'Teamquest · Drei eigene Programme' },

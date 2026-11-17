@@ -12,6 +12,7 @@ import { TeamLessonSession } from './TeamLessonSession';
 import { evaluateCondition } from './Conditions';
 import { BranchMovementProgress } from './BranchMovementProgress';
 import { RuneRowProgress } from './RuneRowProgress';
+import { WhileProgress } from './WhileProgress';
 import type { ActionFrame, ArkanId, EncounterState, ProgramSources } from './types';
 
 /** Shared quest entry point; solo rules and delegated active/team encounters use the same parser and runner. */
@@ -28,6 +29,8 @@ export class LessonSession {
   private readonly branchProgress = new BranchMovementProgress();
   private readonly runeRowProgress?: RuneRowProgress;
   private readonly decisions = new DecisionProgress();
+  private readonly whileProgress = new WhileProgress();
+  private zeroWhileAllowed = false;
   private trialIndex = 0;
   private passedTrials = 0;
   private nextTrial = false;
@@ -48,7 +51,12 @@ export class LessonSession {
     if (this.cooperative) return this.cooperative.snapshot;
     if (this.adaptive) return this.adaptive.snapshot;
     const state: EncounterState = this.engine.snapshot;
-    if (state.outcome === 'victory' && (!this.repeatProgress.satisfies(this.lesson.repeatGoal ?? 'none') || (this.runeRowProgress && !this.runeRowProgress.satisfied) || (this.lesson.kind === 'puzzle' && this.lesson.branchGoal && !this.branchProgress.satisfied))) state.outcome = 'incomplete';
+    if (state.outcome === 'victory' && (!this.whileProgress.satisfies(this.lesson.whileGoal, this.runner, this.zeroWhileAllowed) || !this.repeatProgress.satisfies(this.lesson.repeatGoal ?? 'none') || (this.runeRowProgress && !this.runeRowProgress.satisfied) || (this.lesson.kind === 'puzzle' && this.lesson.branchGoal && !this.branchProgress.satisfied))) state.outcome = 'incomplete';
+    const paths = this.lesson.puzzleTrials;
+    if (paths?.length) {
+      state.outcome = this.passedTrials === paths.length ? 'victory' : state.outcome === 'victory' ? 'ongoing' : state.outcome;
+      state.lessonTrial = { current: this.trialIndex + 1, total: paths.length, title: paths[this.trialIndex].title, passed: this.passedTrials, message: this.nextTrial ? 'Schleife beendet und danach weitergelaufen. Nächste Situation mit demselben Programm.' : this.passedTrials === paths.length ? 'Alle Weglängen einschließlich null Durchläufen geschafft.' : 'Die Bedingung bestimmt die Zahl der Schritte. Nach der Schleife geht es zur Rune.' };
+    }
     const trials = this.lesson.kind === 'combat' ? this.lesson.decisionTrials : undefined;
     if (trials?.length) {
       state.outcome = this.decisionFailure ? 'incomplete' : this.passedTrials === trials.length ? 'victory' : 'ongoing';
@@ -61,9 +69,9 @@ export class LessonSession {
     if (this.cooperative) { this.cooperative.reset(); return; }
     if (this.adaptive) { this.adaptive.reset(); return; }
     this.trialIndex = 0; this.passedTrials = 0; this.nextTrial = false; this.decisionFailure = undefined; this.decisions.clear();
-    if (this.engine instanceof PuzzleEngine) this.engine.reset();
+    if (this.engine instanceof PuzzleEngine) this.resetPuzzle();
     else this.resetCombat();
-    this.runner = undefined; this.signature = ''; this.actionFrames = []; this.repeatProgress.clear(); this.branchProgress.clear(); this.runeRowProgress?.clear();
+    this.runner = undefined; this.signature = ''; this.actionFrames = []; this.repeatProgress.clear(); this.branchProgress.clear(); this.runeRowProgress?.clear(); this.whileProgress.clear();
   }
   execute(sources: ProgramSources, full = false): string {
     if (this.cooperative) return this.cooperative.execute(sources, full);
@@ -79,18 +87,19 @@ export class LessonSession {
     if (!programCost(parsed.nodes)) return 'Dein Programm ist leer. Ziehe eine Anweisung unter den Startblock.';
     if (this.snapshot.outcome !== 'ongoing') return this.result();
     do {
-      if (this.nextTrial) { this.trialIndex++; this.nextTrial = false; this.resetCombat(); this.runner = new ProgramRunner(parsed.nodes); }
+      if (this.nextTrial) { this.trialIndex++; this.nextTrial = false; if (this.lesson.kind === 'puzzle') this.resetPuzzle(); else this.resetCombat(); this.runner = new ProgramRunner(parsed.nodes); this.whileProgress.clear(); }
       const before = this.snapshot;
+      const battleFrames: ActionFrame[] = [];
       const step = this.runner?.next((condition) => evaluateCondition(before, condition));
       if (!step || step.kind !== 'action') {
-        if (before.lessonTrial) this.decisionFailure = 'Für diese Antwort ist kein Befehl verbunden. Ergänze den dann- und den sonst-Teil deines falls/sonst-Blocks.';
+        if (before.lessonTrial && this.lesson.kind === 'combat') this.decisionFailure = 'Für diese Antwort ist kein Befehl verbunden. Ergänze den dann- und den sonst-Teil deines falls/sonst-Blocks.';
         break;
       }
-      if (this.engine instanceof PuzzleEngine) this.engine.step(step.action); else this.engine.runStep(step.action);
+      if (this.engine instanceof PuzzleEngine) this.engine.step(step.action); else this.engine.runStep(step.action, this.lesson.kind === 'combat' && Boolean(this.lesson.enemyActive), (frame) => battleFrames.push(frame));
       const raw = this.engine.snapshot;
       const trace = this.runner?.lastTrace;
       if ('goal' in before && 'goal' in raw) this.runeRowProgress?.record(before, raw, trace);
-      if (before.lessonTrial) {
+      if (before.lessonTrial && this.lesson.kind === 'combat') {
         this.decisionFailure = this.decisions.record(step.action, before, raw, trace);
         if (!this.decisionFailure) {
           this.passedTrials++;
@@ -103,18 +112,25 @@ export class LessonSession {
       const effective = this.lesson.kind === 'combat' && this.lesson.repeatGoal === 'nested' ? hit : moved || hit;
       this.repeatProgress.record(step.action, moved, trace, effective, { x: raw.player.x - before.player.x, y: raw.player.y - before.player.y });
       this.branchProgress.record(step.action, before, raw, trace);
-      this.actionFrames.push({ actor: this.actor, action: step.action, before, after: this.snapshot, trace: trace ? structuredClone({ ...trace, line: parsed.sourceMap?.[trace.path] }) : undefined });
+      const frame: ActionFrame<EncounterState> = { actor: this.actor, action: step.action, before, after: raw, trace: trace ? structuredClone({ ...trace, line: parsed.sourceMap?.[trace.path] }) : undefined, ...(this.engine instanceof PuzzleEngine && this.engine.effects.length ? { effects: this.engine.effects } : {}) };
+      this.whileProgress.record(frame, this.runner);
+      if (this.lesson.puzzleTrials?.length && raw.outcome === 'victory' && this.whileProgress.satisfies(this.lesson.whileGoal, this.runner, this.zeroWhileAllowed)) { this.passedTrials++; this.nextTrial = this.passedTrials < this.lesson.puzzleTrials.length; }
+      if (battleFrames.length) {
+        this.actionFrames.push(...battleFrames.map((part, index) => ({ ...part, ...(part.actor === this.actor && !part.periodic ? { trace: frame.trace } : {}), ...(index === battleFrames.length - 1 ? { after: this.snapshot } : {}) })));
+      } else this.actionFrames.push({ ...frame, after: this.snapshot });
     } while (full && this.snapshot.outcome === 'ongoing' && (this.nextTrial || !this.runner?.done));
     return this.result();
   }
   private resetCombat(): void {
     if (this.lesson.kind !== 'combat') return;
     const trial = this.lesson.decisionTrials?.[this.trialIndex];
-    this.engine = new BattleEngine({ [this.actor]: trial?.start ?? this.lesson.start, konstrukt: trial?.enemy ?? this.lesson.enemy });
+    this.engine = new BattleEngine({ [this.actor]: trial?.start ?? this.lesson.start, konstrukt: trial?.enemy ?? this.lesson.enemy }, { enemyActive: this.lesson.enemyActive, enemyAttackPower: this.lesson.enemyAttackPower, initialHp: this.lesson.initialHp, surfaces: this.lesson.surfaces, initialBurning: this.lesson.initialBurning });
     this.engine.reset(false, this.lesson.enemyHp, [this.actor]);
   }
   private result(): string {
+    if (this.runner?.error) return this.runner.error;
     const state = this.snapshot;
+    if (state.outcome === 'incomplete' && this.lesson.whileGoal) return 'Lernziel noch offen: Nutze die passende solange-Schleife und lass die Bedingung den Ablauf bestimmen. Bei der Wegaufgabe müssen auch Befehle nach der Schleife ausgeführt werden.';
     if (state.outcome === 'victory') return 'Questziel erreicht! Kehre zur Spielwelt zurück, um den nächsten Schritt zu erfahren.';
     if (state.lessonTrial) return `Situation ${state.lessonTrial.current}/${state.lessonTrial.total} · ${state.lessonTrial.passed} geschafft. ${state.lessonTrial.message}`;
     if (state.outcome === 'incomplete' && this.runeRowProgress) return 'Alle Runen leuchten. Der gemeinsame Reihenablauf fehlt noch: Lege die innere Vorwärtsschleife, den Rückweg und den Reihenwechsel zusammen in eine äußere Wiederholung. So bearbeitet dieselbe innere Schleife jede neue Reihe erneut.';
@@ -126,5 +142,11 @@ export class LessonSession {
       : 'Rune erreicht. Die Schleifenübung ist noch offen: Wiederhole eine Bewegung mindestens zweimal mit einer Schleife.';
     if (this.runner?.done) return 'Programm beendet. Das Ziel ist noch nicht erreicht. Ergänze oder verändere deine Anweisungen.';
     return `Schritt ${state.tick}: Beobachte die aktive Anweisung und führe den nächsten Schritt aus.`;
+  }
+  private resetPuzzle(): void {
+    if (this.lesson.kind !== 'puzzle') return;
+    const trial = this.lesson.puzzleTrials?.[this.trialIndex];
+    this.engine = new PuzzleEngine({ ...this.lesson, ...(trial ? { start: trial.start, goal: trial.goal, walls: trial.walls } : {}) });
+    this.zeroWhileAllowed = !evaluateCondition(this.engine.snapshot, 'pathAheadClear');
   }
 }

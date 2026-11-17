@@ -1,6 +1,6 @@
 import { partyMembers } from './Party';
 import { BattleEngine, type BattleOptions } from './BattleEngine';
-import { nodesToSource, programCost, compileActionPlan, CONDITION_PROGRAM, DEFAULT_PROGRAM, FORMATION_PROGRAM } from './DecisionProgram';
+import { nodesToSource, programCost, hasWhile, MAX_PROGRAM_ACTIONS, compileActionPlan, CONDITION_PROGRAM, DEFAULT_PROGRAM, FORMATION_PROGRAM } from './DecisionProgram';
 import type { ActionFrame, ArkanId, GridPosition, ProgramSources, ProgramStep } from './types';
 import { nodesCapabilityError } from './CommandCatalog';
 import { ProgramRunner } from './ProgramRunner';
@@ -30,7 +30,7 @@ export class BattleSession {
   private length = 0;
   private actionFrames: ActionFrame[] = [];
   get frames(): readonly ActionFrame[] { return this.actionFrames; }
-  get done(): boolean { return this.snapshot.outcome !== 'ongoing' || this.length === 0 || !this.hasSteps(); }
+  get done(): boolean { return this.snapshot.outcome !== 'ongoing' || this.length === 0 || this.cursor >= this.length || !this.hasSteps(); }
 
   constructor(readonly mission: MissionId, private readonly team?: readonly ArkanId[], private readonly skills?: Partial<Record<ArkanId, readonly SkillId[]>>, private readonly configuration?: BattleConfiguration) {
     this.engine = new BattleEngine(configuration?.spawns, configuration); this.reset();
@@ -59,7 +59,7 @@ export class BattleSession {
       if (capabilityError) return capabilityError;
       plans[actor] = new ProgramRunner(parsed.nodes);
       lines[actor] = parsed.sourceMap;
-      length = Math.max(length, programCost(parsed.nodes));
+      length = Math.max(length, hasWhile(parsed.nodes) ? MAX_PROGRAM_ACTIONS : programCost(parsed.nodes));
       canonical.push(nodesToSource(parsed.nodes, actor));
     }
     const signature = JSON.stringify(canonical);
@@ -84,6 +84,8 @@ export class BattleSession {
   }
 
   private result(): string {
+    const error = Object.values(this.plans).find((runner) => runner.error)?.error; if (error) return error;
+    if (this.cursor >= MAX_PROGRAM_ACTIONS && this.snapshot.outcome === 'ongoing' && this.hasSteps()) return 'Ausführung angehalten: 64 Aktionen erreicht. Prüfe die Abbruchbedingung deiner solange-Schleife.';
     if (this.snapshot.outcome === 'victory') return 'Sieg! Die Programme haben das Ziel erreicht.';
     if (this.snapshot.outcome === 'defeat') return 'Niederlage. Bearbeite die Programme und führe sie erneut aus.';
     return `Schritt ${this.cursor}/${this.length}${this.cursor === this.length || this.actors.every((actor) => this.plans[actor]?.done) ? ' – Aktionspläne beendet.' : ''}`;

@@ -7,6 +7,7 @@ export interface ArkanaEncounter { id: ArkanId; name: string; region: RegionId; 
 
 /** Encounter availability never grants ownership; the player still has to find and recruit. */
 export const ARKANA_ENCOUNTERS: readonly ArkanaEncounter[] = [
+  { id: 'frostmolch', name: 'Frostmolch', region: 'forest', x: 2510, y: 540, color: 0x60c7e5, afterLesson: 'q13-lichtpfad' },
   { id: 'glutling', name: 'Glutling', region: 'valley', x: 600, y: 650, color: 0xef934a },
   { id: 'felsbock', name: 'Felsbock', region: 'valley', x: 1260, y: 560, color: 0xa99b83, afterLesson: 'q12-steinrutsch' },
   { id: 'moosling', name: 'Moosling', region: 'forest', x: 2760, y: 1730, color: 0x78bc69, afterLesson: 'q05-aufmerksam' },

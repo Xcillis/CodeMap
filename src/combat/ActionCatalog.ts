@@ -2,6 +2,9 @@ import type { ArkanId, CombatAction } from './types';
 import { ARKANA_IDS, ARKANA_SPECIES } from '../gameplay/ArkanaCatalog';
 
 export const ACTIONS = {
+  CHILL: { method: 'chill', block: 'cm_chill', label: 'Gefrieren' },
+  EXTINGUISH_ENEMY: { method: 'extinguishEnemy', block: 'cm_extinguish_enemy', label: 'Gegner löschen' },
+  EXTINGUISH_ALLY: { method: 'extinguishAlly', block: 'cm_extinguish_ally', label: 'Verbündeten löschen' },
   MOVE_TOWARD: { method: 'moveTowardEnemy', block: 'cm_move_toward', label: 'zum nächsten Gegner gehen' },
   MOVE_FORWARD: { method: 'moveForward', block: 'cm_move_forward', label: 'gehe vorwärts' },
   MOVE_BACKWARD: { method: 'moveBackward', block: 'cm_move_backward', label: 'gehe rückwärts' },
@@ -22,8 +25,8 @@ export const ACTIONS = {
 } as const satisfies Record<CombatAction, { method: string; block: string; label: string }>;
 
 export function actionForCommand(command: string, actor?: ArkanId): CombatAction | undefined {
-  const owner = ARKANA_IDS.find((id) => ARKANA_SPECIES[id].basicAttack.method === command);
-  if (owner) return actor === owner ? 'ATTACK' : undefined;
+  if (actor && ARKANA_SPECIES[actor].basicAttack.method === command) return 'ATTACK';
+  if (ARKANA_IDS.some((id) => ARKANA_SPECIES[id].basicAttack.method === command)) return undefined;
   return (Object.keys(ACTIONS) as CombatAction[]).find((action) => ACTIONS[action].method === command);
 }
 export const actionMethod = (action: CombatAction, actor: ArkanId): string => action === 'ATTACK' ? ARKANA_SPECIES[actor].basicAttack.method : ACTIONS[action].method;

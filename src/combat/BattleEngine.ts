@@ -3,10 +3,11 @@ import { ARKANA_SPECIES } from '../gameplay/ArkanaCatalog';
 import { actionMethod } from './ActionCatalog';
 import { facingOf, isTurn, movementDelta, turnFacing } from './Movement';
 import { ABILITIES, allies, castAbility, cooldownStep, expireControl, isAbility } from './Abilities';
+import { fireStrike, surfaceBlocks } from './StateReactions';
 import type { CombatEffect } from './types';
 
 const GRID_SIZE = 7;
-export interface BattleOptions { enemyAttackPower?: number; initialHp?: Partial<Record<ArkanId, number>>; enemyActive?: boolean }
+export interface BattleOptions { enemyAttackPower?: number; initialHp?: Partial<Record<ArkanId, number>>; enemyActive?: boolean; surfaces?: import('./types').Surface[]; initialBurning?: readonly (ArkanId | 'konstrukt')[] }
 
 export class BattleEngine {
   private state: BattleState;
@@ -47,7 +48,7 @@ export class BattleEngine {
       const before = this.snapshot;
       this.effects = [];
       this.addLog(`${actor.id}.${actionMethod(action, actor.id as ArkanId)}()${step.kind === 'condition' ? ` – enemyAdjacent = ${adjacent}` : ''}`);
-      this.act(actor, this.state.enemy, action);
+      if (!this.skipFrozen(actor)) this.act(actor, this.state.enemy, action);
       this.refreshIntent(enemyActive);
       emit({ actor: actor.id, action, before, after: this.snapshot, ...(this.effects.length ? { effects: this.effects } : {}) });
     }
@@ -55,7 +56,7 @@ export class BattleEngine {
       const target = this.enemyTarget();
       const enemyAction = this.areAdjacent(this.state.enemy, target) ? 'ATTACK' : 'MOVE_TOWARD';
       const before = this.snapshot;
-      this.effects = []; this.act(this.state.enemy, target, enemyAction);
+      this.effects = []; if (!this.skipFrozen(this.state.enemy)) this.act(this.state.enemy, target, enemyAction);
       this.refreshIntent(enemyActive);
       emit({ actor: 'konstrukt', action: enemyAction, before, after: this.snapshot, ...(this.effects.length ? { effects: this.effects } : {}) });
     }
@@ -82,6 +83,8 @@ export class BattleEngine {
       log: ['Trainingsarena bereit. Das Konstrukt beobachtet deinen Aktionsplan.'],
     };
     if (roster.length > 2) state.additionalAllies = roster.slice(2).map((id, index) => ally(id, 4 + index));
+    if (this.options.surfaces) state.surfaces = structuredClone(this.options.surfaces);
+    for (const unit of [...allies(state), state.enemy]) if (this.options.initialBurning?.includes(unit.id)) unit.burning = { remaining: 3, source: roster[0] };
     for (const actor of [...allies(state), state.enemy]) {
       if (actor && this.spawns?.[actor.id]) Object.assign(actor, this.spawns[actor.id]);
     }
@@ -120,7 +123,12 @@ export class BattleEngine {
       this.effects.push({ kind: 'cover', source: cover.id as ArkanId, target: target.id, amount: Math.min(actor.attackPower ?? 1, cover.hp), text });
       this.addLog(text); target = cover;
     }
-    const power = actor.attackPower ?? 1;
+    const reaction = actor.id !== 'konstrukt' && ARKANA_SPECIES[actor.id].basicAttack.element === 'fire' ? fireStrike(target, actor.attackPower ?? 1) : { power: actor.attackPower ?? 1, consumed: false };
+    const power = reaction.power;
+    if (reaction.consumed) {
+      const text = `Brand ausgenutzt: ${actor.name} verstärkt den direkten Feuerangriff auf 3 Schaden und verbraucht den Brand.`;
+      this.addLog(text); this.effects.push({ kind: 'combo', source: actor.id as ArkanId, target: target.id, amount: power, text });
+    }
     const damage = Math.min(target.hp, target.protection || target.armor ? Math.max(0, power - 2) : target.guarding ? 0 : power);
     const shield = target.armor ?? target.protection;
     if (shield && power > damage) this.effects.push({ kind: 'guard', source: shield.source, target: target.id, amount: Math.min(2, power), text: `${target.name}: ${target.armor ? 'Steinpanzer' : 'Rindenwacht'} fängt ${Math.min(2, power)} Schaden ab.` });
@@ -152,6 +160,7 @@ export class BattleEngine {
       this.effects.push({ kind: 'root', source: actor.rooted.source, target: actor.id, amount: 1, text }); return;
     }
     const occupant = [...allies(this.state), this.state.enemy].find((unit) => unit && unit.id !== actor.id && unit.x === nextX && unit.y === nextY);
+    if (surfaceBlocks(this.state.surfaces, { x: nextX, y: nextY })) { this.addLog('Bewegung blockiert: Wasser ist noch nicht vereist.'); return; }
     if (occupant || nextX < 0 || nextX >= GRID_SIZE || nextY < 0 || nextY >= GRID_SIZE) {
       this.addLog(`${actor.name}: Bewegung blockiert${occupant ? ` – Feld von ${occupant.name} belegt` : ' – Kartenrand'}.`);
       return;
@@ -172,7 +181,7 @@ export class BattleEngine {
   }
   private checkOutcome(): void {
     for (const unit of [...allies(this.state), this.state.enemy]) if (unit.hp <= 0) {
-      delete unit.burning; delete unit.regeneration; delete unit.rooted; delete unit.protection; delete unit.armor; delete unit.coveredBy; unit.guarding = false;
+      delete unit.burning; delete unit.chilled; delete unit.frozen; delete unit.regeneration; delete unit.rooted; delete unit.protection; delete unit.armor; delete unit.coveredBy; unit.guarding = false;
     }
     for (const unit of allies(this.state)) if (unit.coveredBy && !allies(this.state).some((source) => source.id === unit.coveredBy!.source && source.hp > 0)) delete unit.coveredBy;
     if (this.state.enemy.hp <= 0) { this.state.outcome = 'victory'; this.addLog('Sieg! Das Konstrukt ist ausgeschaltet.'); }
@@ -189,6 +198,13 @@ export class BattleEngine {
       onAction?.({ actor: effect.source, action: status === 'burning' ? 'IGNITE' : 'HEALING_MOSS', periodic: true, before, after: this.snapshot,
         effects: [{ kind: status === 'burning' ? 'burn' : 'heal', source: effect.source, target: unit.id, amount, text }] });
     }
+  }
+
+  private skipFrozen(unit: Combatant): boolean {
+    if (!unit.frozen) return false;
+    const source = unit.frozen.source; delete unit.frozen; delete unit.chilled;
+    const text = `${unit.name}: Eingefroren — die nächste reguläre Aktion fällt aus. Danach endet der Frostzustand.`;
+    this.addLog(text); this.effects.push({ kind: 'freeze', source, target: unit.id, amount: 1, text }); return true;
   }
 
   private addLog(entry: string): void {

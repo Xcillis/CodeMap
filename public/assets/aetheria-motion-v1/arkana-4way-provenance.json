@@ -23,6 +23,13 @@
       "alphaMin": 0,
       "transparentFraction": 0.6252,
       "processing": "Unmodified generated PNG. Alpha-bound frame rectangles and shared per-species foot canvas are metadata only."
+    },
+    "frostmolch-4way-v1.png": {
+      "sourceOutput": "exec-c047020b-103b-4de8-95ea-f0adf3a86bdb.png",
+      "sha256": "5399fb0ca6b94d5b1c24446a58efd9a60c154c977056892cc794cd9477be2ac3",
+      "alphaMin": 0,
+      "transparentFraction": 0.421,
+      "processing": "Unmodified generated PNG. Frame bounds and foot alignment stored as metadata only."
     }
   }
 }

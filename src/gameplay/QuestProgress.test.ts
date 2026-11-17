@@ -27,18 +27,18 @@ describe('Questreihen und tatsächlicher Fortschritt', () => {
   });
   it('bietet nach Mooslings Einstieg alle drei Übungen frei an und zählt Erledigtes nicht als nächsten Schritt', () => {
     const campaign = saved(); const before = campaign.snapshot;
-    expect(giverProgress(campaign, 'tala')).toMatchObject({ completed: 1, total: 6, ready: ['q08-team', 'q15-wurzelschutz', 'q16-heilmoos'], next: 'q08-team' });
+    expect(giverProgress(campaign, 'tala')).toMatchObject({ completed: 1, total: 7, ready: ['q08-team', 'q15-wurzelschutz', 'q16-heilmoos'], next: 'q08-team' });
     const rankenFirst = saved([...early, 'q15-wurzelschutz']);
     expect(giverProgress(rankenFirst, 'tala').ready).toEqual(['q08-team', 'q16-heilmoos']); expect(campaign.snapshot).toEqual(before);
   });
   it('fordert Branns externe Feuerprobe, bevor Talas Rollenkampf als bereit markiert wird', () => {
     const done: LessonId[] = [...early, 'q08-team', 'q15-wurzelschutz', 'q16-heilmoos'];
-    expect(giverProgress(saved(done), 'tala')).toMatchObject({ completed: 4, total: 6, ready: [], pending: 'q17-teamrollen' });
+    expect(giverProgress(saved(done), 'tala')).toMatchObject({ completed: 4, total: 7, ready: [], pending: 'q17-teamrollen' });
     expect(giverProgress(saved(done), 'tala').next).toBeUndefined();
     expect(giverProgress(saved([...done, 'q14-feuerprobe']), 'tala').next).toBe('q17-teamrollen');
   });
   it('empfiehlt nach vollständigem Abschluss keine Wiederholung als neue Quest und überspringt keine Besitzprüfung', () => {
-    const completed = saved(LESSON_IDS); expect(giverProgress(completed, 'tala')).toMatchObject({ completed: 6, total: 6, ready: [] });
+    const completed = saved(LESSON_IDS); expect(giverProgress(completed, 'tala')).toMatchObject({ completed: 7, total: 7, ready: [] });
     expect(giverProgress(completed, 'tala').next).toBeUndefined(); expect(giverProgress(completed, 'tala').pending).toBeUndefined();
     const missing = new Campaign({ ...saved().snapshot, completed: early.slice(0, -1), owned: [{ speciesId: 'glutling' }] });
     expect(giverProgress(missing, 'tala').next).toBeUndefined(); expect(missing.missionError('q07-moosling')).toContain('Finde zuerst Moosling');

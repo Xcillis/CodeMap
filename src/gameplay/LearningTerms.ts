@@ -19,6 +19,11 @@ const adaptiveExample = { lesson: 'q06-waechter' as const, title: 'Bei jedem Dur
   code: 'repeat(5, () => {\n  if (glutling.enemyAdjacent) {\n    glutling.flameStrike();\n  } else {\n    glutling.moveTowardEnemy();\n  }\n});' };
 
 export const LEARNING_TERMS: readonly LearningTerm[] = [
+  { id: 'while-loop', label: 'Bedingte Schleife', aliases: ['bedingte Schleife', 'bedingten Schleife', 'solange-Schleife'], lesson: 'q21-solangeweg', category: 'Programmieren',
+    explanation: 'Glutling fragt vor jedem Schritt, ob der Weg frei ist. Bei nein hört es mit Wiederholen auf und führt den Befehl darunter aus. Das heißt bedingte Schleife. Ist die Frage anfangs nein, wird der Rumpf keinmal ausgeführt.',
+    example: 'Solange voraus frei ist, geht Glutling vorwärts. Danach dreht es links. Die Weglänge bestimmt die Anzahl.', code: 'while (glutling.pathAheadClear) {\n  glutling.moveForward();\n}\nglutling.turnLeft();',
+    furtherExamples: [{ lesson: 'q22-solangekampf', title: 'Solange der Gegner lebt', example: 'Die Schleife prüft die Lebenspunkte, die innere Entscheidung prüft die Nähe.', code: 'while (glutling.enemyAlive) {\n  if (glutling.enemyAdjacent) { glutling.flameStrike(); }\n  else { glutling.moveTowardEnemy(); }\n}' }] },
+
   { id: 'instruction', label: 'Anweisung', aliases: ['Anweisung', 'Anweisungen'], lesson: 'q01-glutspur', category: 'Programmieren',
     explanation: 'Du sagst Glutling mit einem Befehl, was es tun soll. Ein solcher einzelner Befehl heißt Anweisung.',
     example: '„Gehe vorwärts“ bewegt Glutling genau ein Feld in die Richtung seines Pfeils. „Drehe 90° nach links“ verändert nur die Blickrichtung.', code: 'glutling.moveForward();\nglutling.turnLeft();' },
@@ -66,6 +71,11 @@ export function learnedTerms(completed: readonly LessonId[], legacyPassKnowledge
 }
 
 export const COMBAT_TERMS: readonly LearningTerm[] = [
+  { id: 'combination', label: 'Kombination', aliases: ['Kombination', 'Kombinationen'], lesson: 'q23-brandfolge', category: 'Spielwelt', explanation: 'Entzünden bereitet Brand vor. Ein direkter Feuerangriff nutzt ihn danach für 3 statt 2 Schaden und entfernt den Brand. Eine solche Folge passender Wirkungen heißt Kombination. Die Reihenfolge und der aktuelle Zustand zählen.', example: 'Erst Entzünden, danach Glutstoß, bevor der Brand ausläuft. 3 Schaden ist ein Testwert.', code: 'glutling.ignite();\nglutling.flameStrike();' },
+  { id: 'freezing', label: 'Einfrieren', aliases: ['Einfrieren', 'Eingefroren', 'Kühlung'], lesson: 'q24-frostfolge', category: 'Spielwelt', explanation: 'Die erste Kälte kühlt ein Ziel. Noch einmal Kälte vor Ablauf der Kühlung ersetzt sie durch Eingefroren. Genau die nächste reguläre Aktion fällt aus, danach endet der Zustand. Kälte von verschiedenen Arkanen kann zusammenwirken.', example: 'Gefrieren zweimal nacheinander: Kälte 1/2, dann 2/2. Der Zustand bleibt bis zur ausgefallenen Aktion.', code: 'frostmolch.chill();\nfrostmolch.chill();' },
+  { id: 'extinguishing', label: 'Zustand aufheben', aliases: ['Zustand aufheben', 'Löschen'], lesson: 'q25-loeschen', category: 'Spielwelt', explanation: 'Löschendes Wasser entfernt Brand sofort. Danach entfallen weitere Brandimpulse. Die gewählte Fähigkeit bestimmt, ob der Gegner oder ein brennender Verbündeter gelöscht wird.', example: 'Verbündeten löschen hilft dem brennenden Teammitglied mit dem niedrigsten LP-Anteil in Reichweite 3.', code: 'frostmolch.extinguishAlly();' },
+  { id: 'surface', label: 'Flächenzustand', aliases: ['Flächenzustand', 'Flächenzustände'], lesson: 'q26-eisbruecke', category: 'Spielwelt', explanation: 'Gefrieren verändert flaches Wasser zu Eis. Das Wasser blockiert, das Eis ist begehbar. Eine solche Eigenschaft des Bodens heißt Flächenzustand. Im Rätsel bleibt Eis für die Aufgabe bestehen; tiefes Wasser ist kein vereisbarer Übergang.', example: 'Erst das Wasserfeld direkt voraus vereisen, danach darauf gehen.', code: 'frostmolch.chill();\nfrostmolch.moveForward();' },
+
   { id: 'cover', label: 'Deckung', aliases: ['Deckung', 'deckt'], lesson: 'q19-deckung', category: 'Spielwelt',
     explanation: 'Felsbock übernimmt einen Treffer, der sonst ein anderes Arkana treffen würde. Das heißt Deckung. Es deckt zwei Schritte lang ein anderes lebendes Arkana in Reichweite 3. Ein Steinpanzer kann den übernommenen Schaden verringern.',
     example: 'Glutling wartet im ersten Schritt. Felsbock deckt es. Im zweiten Schritt greift Glutling an und Felsbock aktiviert seinen Steinpanzer.', code: 'felsbock.coverAlly();\nfelsbock.stoneArmor();' },

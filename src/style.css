@@ -269,3 +269,5 @@ button:focus-visible, select:focus-visible, textarea:focus-visible, summary:focu
 
 @media (min-width: 701px) { .battle-status.trio-status { grid-template-columns: auto repeat(4, minmax(0, 1fr)); } }
 .quest-replay-actions { display: flex; flex-wrap: wrap; gap: .5rem; padding: .5rem 1rem 1rem; }
+
+.frostmolch-avatar { background: linear-gradient(135deg, #b3f0ff, #387da7); }

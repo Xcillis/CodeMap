@@ -5,12 +5,13 @@ import { actionForCommand, actionMethod } from './ActionCatalog';
 export const MAX_PROGRAM_ACTIONS = 64;
 
 export function programCost(nodes: readonly ProgramNode[]): number {
-  return nodes.reduce((sum, node) => sum + (node.kind === 'action' ? 1 : node.kind === 'repeat' ? node.count * programCost(node.body) : Math.max(programCost(node.then), programCost(node.otherwise))), 0);
+  return nodes.reduce((sum, node) => sum + (node.kind === 'action' ? 1 : node.kind === 'repeat' ? node.count * programCost(node.body) : node.kind === 'while' ? Math.max(1, programCost(node.body)) : Math.max(programCost(node.then), programCost(node.otherwise))), 0);
 }
 
 function programWork(nodes: readonly ProgramNode[]): number {
-  return nodes.reduce((sum, node) => sum + 1 + (node.kind === 'repeat' ? node.count * programWork(node.body) : node.kind === 'if' ? Math.max(programWork(node.then), programWork(node.otherwise)) : 0), 0);
+  return nodes.reduce((sum, node) => sum + 1 + (node.kind === 'repeat' ? node.count * programWork(node.body) : node.kind === 'while' ? programWork(node.body) : node.kind === 'if' ? Math.max(programWork(node.then), programWork(node.otherwise)) : 0), 0);
 }
+export const hasWhile = (nodes: readonly ProgramNode[]): boolean => nodes.some((node) => node.kind === 'while' || (node.kind === 'repeat' && hasWhile(node.body)) || (node.kind === 'if' && (hasWhile(node.then) || hasWhile(node.otherwise))));
 
 /** Parses a bounded grammar. No JavaScript evaluation or code generation runtime. */
 export function compileActionPlan(source: string, expectedActor?: ArkanId): ActionPlanResult {
@@ -24,7 +25,7 @@ export function compileActionPlan(source: string, expectedActor?: ArkanId): Acti
     while (end < source.length && source.slice(end).trim()) {
       pattern.lastIndex = end;
       const token = pattern.exec(source);
-      if (!token) throw new Error('Unbekanntes Zeichen im Programm. Erlaubt sind Arkan-Befehle, repeat und if/else.');
+      if (!token) throw new Error('Unbekanntes Zeichen im Programm. Erlaubt sind Arkan-Befehle, repeat, while und if/else.');
       tokens.push(token[1]);
       positions.push(pattern.lastIndex - token[1].length);
       end = pattern.lastIndex;
@@ -56,13 +57,19 @@ export function compileActionPlan(source: string, expectedActor?: ArkanId): Acti
           const body = group(depth + 1, `${path}.body.`);
           take(')');
           nodes.push({ kind: 'repeat', count, body });
-        } else if (tokens[cursor] === 'if') {
-          cursor++; take('('); owner(); const condition = tokens[cursor++];
-          if (condition !== 'enemyAdjacent' && condition !== 'pathRightClear' && condition !== 'pathAheadClear' && condition !== 'allyInjured' && condition !== 'enemyBurning') throw new Error('Unbekannte Bedingung. Nutze eine Abfrage aus der Bibliothek.');
+        } else if (tokens[cursor] === 'if' || tokens[cursor] === 'while') {
+          const control = tokens[cursor++]; take('('); owner(); const condition = tokens[cursor++];
+          if (!['enemyAdjacent', 'pathRightClear', 'pathAheadClear', 'allyInjured', 'enemyBurning', 'enemyAlive', 'enemyChilled', 'enemyFrozen', 'allyBurning', 'waterAhead', 'iceAhead'].includes(condition)) throw new Error('Unbekannte Bedingung. Nutze eine Abfrage aus der Bibliothek.');
           take(')');
-          const then = group(depth + 1, `${path}.then.`);
+          const then = group(depth + 1, `${path}.${control === 'while' ? 'body' : 'then'}.`);
+          if (control === 'while') {
+            const body = then;
+            nodes.push({ kind: 'while', condition: condition as import('./types').ConditionId, body });
+            if (tokens[cursor] === ';') cursor++;
+            continue;
+          }
           const otherwise = tokens[cursor] === 'else' ? (cursor++, group(depth + 1, `${path}.otherwise.`)) : [];
-          nodes.push({ kind: 'if', ...(condition !== 'enemyAdjacent' ? { condition } : {}), then, otherwise });
+          nodes.push({ kind: 'if', ...(condition !== 'enemyAdjacent' ? { condition: condition as import('./types').ConditionId } : {}), then, otherwise });
         } else {
           owner();
           const command = tokens[cursor++];
@@ -108,6 +115,7 @@ export function nodesToSource(nodes: readonly ProgramNode[], actor: ArkanId, ind
   return nodes.map((node) => {
     if (node.kind === 'action') return `${indent}${actor}.${actionMethod(node.action, actor)}();`;
     if (node.kind === 'repeat') return `${indent}repeat(${node.count}, () => {\n${nodesToSource(node.body, actor, indent + '  ')}\n${indent}});`;
+    if (node.kind === 'while') return `${indent}while (${actor}.${node.condition}) {\n${nodesToSource(node.body, actor, indent + '  ')}\n${indent}}`;
     return `${indent}if (${actor}.${node.condition ?? 'enemyAdjacent'}) {\n${nodesToSource(node.then, actor, indent + '  ')}\n${indent}}${node.otherwise.length ? ` else {\n${nodesToSource(node.otherwise, actor, indent + '  ')}\n${indent}}` : ''}`;
   }).join('\n');
 }

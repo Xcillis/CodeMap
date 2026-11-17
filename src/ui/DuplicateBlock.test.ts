@@ -1,10 +1,14 @@
 // @vitest-environment jsdom
 import * as Blockly from 'blockly/core';
-import { describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { loadNodes, workspaceNodes } from './SnapEditor';
 import { canDuplicateBlock, duplicateBlock } from './DuplicateBlock';
 
 describe('Block duplizieren', () => {
+  // Blockly batches events globally. Drain each test's queue before switching
+  // clocks so an earlier disposed workspace cannot retain the pending flush.
+  beforeEach(() => { vi.useFakeTimers(); });
+  afterEach(async () => { await vi.runAllTimersAsync(); vi.useRealTimers(); });
   it('kopiert den vollständigen verschachtelten Schleifenrumpf, aber keinen nachfolgenden Block', () => {
     const workspace = new Blockly.Workspace();
     try {
@@ -68,7 +72,6 @@ describe('Block duplizieren', () => {
   });
 
   it('kann eine Kopie einschließlich Rumpf mit einem Undo entfernen und wiederherstellen', async () => {
-    vi.useFakeTimers();
     const workspace = new Blockly.Workspace();
     try {
       loadNodes(workspace, [{ kind: 'repeat', count: 3, body: [{ kind: 'action', action: 'ATTACK' }] }], 'moosling');
@@ -84,6 +87,6 @@ describe('Block duplizieren', () => {
       workspace.undo(true);
       expect(workspace.getBlockById(id)?.getInputTargetBlock('BODY')?.type).toBe('cm_attack');
       expect(workspace.getAllBlocks(false)).toHaveLength(5);
-    } finally { workspace.dispose(); vi.useRealTimers(); }
+    } finally { workspace.dispose(); }
   });
 });
