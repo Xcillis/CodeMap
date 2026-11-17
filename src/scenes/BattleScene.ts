@@ -1,3 +1,4 @@
+import { FACINGS, FACING_LABELS, facingOf, isTurn } from '../combat/Movement';
 import { partyMembers } from '../combat/Party';
 import Phaser from 'phaser';
 import { BattleSession, missionPrograms } from '../combat/BattleSession';
@@ -24,7 +25,7 @@ export class BattleScene extends Phaser.Scene {
   private grid!: Phaser.GameObjects.Graphics;
   private actors!: Phaser.GameObjects.Container;
   private effects!: Phaser.GameObjects.Container;
-  private visuals = new Map<Combatant['id'], { root: Phaser.GameObjects.Container; marker: Phaser.GameObjects.Arc; figure: Phaser.GameObjects.Image | Phaser.GameObjects.Sprite | Phaser.GameObjects.Arc; label: Phaser.GameObjects.Text }>();
+  private visuals = new Map<Combatant['id'], { root: Phaser.GameObjects.Container; marker: Phaser.GameObjects.Arc; figure: Phaser.GameObjects.Image | Phaser.GameObjects.Sprite | Phaser.GameObjects.Arc; label: Phaser.GameObjects.Text; direction: Phaser.GameObjects.Triangle }>();
   private currentFrame?: ActionFrame<EncounterState>;
   private playback = new Playback<ActionFrame<EncounterState>>(
     (frame, duration) => this.animateFrame(frame, duration),
@@ -190,8 +191,9 @@ export class BattleScene extends Phaser.Scene {
       if (actor.id !== 'konstrukt') marker.setInteractive({ useHandCursor: true }).on('pointerdown', () => gameEvents.emit('arkan-selected', actor.id));
       if (art && actor.id !== 'konstrukt') art.setInteractive({ useHandCursor: true }).on('pointerdown', () => gameEvents.emit('arkan-selected', actor.id));
       const label = this.add.text(0, -30, '', { fontFamily: 'Georgia, serif', fontSize: '9px', align: 'center', color: textColor, stroke: '#142c35', strokeThickness: 2 }).setOrigin(.5);
-      const root = this.add.container(x, y, [marker, ...(art ? [art] : []), label]); this.actors.add(root);
-      visual = { root, marker, figure: art ?? marker, label }; this.visuals.set(actor.id, visual);
+      const direction = this.add.triangle(0, 37, 0, 0, 14, 6, 0, 12, 0xffe28a).setStrokeStyle(1, 0x243c37).setVisible(actor.id !== 'konstrukt');
+      const root = this.add.container(x, y, [marker, ...(art ? [art] : []), label, direction]); this.actors.add(root);
+      visual = { root, marker, figure: art ?? marker, label, direction }; this.visuals.set(actor.id, visual);
     }
     visual.root.setPosition(x, y).setScale(1).setAlpha(actor.hp > 0 ? 1 : .3);
     if (visual.figure instanceof Phaser.GameObjects.Sprite) {
@@ -200,6 +202,7 @@ export class BattleScene extends Phaser.Scene {
     } else visual.figure.setScale(visual.figure instanceof Phaser.GameObjects.Image ? 48 / visual.figure.frame.height : 1);
     visual.figure.setAlpha(1);
     visual.marker.setScale(1).setAlpha(1).setStrokeStyle(actor.protection || actor.armor || actor.coveredBy ? 4 : 2, actor.protection || actor.armor || actor.coveredBy ? 0x8cc8e2 : 0xffffff);
+    visual.direction.setRotation(FACINGS.indexOf(facingOf(actor)) * Math.PI / 2);
     visual.label.setText(this.actorLabel(actor));
   }
 
@@ -214,6 +217,7 @@ export class BattleScene extends Phaser.Scene {
     const after = units(frame.after).find((actor) => actor.id === frame.actor)!;
     const visual = this.visuals.get(frame.actor)!;
     visual.marker.setStrokeStyle(5, 0xffdf6d);
+    if (isTurn(frame.action)) this.tweens.add({ targets: visual.direction, rotation: FACINGS.indexOf(facingOf(before)) * Math.PI / 2 + (frame.action === 'TURN_LEFT' ? -Math.PI / 2 : Math.PI / 2), duration, ease: 'Sine.easeInOut' });
     const moved = before.x !== after.x || before.y !== after.y;
     let explanation = '';
     if (frame.effects?.length) {
@@ -225,6 +229,8 @@ export class BattleScene extends Phaser.Scene {
         this.tweens.add({ targets: target.figure, alpha: .35, duration: duration * .13, repeat: 1, yoyo: true });
       }
       explanation = frame.effects.map((effect) => effect.text).join(' ');
+    } else if (isTurn(frame.action)) {
+      explanation = `${ACTIONS[frame.action].label}; Blickrichtung ${FACING_LABELS[facingOf(after)]}`;
     } else if (moved) {
       if (visual.figure instanceof Phaser.GameObjects.Sprite) playMotion(visual.figure, frame.actor, 'walk', after.x - before.x);
       this.tweens.add({ targets: visual.root, x: GRID_START_X + after.x * TILE + TILE / 2, y: GRID_START_Y + after.y * TILE + TILE / 2, duration: duration * .6, ease: 'Sine.easeInOut', onComplete: () => { if (visual.figure instanceof Phaser.GameObjects.Sprite) playMotion(visual.figure, frame.actor, 'idle'); } });

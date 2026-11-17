@@ -31,7 +31,7 @@ describe('Block duplizieren', () => {
       copy.setFieldValue(4, 'COUNT');
       copy.getInputTargetBlock('BODY')!.dispose(true);
       expect(original.getFieldValue('COUNT')).toBe(2);
-      expect(original.getInputTargetBlock('BODY')!.type).toBe('cm_move');
+      expect(original.getInputTargetBlock('BODY')!.type).toBe('cm_move_toward');
       expect(workspaceNodes(workspace)).toEqual(before);
     } finally { workspace.dispose(); }
   });
@@ -42,7 +42,7 @@ describe('Block duplizieren', () => {
       loadNodes(workspace, [{ kind: 'action', action: 'MOVE_TOWARD' }, { kind: 'action', action: 'ATTACK' }], 'glutling');
       const original = workspace.getTopBlocks(false)[0].getNextBlock()!;
       const copy = duplicateBlock(original)!;
-      expect(copy.type).toBe('cm_move');
+      expect(copy.type).toBe('cm_move_toward');
       expect(copy.getParent()).toBeNull();
       expect(copy.getNextBlock()).toBeNull();
       expect(workspace.getAllBlocks(false)).toHaveLength(4);

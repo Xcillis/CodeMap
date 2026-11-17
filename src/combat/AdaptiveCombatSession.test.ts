@@ -4,7 +4,7 @@ import { LessonSession } from './LessonSession';
 import { compileActionPlan, nodesToSource } from './DecisionProgram';
 
 const lesson = getLesson('q06-waechter');
-const choice = 'if (glutling.enemyAdjacent) { glutling.attack(); } else { glutling.moveForward(); }';
+const choice = 'if (glutling.enemyAdjacent) { glutling.attack(); } else { glutling.moveTowardEnemy(); }';
 const source = `repeat(5, () => { ${choice} });`;
 const create = () => new LessonSession(lesson, lesson.allowed);
 
@@ -39,12 +39,12 @@ describe('Q06: neue Entscheidungen in jedem Schleifendurchlauf', () => {
   });
   it('lässt einen Sieg ohne wiederholt geprüfte innere Bedingung als offene Lernübung stehen', () => {
     for (const invalid of [
-      'glutling.moveForward(); glutling.attack(); glutling.attack(); glutling.attack();',
-      'repeat(2, () => {}); glutling.moveForward(); repeat(3, () => { glutling.attack(); });',
+      'glutling.moveTowardEnemy(); glutling.attack(); glutling.attack(); glutling.attack();',
+      'repeat(2, () => {}); glutling.moveTowardEnemy(); repeat(3, () => { glutling.attack(); });',
       `repeat(1, () => { ${choice} }); repeat(3, () => { glutling.attack(); });`,
       `${choice} repeat(3, () => { glutling.attack(); });`,
-      'if (glutling.enemyAdjacent) { repeat(3, () => { glutling.attack(); }); } else { repeat(1, () => { glutling.moveForward(); }); repeat(3, () => { glutling.attack(); }); }',
-      'repeat(4, () => { if (glutling.enemyAdjacent) { glutling.attack(); } if (glutling.enemyAdjacent) {} else { glutling.moveForward(); } });',
+      'if (glutling.enemyAdjacent) { repeat(3, () => { glutling.attack(); }); } else { repeat(1, () => { glutling.moveTowardEnemy(); }); repeat(3, () => { glutling.attack(); }); }',
+      'repeat(4, () => { if (glutling.enemyAdjacent) { glutling.attack(); } if (glutling.enemyAdjacent) {} else { glutling.moveTowardEnemy(); } });',
       `repeat(1, () => { ${choice} }); repeat(1, () => { ${choice} }); repeat(2, () => { glutling.attack(); });`,
     ]) {
       const session = create(); expect(session.execute({ glutling: invalid }, true), invalid).toContain('Lernziel noch offen');
@@ -53,7 +53,7 @@ describe('Q06: neue Entscheidungen in jedem Schleifendurchlauf', () => {
     }
   });
   it('verlangt den Nachweis in jeder Situation und akzeptiert gleichwertige verschachtelte Lösungen', () => {
-    for (const valid of [source.replace('repeat(5', 'repeat(6'), source.replace('moveForward', 'moveRight'), `repeat(1, () => { ${source} });`]) {
+    for (const valid of [source.replace('repeat(5', 'repeat(6'), source.replace('moveTowardEnemy', 'moveRight'), `repeat(1, () => { ${source} });`]) {
       const session = create(); session.execute({ glutling: valid }, true); expect(session.snapshot.outcome, valid).toBe('victory');
     }
     // The adjacent second start never produces a useful false branch.
@@ -66,7 +66,7 @@ describe('Q06: neue Entscheidungen in jedem Schleifendurchlauf', () => {
   it('erkennt Niederlage und zu kurze Programme, ohne einen Teilerfolg als Gesamtsieg anzuzeigen', () => {
     const short = create(); short.execute({ glutling: `repeat(4, () => { ${choice} });` }, true);
     expect(short.snapshot).toMatchObject({ outcome: 'incomplete', enemy: { hp: 2 }, lessonTrial: { current: 2, passed: 1 } });
-    const wrong = create(); wrong.execute({ glutling: 'repeat(6, () => { if (glutling.enemyAdjacent) { glutling.moveForward(); } else { glutling.attack(); } });' }, true);
+    const wrong = create(); wrong.execute({ glutling: 'repeat(6, () => { if (glutling.enemyAdjacent) { glutling.moveTowardEnemy(); } else { glutling.attack(); } });' }, true);
     expect(wrong.snapshot).toMatchObject({ outcome: 'defeat', player: { hp: 0 }, lessonTrial: { passed: 0 } });
     const emptyBranch = create(); emptyBranch.execute({ glutling: lesson.starter }, true);
     expect(emptyBranch.snapshot).toMatchObject({ outcome: 'incomplete', tick: 0, lessonTrial: { passed: 0 } });
@@ -74,7 +74,7 @@ describe('Q06: neue Entscheidungen in jedem Schleifendurchlauf', () => {
   });
   it('erhält laufende Zustände bei Syntax- und Freigabefehlern und erlaubt einen leeren Entwurf', () => {
     const session = create(); session.execute({ glutling: source }); const before = session.snapshot;
-    for (const invalid of ['glutling.', 'attack();', 'moosling.attack();', 'if (glutling.pathRightClear) { glutling.moveLeft(); }', `repeat(6, () => { ${choice} glutling.attack(); glutling.attack(); });`]) {
+    for (const invalid of ['glutling.', 'attack();', 'moosling.attack();', 'if (glutling.pathRightClear) { glutling.moveLeft(); }', `repeat(6, () => { repeat(6, () => { ${choice} glutling.attack(); glutling.attack(); }); });`]) {
       session.execute({ glutling: invalid }, true); expect(session.snapshot, invalid).toEqual(before); expect(session.frames).toEqual([]);
     }
     expect(session.execute({ glutling: '' }, true)).toContain('leer'); expect(session.snapshot.tick).toBe(0);

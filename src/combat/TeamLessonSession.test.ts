@@ -21,7 +21,7 @@ describe('Moosling und zwei eigene Programme', () => {
     expect(session.frames.every((frame) => frame.actor === 'moosling')).toBe(true);
     session.reset(); const before = session.snapshot;
     session.execute({ moosling: 'glutling.attack();' }, true); expect(session.snapshot).toEqual(before);
-    expect(session.execute({ moosling: 'moosling.moveForward();' }, true)).toContain('nicht freigegeben');
+    expect(session.execute({ moosling: 'moosling.moveTowardEnemy();' }, true)).toContain('nicht freigegeben');
     expect(session.snapshot).toEqual(before);
   });
   it('führt beide Programme in fester Reihenfolge aus und akzeptiert den gemeinsamen Trefferbeitrag', () => {

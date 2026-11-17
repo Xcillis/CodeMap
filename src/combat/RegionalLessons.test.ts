@@ -22,7 +22,7 @@ describe('Verschachtelte Schleifen und bedingte Rätsel', () => {
       expect(s.snapshot.runes?.every((rune) => rune.activated)).toBe(true); expect(s.frames.every((f) => f.after.outcome !== 'victory')).toBe(true);
     }
     const s = new LessonSession(lesson, lesson.allowed); s.execute(QUEST_SOLUTIONS[lesson.id], true); expect(s.snapshot.outcome).toBe('victory');
-    expect(s.frames.filter((f) => f.action === 'MOVE_RIGHT').map((f) => f.trace?.loops.map((loop) => loop.iteration))).toEqual([[1, 1], [1, 2], [2, 1], [2, 2]]);
+    expect(s.frames.filter((f) => f.action === 'MOVE_FORWARD' && f.trace?.loops.length === 2).map((f) => f.trace?.loops.map((loop) => loop.iteration))).toEqual([[1, 1], [1, 2], [2, 1], [2, 2]]);
     s.reset(); s.execute({ glutling: `${row}\n${row}` }, true); expect(s.snapshot.outcome).toBe('incomplete');
   });
   it('unterscheidet einen flachen Treppenweg vom tatsächlich verschachtelten Programm', () => {
@@ -40,8 +40,8 @@ describe('Verschachtelte Schleifen und bedingte Rätsel', () => {
   it('prüft den realen Weg vor jeder Bewegung und zeichnet beide Antworten auf', () => {
     const lesson = getLesson('q13-lichtpfad'); const s = new LessonSession(lesson, lesson.allowed);
     s.execute(QUEST_SOLUTIONS[lesson.id], true); expect(s.snapshot).toMatchObject({ outcome: 'victory', player: { x: 3, y: 2 } });
-    expect(s.frames.map((f) => f.trace?.conditions[0].value)).toEqual([false, true, true, false]);
-    expect(s.frames.every((f) => f.trace?.conditions[0].condition === 'pathRightClear')).toBe(true);
+    expect(s.frames.filter((f) => f.action === 'MOVE_FORWARD').map((f) => f.trace?.conditions[0].value)).toEqual([false, true, true, false]);
+    expect(s.frames.every((f) => f.trace?.conditions[0].condition === 'pathAheadClear')).toBe(true);
     const nodes = compileActionPlan(QUEST_SOLUTIONS[lesson.id].glutling!, 'glutling').nodes!;
     expect(compileActionPlan(nodesToSource(nodes, 'glutling'), 'glutling').nodes).toEqual(nodes);
     s.execute({ glutling: 'glutling.moveUp(); glutling.moveRight(); glutling.moveRight(); glutling.moveUp();' }, true);

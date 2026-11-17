@@ -7,7 +7,7 @@ describe('Aktions-Trace', () => {
   it('ordnet verschachtelte Aktionen ihrer Quellzeile und jedem Schleifendurchlauf zu', () => {
     const parsed = compileActionPlan(`repeat(2, () => {
   repeat(2, () => {
-    moosling.moveForward();
+    moosling.moveTowardEnemy();
   });
   moosling.attack();
 });`, 'moosling');
@@ -20,7 +20,7 @@ describe('Aktions-Trace', () => {
   });
 
   it('vermerkt den tatsächlich gewählten Bedingungszweig und prüft bei erneutem Eintritt neu', () => {
-    const parsed = compileActionPlan('repeat(2, () => { if (moosling.enemyAdjacent) { moosling.attack(); } else { moosling.moveForward(); } });');
+    const parsed = compileActionPlan('repeat(2, () => { if (moosling.enemyAdjacent) { moosling.attack(); } else { moosling.moveTowardEnemy(); } });');
     const runner = new ProgramRunner(parsed.nodes!);
     expect(runner.next(false)).toEqual({ kind: 'action', action: 'MOVE_TOWARD' });
     expect(runner.lastTrace).toMatchObject({ path: '0.body.0.otherwise.0', conditions: [{ path: '0.body.0', value: false }] });

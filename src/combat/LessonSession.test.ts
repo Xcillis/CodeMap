@@ -12,8 +12,8 @@ const solutions = [
   'glutling.moveRight(); glutling.moveRight(); glutling.attack(); glutling.attack();',
   'repeat(4, () => { glutling.moveRight(); });',
   'repeat(3, () => { glutling.moveRight(); glutling.moveUp(); });',
-  'if (glutling.enemyAdjacent) { glutling.attack(); } else { glutling.moveForward(); }',
-  'repeat(5, () => { if (glutling.enemyAdjacent) { glutling.attack(); } else { glutling.moveForward(); } });',
+  'if (glutling.enemyAdjacent) { glutling.attack(); } else { glutling.moveTowardEnemy(); }',
+  'repeat(5, () => { if (glutling.enemyAdjacent) { glutling.attack(); } else { glutling.moveTowardEnemy(); } });',
   'repeat(2, () => { moosling.moveRight(); }); repeat(3, () => { moosling.attack(); });',
   '',
 ];
@@ -31,7 +31,7 @@ describe('Lernaufgaben mit eigenen Freigaben und Zielen', () => {
     const programs = QUEST_SOLUTIONS[id];
     full.execute(programs, true);
     const frames = [];
-    for (let count = 0; count < 12 && steps.snapshot.outcome === 'ongoing'; count++) { steps.execute(programs); frames.push(...steps.frames); }
+    for (let count = 0; count < 64 && steps.snapshot.outcome === 'ongoing'; count++) { steps.execute(programs); frames.push(...steps.frames); }
     expect(steps.snapshot).toEqual(full.snapshot); expect(frames).toEqual(full.frames); expect(full.snapshot.outcome).toBe('victory');
     expect(Boolean(full.snapshot.enemy)).toBe(lesson.kind === 'combat');
     full.reset(); expect(full.snapshot.tick).toBe(0);

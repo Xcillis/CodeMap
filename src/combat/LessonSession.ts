@@ -101,7 +101,7 @@ export class LessonSession {
       const moved = before.player.x !== raw.player.x || before.player.y !== raw.player.y;
       const hit = Boolean(before.enemy && raw.enemy && raw.enemy.hp < before.enemy.hp);
       const effective = this.lesson.kind === 'combat' && this.lesson.repeatGoal === 'nested' ? hit : moved || hit;
-      this.repeatProgress.record(step.action, moved, trace, effective);
+      this.repeatProgress.record(step.action, moved, trace, effective, { x: raw.player.x - before.player.x, y: raw.player.y - before.player.y });
       this.branchProgress.record(step.action, before, raw, trace);
       this.actionFrames.push({ actor: this.actor, action: step.action, before, after: this.snapshot, trace: trace ? structuredClone({ ...trace, line: parsed.sourceMap?.[trace.path] }) : undefined });
     } while (full && this.snapshot.outcome === 'ongoing' && (this.nextTrial || !this.runner?.done));
@@ -117,12 +117,12 @@ export class LessonSession {
     const state = this.snapshot;
     if (state.outcome === 'victory') return 'Questziel erreicht! Kehre zur Spielwelt zurück, um den nächsten Schritt zu erfahren.';
     if (state.lessonTrial) return `Situation ${state.lessonTrial.current}/${state.lessonTrial.total} · ${state.lessonTrial.passed} geschafft. ${state.lessonTrial.message}`;
-    if (state.outcome === 'incomplete' && this.runeRowProgress) return 'Alle Runen leuchten. Der gemeinsame Reihenablauf fehlt noch: Lege die innere Rechtsschleife, den Rückweg und den Reihenwechsel zusammen in eine äußere Wiederholung. So bearbeitet dieselbe innere Schleife jede neue Reihe erneut.';
+    if (state.outcome === 'incomplete' && this.runeRowProgress) return 'Alle Runen leuchten. Der gemeinsame Reihenablauf fehlt noch: Lege die innere Vorwärtsschleife, den Rückweg und den Reihenwechsel zusammen in eine äußere Wiederholung. So bearbeitet dieselbe innere Schleife jede neue Reihe erneut.';
     if (state.outcome === 'incomplete' && this.lesson.repeatGoal === 'nested') return 'Rune erreicht. Die Verschachtelungsübung ist noch offen: Die innere Schleife soll die Rechtsschritte einer Stufe bearbeiten; die äußere wiederholt diese ganze Stufe mit dem Wechsel nach oben. Bei jeder neuen Stufe beginnt die innere erneut.';
     if (state.outcome === 'incomplete' && this.lesson.repeatGoal === 'effective') return 'Konstrukt ausgeschaltet, Schleifenübung noch offen: Wiederhole mindestens zwei wirksame Bewegungen oder Treffer mit derselben Schleife.';
     if (state.outcome === 'incomplete' && this.lesson.kind === 'puzzle' && this.lesson.branchGoal) return 'Rune erreicht, Entscheidungsübung noch offen: Dieselbe Weg-Abfrage muss ja und nein ergeben und jeweils die passende Bewegung auslösen.';
     if (state.outcome === 'incomplete') return this.lesson.kind === 'puzzle' && this.lesson.repeatGoal === 'movement-sequence'
-      ? 'Rune erreicht. Die Musterübung ist noch offen: Wiederhole rechts und oben gemeinsam in derselben Schleife mindestens zweimal erfolgreich. Einzelbefehle, getrennte Schleifen und blockierte Schritte zählen nicht als gemeinsames Muster.'
+      ? 'Rune erreicht. Die Musterübung ist noch offen: Wiederhole den ganzen Eckablauf mit Bewegung und Drehung gemeinsam in derselben Schleife mindestens zweimal erfolgreich. Einzelbefehle, getrennte Schleifen und blockierte Schritte zählen nicht als gemeinsames Muster.'
       : 'Rune erreicht. Die Schleifenübung ist noch offen: Wiederhole eine Bewegung mindestens zweimal mit einer Schleife.';
     if (this.runner?.done) return 'Programm beendet. Das Ziel ist noch nicht erreicht. Ergänze oder verändere deine Anweisungen.';
     return `Schritt ${state.tick}: Beobachte die aktive Anweisung und führe den nächsten Schritt aus.`;

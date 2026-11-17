@@ -1,8 +1,8 @@
 import type { ArkanId, CombatRole } from '../combat/types';
 
-export type SkillId = 'moveForward' | 'moveRight' | 'moveLeft' | 'moveUp' | 'moveDown' | 'attack' | 'enemyAdjacent' | 'repeat' | 'pathRightClear' | 'ignite' | 'vineSnare' | 'healingMoss' | 'barkGuard' | 'stoneArmor' | 'coverAlly' | 'wait' | 'allyInjured' | 'enemyBurning';
+export type SkillId = 'moveBackward' | 'turnLeft' | 'turnRight' | 'moveTowardEnemy' | 'pathAheadClear' | 'moveForward' | 'moveRight' | 'moveLeft' | 'moveUp' | 'moveDown' | 'attack' | 'enemyAdjacent' | 'repeat' | 'pathRightClear' | 'ignite' | 'vineSnare' | 'healingMoss' | 'barkGuard' | 'stoneArmor' | 'coverAlly' | 'wait' | 'allyInjured' | 'enemyBurning';
 export const ROLE_NAMES: Record<CombatRole, string> = { damage: 'Schaden', healing: 'Heilung', support: 'Unterstützung', tank: 'Schutz / Tank' };
-export const BASIC_MOVEMENT = ['moveRight', 'moveLeft', 'moveUp', 'moveDown'] as const satisfies readonly SkillId[];
+export const BASIC_MOVEMENT = ['moveForward', 'moveBackward', 'turnLeft', 'turnRight'] as const satisfies readonly SkillId[];
 export type ArkanaType = 'fire' | 'water' | 'nature' | 'shadow' | 'light';
 
 export const ARKANA_TYPES: Record<ArkanaType, { name: string; role: string }> = {
@@ -14,7 +14,7 @@ export const ARKANA_TYPES: Record<ArkanaType, { name: string; role: string }> = 
 };
 
 export const SKILL_NAMES: Record<SkillId, string> = {
-  moveForward: 'Zum nächsten Gegner gehen', attack: 'Artspezifischer Nahkampf', repeat: 'Wiederholen', enemyAdjacent: 'Gegnernähe abfragen',
+  moveForward: 'Vorwärts gehen', moveBackward: 'Rückwärts gehen', turnLeft: '90° nach links drehen', turnRight: '90° nach rechts drehen', moveTowardEnemy: 'Zum nächsten Gegner gehen', pathAheadClear: 'Weg voraus frei abfragen', attack: 'Artspezifischer Nahkampf', repeat: 'Wiederholen', enemyAdjacent: 'Gegnernähe abfragen',
   moveRight: 'Nach rechts gehen', moveLeft: 'Nach links gehen', moveUp: 'Nach oben gehen', moveDown: 'Nach unten gehen',
   pathRightClear: 'Weg rechts frei abfragen',
   stoneArmor: 'Steinpanzer', coverAlly: 'Verbündeten decken',
@@ -44,7 +44,7 @@ export const ARKANA_SPECIES: Record<ArkanId, ArkanaSpecies> = {
     strength: 'Unterstützt das Team mit Rankenfessel und Heilung über Zeit.',
     weakness: 'Nur 1 Rankenhieb-Schaden und kein Panzerschutz. Ranken verhindern keine benachbarten Angriffe.',
     roles: ['healing', 'support'], plannedAbilities: ['Rankenbrücken in der Spielwelt'],
-    supported: ['moveForward', 'moveRight', 'moveLeft', 'moveUp', 'moveDown', 'attack', 'repeat', 'enemyAdjacent', 'pathRightClear', 'vineSnare', 'healingMoss', 'wait', 'allyInjured'],
+    supported: [...BASIC_MOVEMENT, 'moveTowardEnemy', 'pathAheadClear', 'moveRight', 'moveLeft', 'moveUp', 'moveDown', 'attack', 'repeat', 'enemyAdjacent', 'pathRightClear', 'vineSnare', 'healingMoss', 'wait', 'allyInjured'],
   },
   glutling: {
     id: 'glutling', name: 'Glutling', type: 'fire', maxHp: 4, attack: 2,
@@ -52,7 +52,7 @@ export const ARKANA_SPECIES: Record<ArkanId, ArkanaSpecies> = {
     strength: 'Sein Glutstoß verursacht 2 Schaden. Entzünden ergänzt später anhaltenden Brandschaden.',
     weakness: 'Mit 4 Lebenspunkten weniger widerstandsfähig als Moosling.',
     roles: ['damage'], plannedAbilities: ['Fackeln entzünden und Eis auftauen'],
-    supported: ['moveForward', 'moveRight', 'moveLeft', 'moveUp', 'moveDown', 'attack', 'repeat', 'enemyAdjacent', 'pathRightClear', 'ignite', 'wait', 'enemyBurning'],
+    supported: [...BASIC_MOVEMENT, 'moveTowardEnemy', 'pathAheadClear', 'moveRight', 'moveLeft', 'moveUp', 'moveDown', 'attack', 'repeat', 'enemyAdjacent', 'pathRightClear', 'ignite', 'wait', 'enemyBurning'],
   },
   felsbock: {
     id: 'felsbock', name: 'Felsbock', type: 'nature', maxHp: 8, attack: 1,
@@ -60,7 +60,7 @@ export const ARKANA_SPECIES: Record<ArkanId, ArkanaSpecies> = {
     strength: '8 Lebenspunkte, Steinpanzer und Deckung für ein anderes Arkana machen es zum widerstandsfähigen Beschützer.',
     weakness: 'Sein Steinstoß verursacht nur 1 Schaden. Deckung übernimmt Schaden und braucht Heilung oder einen Steinpanzer.',
     roles: ['tank'], plannedAbilities: ['Felsen in der Spielwelt verschieben'],
-    supported: [...BASIC_MOVEMENT, 'moveForward', 'attack', 'repeat', 'enemyAdjacent', 'pathRightClear', 'stoneArmor', 'coverAlly', 'wait', 'allyInjured'],
+    supported: [...BASIC_MOVEMENT, 'moveTowardEnemy', 'pathAheadClear', 'moveRight', 'moveLeft', 'moveUp', 'moveDown', 'attack', 'repeat', 'enemyAdjacent', 'pathRightClear', 'stoneArmor', 'coverAlly', 'wait', 'allyInjured'],
   },
 };
 export const ARKANA_IDS = Object.keys(ARKANA_SPECIES) as ArkanId[];

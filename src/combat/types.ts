@@ -1,4 +1,5 @@
-export type CombatAction = 'ATTACK' | 'MOVE_TOWARD' | 'MOVE_RIGHT' | 'MOVE_LEFT' | 'MOVE_UP' | 'MOVE_DOWN' | 'IGNITE' | 'VINE_SNARE' | 'HEALING_MOSS' | 'BARK_GUARD' | 'STONE_ARMOR' | 'COVER_ALLY' | 'WAIT';
+import type { Facing } from './Movement';
+export type CombatAction = 'ATTACK' | 'MOVE_TOWARD' | 'MOVE_FORWARD' | 'MOVE_BACKWARD' | 'TURN_LEFT' | 'TURN_RIGHT' | 'MOVE_RIGHT' | 'MOVE_LEFT' | 'MOVE_UP' | 'MOVE_DOWN' | 'IGNITE' | 'VINE_SNARE' | 'HEALING_MOSS' | 'BARK_GUARD' | 'STONE_ARMOR' | 'COVER_ALLY' | 'WAIT';
 export type AbilityEvidence = 'burn' | 'root' | 'heal' | 'guard' | 'cover';
 export type CombatRole = 'damage' | 'healing' | 'support' | 'tank';
 export interface TimedEffect { remaining: number; source: ArkanId }
@@ -6,7 +7,7 @@ export interface CombatEffect { kind: AbilityEvidence | 'damage'; source: ArkanI
 export type BattleOutcome = 'ongoing' | 'victory' | 'defeat' | 'incomplete';
 export type ArkanId = 'moosling' | 'glutling' | 'felsbock';
 export type ProgramSources = Partial<Record<ArkanId, string>>;
-export type ConditionId = 'enemyAdjacent' | 'pathRightClear' | 'allyInjured' | 'enemyBurning';
+export type ConditionId = 'enemyAdjacent' | 'pathRightClear' | 'pathAheadClear' | 'allyInjured' | 'enemyBurning';
 export type ProgramNode =
   | { kind: 'action'; action: CombatAction }
   | { kind: 'repeat'; count: number; body: ProgramNode[] }
@@ -38,6 +39,7 @@ export interface GridPosition {
 }
 
 export interface Combatant extends GridPosition {
+  facing?: Facing;
   id: ArkanId | 'konstrukt';
   name: string;
   hp: number;

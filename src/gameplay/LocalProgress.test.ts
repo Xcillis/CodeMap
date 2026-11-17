@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { Campaign } from './Campaign';
 import { instanceId } from './ArkanaCatalog';
 import { LESSON_IDS } from './WorldQuests';
+import { migrateMovementSource } from './MovementMigration';
 const key = 'codemap-m2-progress';
 beforeEach(() => { vi.restoreAllMocks(); vi.resetModules(); localStorage.clear(); });
 
@@ -23,7 +24,7 @@ describe('Lokaler Weltfortschritt', () => {
     expect(restored.snapshot.owned).toHaveLength(2); expect(restored.availableEncounters).toEqual([]);
   });
   it('führt einen Q05-Spielstand ohne Reset zu Q06 und speichert den neuen Entwurf unabhängig', async () => {
-    const programs = { 'q05-aufmerksam:glutling': 'if (glutling.enemyAdjacent) { glutling.attack(); } else { glutling.moveForward(); }', '2:glutling': 'glutling.' };
+    const programs = { 'q05-aufmerksam:glutling': 'if (glutling.enemyAdjacent) { glutling.attack(); } else { glutling.moveTowardEnemy(); }', '2:glutling': 'glutling.' };
     const blockWorkspaces = { 'q05-aufmerksam:glutling': '{"draft":true}' };
     localStorage.setItem(key, JSON.stringify({ programVersion: 3, campaign: { version: 2, introduced: true, completed: LESSON_IDS.slice(0, 5), owned: [{ speciesId: 'glutling' }, { speciesId: 'moosling' }], team: [instanceId('glutling')] }, programs, blockWorkspaces }));
     const storage = await import('./LocalProgress'); const campaign = new Campaign(storage.loadProgress().campaign);
@@ -82,12 +83,12 @@ describe('Lokaler Weltfortschritt', () => {
     campaign.visitGiver('mira'); campaign.prepareMission('q12-steinrutsch'); campaign.finishMission('q12-steinrutsch'); campaign.leaveMission(); campaign.apply('travel-forest'); campaign.visitGiver('lyra');
     expect(campaign.lessonOffer('q05-aufmerksam').action).toBe('lesson:q05-aufmerksam');
     campaign.beginMission('q05-aufmerksam'); saveProgress({ campaign: campaign.snapshot });
-    const source = 'if (glutling.enemyAdjacent) { glutling.attack(); } else { glutling.moveForward(); }';
+    const source = 'if (glutling.enemyAdjacent) { glutling.attack(); } else { glutling.moveTowardEnemy(); }';
     saveProgramDraft('q05-aufmerksam', 'glutling', source);
     vi.resetModules(); const reloaded = await import('./LocalProgress');
     expect(reloaded.loadProgress().campaign.completed).toEqual([...LESSON_IDS.slice(0, 4), 'q12-steinrutsch']);
     expect(reloaded.loadProgress().campaign.owned[0].learned).toContain('enemyAdjacent');
-    expect(reloaded.loadProgress().programs).toEqual({ ...programs, 'q05-aufmerksam:glutling': source });
+    expect(reloaded.loadProgress().programs).toEqual({ 'q04-musterpfad:glutling': migrateMovementSource(programs['q04-musterpfad:glutling']), 'q05-aufmerksam:glutling': source });
   });
   it('öffnet Q04 für einen bestehenden Q03-Spielstand und speichert dessen Entwurf separat', async () => {
     const campaign = { version: 2, introduced: true, owned: [{ speciesId: 'glutling', learned: ['moveRight', 'moveUp', 'attack', 'repeat'] }, { speciesId: 'moosling' }],
@@ -105,7 +106,7 @@ describe('Lokaler Weltfortschritt', () => {
     saveProgramDraft('q04-musterpfad', 'glutling', source);
     vi.resetModules(); const reloaded = await import('./LocalProgress');
     expect(reloaded.loadProgress().campaign.completed).toContain('q04-musterpfad');
-    expect(reloaded.loadProgress().programs).toEqual({ ...programs, 'q04-musterpfad:glutling': source });
+    expect(reloaded.loadProgress().programs).toEqual({ ...programs, 'q03-wiederkehr:glutling': migrateMovementSource(programs['q03-wiederkehr:glutling']), 'q04-musterpfad:glutling': source });
   });
   it('archiviert alte Questabschlüsse und erhält Sammlung, Teams und alle Programmplätze', async () => {
     const programs = { '1:glutling': 'repeat(3, () => { glutling.attack(); });' };
@@ -156,7 +157,7 @@ describe('Lokaler Weltfortschritt', () => {
     const storage = await import('./LocalProgress'); const before = storage.loadProgress();
     expect(before.campaign).toMatchObject({ region: 'village', interior: 'library' }); storage.saveProgress({ campaign: before.campaign });
     vi.resetModules(); const after = (await import('./LocalProgress')).loadProgress();
-    expect(after.programs).toEqual(programs); expect(after.blockWorkspaces).toEqual(before.blockWorkspaces); expect(after.campaign.interior).toBe('library');
+    expect(after.programs).toEqual(before.programs); expect(after.movementBackup?.programs).toEqual(programs); expect(after.blockWorkspaces).toEqual(before.blockWorkspaces); expect(after.campaign.interior).toBe('library');
     expect(after.campaign.owned).toEqual(before.campaign.owned); expect(after.campaign.completed).toEqual(before.campaign.completed);
   });
 });

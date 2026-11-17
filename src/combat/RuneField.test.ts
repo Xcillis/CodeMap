@@ -8,7 +8,7 @@ describe('Runenfeld als sichtbare Arbeit in mehreren Reihen', () => {
   const lesson = getLesson('q10-schachtelkampf');
   it('demonstriert mit dem Starter genau eine Reihe und noch keinen fertigen Gesamtauftrag', () => {
     const session = new LessonSession(lesson, lesson.allowed); session.execute({ glutling: lesson.starter }, true);
-    expect(session.snapshot).toMatchObject({ outcome: 'ongoing', tick: 5, player: { x: 1, y: 4 } });
+    expect(session.snapshot).toMatchObject({ outcome: 'ongoing', tick: 7, player: { x: 1, y: 4 } });
     expect(runeProgress(session.snapshot)).toMatchObject({ activated: 2, total: 4, rows: [{ y: 5, activated: 2, total: 2 }, { y: 4, activated: 0, total: 2 }] });
     expect(session.snapshot.enemy).toBeUndefined();
   });
@@ -21,7 +21,7 @@ describe('Runenfeld als sichtbare Arbeit in mehreren Reihen', () => {
     const session = new LessonSession(lesson, lesson.allowed); const source = QUEST_SOLUTIONS[lesson.id].glutling!;
     session.execute({ glutling: source }); session.execute({ glutling: source.replaceAll('; ', ';\n') });
     expect(runeProgress(session.snapshot)?.activated).toBe(2); expect(session.snapshot.tick).toBe(2);
-    for (let i = 0; i < 8; i++) session.execute({ glutling: source });
+    for (let i = 0; i < 64 && session.snapshot.outcome === 'ongoing'; i++) session.execute({ glutling: source });
     expect(session.snapshot.outcome).toBe('victory'); expect(runeProgress(session.snapshot)?.activated).toBe(4);
     session.reset(); expect(session.snapshot.tick).toBe(0); expect(runeProgress(session.snapshot)?.activated).toBe(0);
     session.execute({ glutling: source }); session.execute({ glutling: lesson.starter });

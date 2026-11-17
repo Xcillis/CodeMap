@@ -11,6 +11,7 @@ export interface CampaignState {
   version: 2;
   worldVersion: 1;
   lessonRevision: 2;
+  movementVersion: 2;
   legacyPassKnowledge?: true;
   region: RegionId;
   interior?: InteriorId;
@@ -50,12 +51,15 @@ export function normalizeCampaign(value: unknown, legacyIntroduction = false): C
     const candidate = record(entry);
     if (!isArkanId(candidate.speciesId) || owned.some((item) => item.speciesId === candidate.speciesId)) continue;
     const supported = ARKANA_SPECIES[candidate.speciesId].supported;
-    const learned = Array.isArray(candidate.learned) ? candidate.learned.filter((skill): skill is SkillId => supported.some((allowed) => skill === allowed)) : [];
+    const priorSkills = Array.isArray(candidate.learned) ? candidate.learned
+      .filter((skill: unknown) => !['moveRight', 'moveLeft', 'moveUp', 'moveDown'].includes(String(skill)))
+      .map((skill: unknown) => skill === 'pathRightClear' ? 'pathAheadClear' : raw.movementVersion !== 2 && skill === 'moveForward' ? 'moveTowardEnemy' : skill) : [];
+    const learned = Array.isArray(priorSkills) ? priorSkills.filter((skill): skill is SkillId => supported.some((allowed) => skill === allowed)) : [];
     owned.push({ id: instanceId(candidate.speciesId), speciesId: candidate.speciesId, learned: [...new Set([...startingSkills(), ...learned, ...introductions.flatMap((id) => getLesson(id).introduces)])].filter((skill) => supported.includes(skill)) });
   }
   const legacyProgress = { completed: legacyIds(legacy.completed), discovered: legacyIds(legacy.discovered) };
   const team = Array.isArray(raw.team) ? [...new Set(raw.team)].filter((id): id is string => typeof id === 'string' && owned.some((item) => item.id === id)).slice(0, teamCapacity(completed, introductions, legacyProgress.completed)) : [];
-  return { version: 2, worldVersion: 1, lessonRevision: 2, ...(legacyPassKnowledge ? { legacyPassKnowledge: true as const } : {}), region, ...(region === 'village' && isInteriorId(raw.interior) ? { interior: raw.interior } : {}), legacyForestAccess, introduced: raw.introduced === true || (raw.introduced === undefined && legacyIntroduction), owned, team,
+  return { version: 2, worldVersion: 1, lessonRevision: 2, movementVersion: 2, ...(legacyPassKnowledge ? { legacyPassKnowledge: true as const } : {}), region, ...(region === 'village' && isInteriorId(raw.interior) ? { interior: raw.interior } : {}), legacyForestAccess, introduced: raw.introduced === true || (raw.introduced === undefined && legacyIntroduction), owned, team,
     discovered: [...new Set([...(raw.version === 2 ? lessonIds(raw.discovered) : []), ...completed])], completed, introductions, legacyProgress };
 }
 

@@ -5,7 +5,7 @@ import { blocksToSource, compileActionPlan } from './DecisionProgram';
 
 describe('Arkan-Programme', () => {
   it('erhält Glutlings Identität beim Block-Text-Roundtrip', () => {
-    const source = 'repeat(2, () => { if (glutling.enemyAdjacent) { glutling.attack(); } else { glutling.moveForward(); } });';
+    const source = 'repeat(2, () => { if (glutling.enemyAdjacent) { glutling.attack(); } else { glutling.moveTowardEnemy(); } });';
     const parsed = compileActionPlan(source, 'glutling');
     expect(parsed.actor).toBe('glutling');
     const roundtrip = compileActionPlan(blocksToSource(parsed.blocks!, 'glutling'), 'glutling');
@@ -35,7 +35,7 @@ describe('Formation und Feldbelegung', () => {
     battle.runTick({ moosling: { kind: 'action', action: 'ATTACK' }, glutling: { kind: 'action', action: 'MOVE_TOWARD' } });
     expect(battle.snapshot.player.x).toBe(1);
     expect(battle.snapshot.companion?.x).toBe(2);
-    expect(battle.snapshot.log.join('\n')).toContain('glutling.moveForward()');
+    expect(battle.snapshot.log.join('\n')).toContain('glutling.moveTowardEnemy()');
   });
 
   it('kann nach dem Freigeben eines Feldes in stabiler Reihenfolge nachrücken', () => {
@@ -59,7 +59,7 @@ describe('Missionsausführung', () => {
 
   it('lässt einen Arkan ohne Programm warten, während der andere handelt', () => {
     const session = new BattleSession(3);
-    session.execute({ moosling: '', glutling: 'repeat(2, () => { glutling.moveForward(); });' }, true);
+    session.execute({ moosling: '', glutling: 'repeat(2, () => { glutling.moveTowardEnemy(); });' }, true);
     expect(session.snapshot.player.x).toBe(1);
     expect(session.snapshot.companion?.x).toBe(3);
     expect(session.snapshot.tick).toBe(2);
@@ -90,7 +90,7 @@ describe('Missionsausführung', () => {
 
   it('wartet bei kürzerem Programm und führt das längere weiter aus', () => {
     const session = new BattleSession(3);
-    session.execute({ moosling: 'repeat(1, () => { moosling.attack(); });', glutling: 'repeat(3, () => { glutling.moveForward(); });' }, true);
+    session.execute({ moosling: 'repeat(1, () => { moosling.attack(); });', glutling: 'repeat(3, () => { glutling.moveTowardEnemy(); });' }, true);
     expect(session.snapshot.tick).toBe(3);
     expect(session.snapshot.player.x).toBe(1);
     expect(session.snapshot.companion?.x).toBe(4);

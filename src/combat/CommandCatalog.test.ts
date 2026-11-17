@@ -25,15 +25,15 @@ describe('Fähigkeitsfreigaben', () => {
     expect(availableCommands('moosling', 1).map((command) => command.id)).not.toContain('condition');
     expect(availableCommands('moosling', 2).map((command) => command.id)).toContain('condition');
     expect(availableCommands('glutling', 3).map((command) => command.id)).not.toContain('condition');
-    expect(availableCommands('glutling', 2).map((command) => command.id)).toEqual(['moveRight', 'moveLeft', 'moveUp', 'moveDown']);
+    expect(availableCommands('glutling', 2).map((command) => command.id)).toEqual([...BASIC_MOVEMENT]);
   });
 
   it('zeigt ohne erlernten Angriff keine Angriffs- oder Bedingungsvorlage', () => {
-    expect(availableCommands('moosling', 3, ['moveForward', 'repeat']).map((command) => command.id)).toEqual(['move', 'repeat']);
+    expect(availableCommands('moosling', 3, ['moveTowardEnemy', 'repeat']).map((command) => command.id)).toEqual(['move', 'repeat']);
   });
 
   it('weist nicht gelernte Befehle auch bei direkter Texteingabe zurück', () => {
-    const source = 'repeat(2, () => { if (glutling.enemyAdjacent) { glutling.attack(); } else { glutling.moveForward(); } });';
+    const source = 'repeat(2, () => { if (glutling.enemyAdjacent) { glutling.attack(); } else { glutling.moveTowardEnemy(); } });';
     const parsed = compileActionPlan(source, 'glutling');
     expect(programCapabilityError(parsed.blocks!, 'glutling', 3)).toContain('enemyAdjacent');
     const session = new BattleSession(3);

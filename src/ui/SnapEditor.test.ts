@@ -46,10 +46,11 @@ describe('Echte Blockly-Verbindungen', () => {
   it('führt alle vier Richtungsblöcke in jeder Questpalette und erhält sie beim Block-/Textwechsel', () => {
     for (const quest of WORLD_QUESTS) for (const actor of ['glutling', 'moosling'] as const) {
       const toolbox = JSON.stringify(snapToolbox(actor, 0, quest.allowed));
-      for (const block of ['cm_move_right', 'cm_move_left', 'cm_move_up', 'cm_move_down']) expect(toolbox, quest.id).toContain(block);
+      for (const block of ['cm_move_forward', 'cm_move_backward', 'cm_turn_left', 'cm_turn_right']) expect(toolbox, quest.id).toContain(block);
+      for (const block of ['cm_move_right', 'cm_move_left', 'cm_move_up', 'cm_move_down']) expect(toolbox, quest.id).not.toContain(block);
       const workspace = new Blockly.Workspace();
       try {
-        const source = `${actor}.moveLeft();\n${actor}.moveDown();\n${actor}.moveUp();\n${actor}.moveRight();`;
+        const source = `${actor}.turnLeft();\n${actor}.moveForward();\n${actor}.moveBackward();\n${actor}.turnRight();`;
         const nodes = compileActionPlan(source, actor).nodes!; loadNodes(workspace, nodes, actor);
         expect(nodesToSource(workspaceNodes(workspace), actor)).toBe(source);
       } finally { workspace.dispose(); }
@@ -66,11 +67,11 @@ describe('Echte Blockly-Verbindungen', () => {
       const field = getLesson('q10-schachtelkampf'); const session = new LessonSession(field, field.allowed);
       session.execute({ glutling: nodesToSource(workspaceNodes(workspace), 'glutling') }, true); expect(session.snapshot.outcome).toBe('victory');
       const puzzle = getLesson('q13-lichtpfad');
-      const source = 'repeat(4, () => { if (glutling.pathRightClear) { glutling.moveRight(); } else { glutling.moveUp(); } });';
+      const source = 'repeat(4, () => { if (glutling.pathAheadClear) { glutling.moveForward(); } else { glutling.turnLeft(); glutling.moveForward(); glutling.turnRight(); } });';
       const nodes = compileActionPlan(source, 'glutling').nodes!; loadNodes(workspace, nodes, 'glutling');
-      expect(blockAtPath(workspace, '0.body.0')?.type).toBe('cm_if_path'); expect(workspaceNodes(workspace)).toEqual(nodes);
+      expect(blockAtPath(workspace, '0.body.0')?.type).toBe('cm_if_ahead'); expect(workspaceNodes(workspace)).toEqual(nodes);
       const trial = new LessonSession(puzzle, puzzle.allowed); trial.execute({ glutling: nodesToSource(workspaceNodes(workspace), 'glutling') }, true); expect(trial.snapshot.outcome).toBe('victory');
-      const toolbox = JSON.stringify(snapToolbox('glutling', 0, puzzle.allowed)); expect(toolbox).toContain('cm_if_path'); expect(toolbox).not.toContain('cm_attack');
+      const toolbox = JSON.stringify(snapToolbox('glutling', 0, puzzle.allowed)); expect(toolbox).toContain('cm_if_ahead'); expect(toolbox).not.toContain('cm_attack');
     } finally { workspace.dispose(); }
   });
   it('erhält getrennte Blockprogramme von Moosling und Glutling für Q08', () => {
@@ -92,7 +93,7 @@ describe('Echte Blockly-Verbindungen', () => {
     const lesson = getLesson('q06-waechter'); const workspace = new Blockly.Workspace();
     try {
       const start = workspace.newBlock('cm_start'); const repeat = workspace.newBlock('cm_repeat'); repeat.setFieldValue(5, 'COUNT');
-      const choice = workspace.newBlock('cm_if'); const attack = workspace.newBlock('cm_attack'); const move = workspace.newBlock('cm_move');
+      const choice = workspace.newBlock('cm_if'); const attack = workspace.newBlock('cm_attack'); const move = workspace.newBlock('cm_move_toward');
       start.nextConnection!.connect(repeat.previousConnection!); repeat.getInput('BODY')!.connection!.connect(choice.previousConnection!);
       choice.getInput('THEN')!.connection!.connect(attack.previousConnection!); choice.getInput('ELSE')!.connection!.connect(move.previousConnection!);
       const source = nodesToSource(workspaceNodes(workspace), 'glutling'); const session = new LessonSession(lesson, lesson.allowed);
@@ -100,22 +101,22 @@ describe('Echte Blockly-Verbindungen', () => {
       loadNodes(workspace, compileActionPlan(source, 'glutling').nodes!, 'glutling');
       expect(nodesToSource(workspaceNodes(workspace), 'glutling')).toBe(source);
       expect(blockAtPath(workspace, '0.body.0.then.0')?.type).toBe('cm_attack');
-      expect(blockAtPath(workspace, '0.body.0.otherwise.0')?.type).toBe('cm_move');
+      expect(blockAtPath(workspace, '0.body.0.otherwise.0')?.type).toBe('cm_move_toward');
       const toolbox = JSON.stringify(snapToolbox('glutling', 0, lesson.allowed));
-      expect(toolbox).toContain('cm_repeat'); expect(toolbox).toContain('cm_if'); expect(toolbox).toContain('cm_move_left'); expect(toolbox).toContain('cm_move_down'); expect(toolbox).not.toContain('cm_if_path');
+      expect(toolbox).toContain('cm_repeat'); expect(toolbox).toContain('cm_if'); expect(toolbox).toContain('cm_turn_left'); expect(toolbox).toContain('cm_move_backward'); expect(toolbox).not.toContain('cm_if_ahead');
     } finally { workspace.dispose(); }
   });
   it('löst Q05 mit Angriff und Bewegung in den getrennten if/else-Anschlüssen', () => {
     const lesson = getLesson('q05-aufmerksam'); const workspace = new Blockly.Workspace();
     try {
       const start = workspace.newBlock('cm_start'); const choice = workspace.newBlock('cm_if');
-      const attack = workspace.newBlock('cm_attack'); const move = workspace.newBlock('cm_move');
+      const attack = workspace.newBlock('cm_attack'); const move = workspace.newBlock('cm_move_toward');
       start.nextConnection!.connect(choice.previousConnection!);
       choice.getInput('THEN')!.connection!.connect(attack.previousConnection!); choice.getInput('ELSE')!.connection!.connect(move.previousConnection!);
       const source = nodesToSource(workspaceNodes(workspace), 'glutling'); const session = new LessonSession(lesson, lesson.allowed);
       session.execute({ glutling: source }, true); expect(session.snapshot.outcome).toBe('victory');
       expect(session.frames.map((frame) => frame.trace?.conditions[0].value)).toEqual([true, false]);
-      expect(blockAtPath(workspace, '0.then.0')?.type).toBe('cm_attack'); expect(blockAtPath(workspace, '0.otherwise.0')?.type).toBe('cm_move');
+      expect(blockAtPath(workspace, '0.then.0')?.type).toBe('cm_attack'); expect(blockAtPath(workspace, '0.otherwise.0')?.type).toBe('cm_move_toward');
       loadNodes(workspace, compileActionPlan(source, 'glutling').nodes!, 'glutling'); expect(nodesToSource(workspaceNodes(workspace), 'glutling')).toBe(source);
       const toolbox = JSON.stringify(snapToolbox('glutling', 0, lesson.allowed)); expect(toolbox).toContain('cm_if'); expect(toolbox).not.toContain('cm_repeat');
     } finally { workspace.dispose(); }
@@ -124,22 +125,24 @@ describe('Echte Blockly-Verbindungen', () => {
     const lesson = getLesson('q04-musterpfad'); const workspace = new Blockly.Workspace();
     try {
       const start = workspace.newBlock('cm_start'); const repeat = workspace.newBlock('cm_repeat'); repeat.setFieldValue(3, 'COUNT');
-      const right = workspace.newBlock('cm_move_right'); const up = workspace.newBlock('cm_move_up');
-      start.nextConnection!.connect(repeat.previousConnection!); repeat.getInput('BODY')!.connection!.connect(right.previousConnection!); right.nextConnection!.connect(up.previousConnection!);
+      const forward = workspace.newBlock('cm_move_forward'); const left = workspace.newBlock('cm_turn_left');
+      const up = workspace.newBlock('cm_move_forward'); const right = workspace.newBlock('cm_turn_right');
+      start.nextConnection!.connect(repeat.previousConnection!); repeat.getInput('BODY')!.connection!.connect(forward.previousConnection!);
+      forward.nextConnection!.connect(left.previousConnection!); left.nextConnection!.connect(up.previousConnection!); up.nextConnection!.connect(right.previousConnection!);
       const source = nodesToSource(workspaceNodes(workspace), 'glutling'); const parsed = compileActionPlan(source, 'glutling');
       const session = new LessonSession(lesson, lesson.allowed); session.execute({ glutling: source }, true);
-      expect(session.snapshot).toMatchObject({ outcome: 'victory', tick: 6, player: { x: 4, y: 1 } });
+      expect(session.snapshot).toMatchObject({ outcome: 'victory', tick: 11, player: { x: 4, y: 1, facing: 'north' } });
       loadNodes(workspace, parsed.nodes!, 'glutling'); expect(nodesToSource(workspaceNodes(workspace), 'glutling')).toBe(source);
       const toolbox = JSON.stringify(snapToolbox('glutling', 0, lesson.allowed));
-      expect(toolbox).toContain('cm_repeat'); expect(toolbox).toContain('cm_move_up'); expect(toolbox).not.toContain('cm_if'); expect(toolbox).not.toContain('cm_attack');
+      expect(toolbox).toContain('cm_repeat'); expect(toolbox).toContain('cm_turn_left'); expect(toolbox).not.toContain('cm_if'); expect(toolbox).not.toContain('cm_attack');
     } finally { workspace.dispose(); }
   });
   it('bietet den Startblock ohne Schleifenfreigabe an und serialisiert gerichtete Bewegungen', () => {
     const lesson = getLesson('q01-glutspur');
     const toolbox = JSON.stringify(snapToolbox('glutling', 0, lesson.allowed));
-    expect(toolbox).toContain('cm_start'); expect(toolbox).toContain('cm_move_right'); expect(toolbox).toContain('cm_move_up');
+    expect(toolbox).toContain('cm_start'); expect(toolbox).toContain('cm_move_forward'); expect(toolbox).toContain('cm_turn_left');
     expect(toolbox).not.toContain('cm_repeat'); expect(toolbox).not.toContain('cm_attack'); expect(toolbox).not.toContain('cm_if');
-    const nodes = compileActionPlan('glutling.moveRight(); glutling.moveRight(); glutling.moveUp();', 'glutling').nodes!;
+    const nodes = compileActionPlan('glutling.moveForward(); glutling.moveForward(); glutling.turnLeft(); glutling.moveForward();', 'glutling').nodes!;
     const workspace = new Blockly.Workspace();
     try { loadNodes(workspace, nodes, 'glutling'); expect(workspaceNodes(workspace)).toEqual(nodes); }
     finally { workspace.dispose(); }
@@ -154,9 +157,9 @@ describe('Echte Blockly-Verbindungen', () => {
       const first = blockAtPath(workspace, '0')!;
       expect(first.type).toBe('cm_attack');
       expect(blockAtPath(workspace, '1.body.0.then.0')?.type).toBe('cm_attack');
-      expect(blockAtPath(workspace, '1.body.0.otherwise.0')?.type).toBe('cm_move');
+      expect(blockAtPath(workspace, '1.body.0.otherwise.0')?.type).toBe('cm_move_toward');
       first.setDisabledReason(true, 'test');
-      expect(blockAtPath(workspace, '0.body.0.otherwise.0')?.type).toBe('cm_move');
+      expect(blockAtPath(workspace, '0.body.0.otherwise.0')?.type).toBe('cm_move_toward');
       expect(blockAtPath(workspace, '99')).toBeNull();
     } finally { workspace.dispose(); }
   });
@@ -169,7 +172,7 @@ describe('Echte Blockly-Verbindungen', () => {
       expect(labels).toContain('zum nächsten Gegner gehen');
       expect(labels).not.toMatch(/moosling|glutling/);
       expect(nodesToSource(workspaceNodes(workspace), 'glutling')).toContain('glutling.flameStrike()');
-      expect(nodesToSource(workspaceNodes(workspace), 'glutling')).toContain('glutling.moveForward()');
+      expect(nodesToSource(workspaceNodes(workspace), 'glutling')).toContain('glutling.moveTowardEnemy()');
       expect(JSON.stringify(snapToolbox('glutling', 3))).not.toContain('ACTOR');
     } finally { workspace.dispose(); }
   });
@@ -188,7 +191,7 @@ describe('Echte Blockly-Verbindungen', () => {
     try {
       const start = workspace.newBlock('cm_start');
       const repeat = workspace.newBlock('cm_repeat'); repeat.setFieldValue(3, 'COUNT');
-      const move = workspace.newBlock('cm_move');
+      const move = workspace.newBlock('cm_move_toward');
       const attack = workspace.newBlock('cm_attack');
       start.nextConnection!.connect(repeat.previousConnection!);
       repeat.getInput('BODY')!.connection!.connect(move.previousConnection!);
@@ -201,7 +204,7 @@ describe('Echte Blockly-Verbindungen', () => {
     } finally { workspace.dispose(); }
   });
   it('erhält geschachtelte Schleifen und Bedingungen beim Block-Text-Roundtrip', () => {
-    const source = 'repeat(2, () => { repeat(2, () => { if (moosling.enemyAdjacent) { moosling.attack(); } else { moosling.moveForward(); } }); });';
+    const source = 'repeat(2, () => { repeat(2, () => { if (moosling.enemyAdjacent) { moosling.attack(); } else { moosling.moveTowardEnemy(); } }); });';
     const parsed = compileActionPlan(source, 'moosling');
     const workspace = new Blockly.Workspace();
     try {
@@ -224,7 +227,7 @@ describe('Echte Blockly-Verbindungen', () => {
     expect(JSON.stringify(snapToolbox('moosling', 1))).not.toContain('cm_if');
     expect(JSON.stringify(snapToolbox('moosling', 2))).toContain('cm_if');
     expect(JSON.stringify(snapToolbox('glutling', 3))).not.toContain('cm_if');
-    expect(JSON.stringify(snapToolbox('glutling', 2, ['moveForward', 'attack', 'repeat', 'enemyAdjacent']))).toContain('cm_if');
+    expect(JSON.stringify(snapToolbox('glutling', 2, ['moveTowardEnemy', 'attack', 'repeat', 'enemyAdjacent']))).toContain('cm_if');
     expect(JSON.stringify(snapToolbox('glutling', 2, []))).not.toContain('cm_attack');
   });
 });

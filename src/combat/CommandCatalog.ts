@@ -6,7 +6,7 @@ import { ABILITIES, type AbilityAction } from './Abilities';
 
 export type { SkillId } from '../gameplay/ArkanaCatalog';
 export type CommandCategory = 'movement' | 'combat' | 'senses' | 'flow';
-export type CommandId = 'move' | 'attack' | 'condition' | 'pathCondition' | 'repeat' | 'moveRight' | 'moveLeft' | 'moveUp' | 'moveDown' | 'ignite' | 'vineSnare' | 'healingMoss' | 'barkGuard' | 'wait' | 'allyInjured' | 'enemyBurning' | 'stoneArmor' | 'coverAlly';
+export type CommandId = 'moveForward' | 'moveBackward' | 'turnLeft' | 'turnRight' | 'move' | 'attack' | 'condition' | 'pathCondition' | 'repeat' | 'moveRight' | 'moveLeft' | 'moveUp' | 'moveDown' | 'ignite' | 'vineSnare' | 'healingMoss' | 'barkGuard' | 'wait' | 'allyInjured' | 'enemyBurning' | 'stoneArmor' | 'coverAlly';
 
 export const COMMAND_CATEGORIES: readonly { id: CommandCategory; label: string; color: string }[] = [
   { id: 'movement', label: 'Bewegung', color: '#559cf0' },
@@ -23,14 +23,14 @@ export const ARKAN_SKILLS: Record<ArkanId, {
   moosling: {
     supported: ARKANA_SPECIES.moosling.supported,
     lessons: [
-      { mission: 1, skills: ['moveForward', 'attack', 'repeat'] },
+      { mission: 1, skills: ['moveTowardEnemy', 'attack', 'repeat'] },
       { mission: 2, skills: ['enemyAdjacent'] },
     ],
   },
-  felsbock: { supported: ARKANA_SPECIES.felsbock.supported, lessons: [{ mission: 3, skills: ['moveForward', 'attack', 'repeat'] }] },
+  felsbock: { supported: ARKANA_SPECIES.felsbock.supported, lessons: [{ mission: 3, skills: ['moveTowardEnemy', 'attack', 'repeat'] }] },
   glutling: {
     supported: ARKANA_SPECIES.glutling.supported,
-    lessons: [{ mission: 3, skills: ['moveForward', 'attack', 'repeat'] }],
+    lessons: [{ mission: 3, skills: ['moveTowardEnemy', 'attack', 'repeat'] }],
   },
 };
 
@@ -45,17 +45,17 @@ export interface CommandDefinition {
 }
 
 export const COMMANDS: readonly CommandDefinition[] = [
-  { id: 'move', category: 'movement', label: 'Zum nächsten Gegner gehen', description: 'Ein Feld zum nächsten Gegner. Direkt daneben bleibt das Arkana stehen. Belegte Felder blockieren die Bewegung.', requires: ['moveForward'], syntax: (actor) => `${actor}.moveForward()`, block: () => ({ kind: 'action', count: 1, action: 'MOVE_TOWARD' }) },
-  ...(['MOVE_RIGHT', 'MOVE_LEFT', 'MOVE_UP', 'MOVE_DOWN'] as const).map((action): CommandDefinition => ({
+  { id: 'move', category: 'movement', label: 'Zum nächsten Gegner gehen', description: 'Ein Feld zum nächsten Gegner. Direkt daneben bleibt das Arkana stehen. Belegte Felder blockieren die Bewegung.', requires: ['moveTowardEnemy'], syntax: (actor) => `${actor}.moveTowardEnemy()`, block: () => ({ kind: 'action', count: 1, action: 'MOVE_TOWARD' }) },
+  ...(['MOVE_FORWARD', 'MOVE_BACKWARD', 'TURN_LEFT', 'TURN_RIGHT'] as const).map((action): CommandDefinition => ({
     id: ACTIONS[action].method, category: 'movement', label: ACTIONS[action].label,
-    description: 'Ein Rasterfeld in diese Richtung. Hindernisse und belegte Felder blockieren den Schritt.',
+    description: action === 'TURN_LEFT' || action === 'TURN_RIGHT' ? 'Dreht auf demselben Feld um 90°. Jede Drehung zählt als Aktion.' : action === 'MOVE_BACKWARD' ? 'Ein Feld entgegen der Blickrichtung, ohne sich umzudrehen.' : 'Ein Feld in Blickrichtung. Hindernisse und andere Wesen blockieren die Bewegung.',
     requires: [ACTIONS[action].method], syntax: (actor) => `${actor}.${ACTIONS[action].method}()`,
     block: () => ({ kind: 'action', count: 1, action }),
   })),
   { id: 'attack', category: 'combat', label: 'Angreifen', description: 'Ein Basisangriff auf einen direkt benachbarten Gegner. Der Schaden hängt von der Art ab.', requires: ['attack'], syntax: (actor) => `${actor}.attack()`, block: () => ({ kind: 'action', count: 1, action: 'ATTACK' }) },
-  { id: 'condition', category: 'senses', label: 'Gegner direkt daneben?', description: 'Fragt, ob der Gegner direkt neben dir steht. Bei ja wird der dann-Teil ausgeführt, bei nein der sonst-Teil.', requires: ['enemyAdjacent', 'attack', 'moveForward'], syntax: (actor) => `${actor}.enemyAdjacent`, block: () => ({ kind: 'condition', count: 1, whenTrue: 'ATTACK', whenFalse: 'MOVE_TOWARD' }) },
-  { id: 'pathCondition', category: 'senses', label: 'Weg rechts frei?', description: 'Prüft das rechte Nachbarfeld. Stein, Kartenrand oder ein anderes Wesen bedeuten nein.', requires: ['pathRightClear'], syntax: (actor) => `${actor}.pathRightClear`, block: () => ({ kind: 'condition', condition: 'pathRightClear', count: 1, whenTrue: 'MOVE_RIGHT', whenFalse: 'MOVE_UP' }) },
-  { id: 'repeat', category: 'flow', label: 'Wiederhole … mal', description: 'Führt die Befehle im Inneren 1 bis 6 Mal aus. Lege zum Beispiel einen Bewegungsbefehl hinein und wähle die Anzahl.', requires: ['repeat'], syntax: () => 'repeat(2, () => { … });', block: () => ({ kind: 'action', count: 2, action: 'MOVE_TOWARD' }) },
+  { id: 'condition', category: 'senses', label: 'Gegner direkt daneben?', description: 'Fragt, ob der Gegner direkt neben dir steht. Bei ja wird der dann-Teil ausgeführt, bei nein der sonst-Teil.', requires: ['enemyAdjacent', 'attack', 'moveTowardEnemy'], syntax: (actor) => `${actor}.enemyAdjacent`, block: () => ({ kind: 'condition', count: 1, whenTrue: 'ATTACK', whenFalse: 'MOVE_TOWARD' }) },
+  { id: 'pathCondition', category: 'senses', label: 'Weg voraus frei?', description: 'Prüft das Feld in Blickrichtung. Stein, Kartenrand oder ein anderes Wesen bedeuten nein.', requires: ['pathAheadClear'], syntax: (actor) => `${actor}.pathAheadClear`, block: () => ({ kind: 'condition', condition: 'pathAheadClear', count: 1, whenTrue: 'MOVE_FORWARD', whenFalse: 'TURN_LEFT' }) },
+  { id: 'repeat', category: 'flow', label: 'Wiederhole … mal', description: 'Führt die Befehle im Inneren 1 bis 6 Mal aus. Lege zum Beispiel einen Bewegungsbefehl hinein und wähle die Anzahl.', requires: ['repeat'], syntax: () => 'repeat(2, () => { … });', block: () => ({ kind: 'action', count: 2, action: 'MOVE_FORWARD' }) },
   ...(Object.keys(ABILITIES) as AbilityAction[]).map((action): CommandDefinition => {
     const rule = ABILITIES[action];
     return { id: rule.skill as CommandId, category: 'combat',
@@ -84,9 +84,9 @@ export function nodesCapabilityError(nodes: readonly ProgramNode[], actor: Arkan
   const required = new Set<SkillId>();
   const visit = (list: readonly ProgramNode[]): void => {
     for (const node of list) {
-      if (node.kind === 'action') required.add(ACTIONS[node.action].method);
+      if (node.kind === 'action') required.add(['MOVE_RIGHT', 'MOVE_LEFT', 'MOVE_UP', 'MOVE_DOWN'].includes(node.action) ? 'moveForward' : ACTIONS[node.action].method);
       else if (node.kind === 'repeat') { required.add('repeat'); visit(node.body); }
-      else { required.add(node.condition ?? 'enemyAdjacent'); visit(node.then); visit(node.otherwise); }
+      else { required.add(node.condition === 'pathRightClear' ? 'pathAheadClear' : node.condition ?? 'enemyAdjacent'); visit(node.then); visit(node.otherwise); }
     }
   };
   visit(nodes);
@@ -99,7 +99,7 @@ export function nodesCapabilityError(nodes: readonly ProgramNode[], actor: Arkan
 export function commandSource(command: CommandDefinition, actor: ArkanId): string {
   if (command.id === 'repeat') return nodesToSource([{ kind: 'repeat', count: 2, body: [] }], actor);
   if (command.id === 'condition') return `if (${actor}.enemyAdjacent) {\n\n} else {\n\n}`;
-  if (command.id === 'pathCondition') return `if (${actor}.pathRightClear) {\n\n} else {\n\n}`;
+  if (command.id === 'pathCondition') return `if (${actor}.pathAheadClear) {\n\n} else {\n\n}`;
   if (command.id === 'allyInjured' || command.id === 'enemyBurning') return `if (${actor}.${command.id}) {\n\n} else {\n\n}`;
   const block = command.block();
   return nodesToSource(blocksToNodes([block]).flatMap((node) => node.kind === 'repeat' && node.count === 1 ? node.body : [node]), actor);

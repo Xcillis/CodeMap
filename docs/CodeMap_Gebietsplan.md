@@ -46,7 +46,7 @@ Der Wald besitzt eine andere Bodengestaltung, mehr Baumgruppen, Waldpfade und ei
 | --- | --- | --- | --- |
 | Lyra, Waldpfad `(600, 490)` | Q05 Der aufmerksame Begleiter | Waldzugang, Q02 | Pflicht-Einführung in Bedingung und Verzweigung, zwei kurze Startsituationen |
 | Lyra | Q06 Der bewegliche Wächter | Q05 | Frei wählbarer aktiver Kampf mit wiederholter Entscheidung |
-| Neria, Runenlichtung `(1140, 390)` | Q13 Nerias Lichtpfad | Q05 | Frei wählbares Rätsel mit der Abfrage „Weg rechts frei?“ |
+| Neria, Runenlichtung `(1140, 390)` | Q13 Nerias Lichtpfad | Q05 | Frei wählbares Rätsel mit der Abfrage „Weg voraus frei?“ |
 | Tala, Hainlager `(1030, 800)` | Q07 Mooslings eigener Weg | Q05 und aufgenommenes Moosling | Frei wählbare Objekt-/Arteneinführung, passiver Kampf |
 | Tala | Q08 Zwei Programme, ein Ziel | Q07, beide Arkana gesammelt | Team-Einführung und Folge-Kampf |
 | Tala | Q15 Mooslings Rankenhilfe | Q07 | Aktiver Kampf mit Ranken als Unterstützung |

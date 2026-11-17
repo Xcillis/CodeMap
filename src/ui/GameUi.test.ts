@@ -279,7 +279,7 @@ describe('Editorzustand und Arkan-Zuordnung', () => {
     const campaign = new Campaign({ version: 2, introduced: true, completed: LESSON_IDS.slice(0, 5), owned: [{ speciesId: 'glutling' }], team: [instanceId('glutling')] });
     campaign.interact(`lesson:${lesson.id}`); campaign.beginMission(lesson.id);
     gameEvents.emit('battle-opened', { glutling: lesson.starter }, lesson.id, { glutling: lesson.allowed }, { title: lesson.title, mode: 'lesson', instructions: lesson.introduction, objective: lesson.objective, hints: lesson.hints });
-    const source = 'repeat(5, () => { if (glutling.enemyAdjacent) { glutling.attack(); } else { glutling.moveForward(); } });';
+    const source = 'repeat(5, () => { if (glutling.enemyAdjacent) { glutling.attack(); } else { glutling.moveTowardEnemy(); } });';
     click('text-mode'); type(source); click('blocks-mode');
     const session = new LessonSession(lesson, lesson.allowed); session.execute({ glutling: source }, true);
     const playback = new Playback<typeof session.frames[number]>((frame) => { gameEvents.emit('battle-frame', frame); gameEvents.emit('battle-updated', frame.after, 'Wächterprüfung'); }, (state) => gameEvents.emit('battle-playback', state));
@@ -310,7 +310,7 @@ describe('Editorzustand und Arkan-Zuordnung', () => {
     expect(document.querySelector('#encounter-instructions strong[data-term="condition"]')?.textContent).toBe('Bedingung');
     const session = new LessonSession(lesson, lesson.allowed); gameEvents.emit('battle-updated', session.snapshot, lesson.objective);
     expect(document.getElementById('lesson-trial')!.textContent).toContain('Situation 1/2');
-    const source = 'if (glutling.enemyAdjacent) {\n  glutling.attack();\n} else {\n  glutling.moveForward();\n}';
+    const source = 'if (glutling.enemyAdjacent) {\n  glutling.attack();\n} else {\n  glutling.moveTowardEnemy();\n}';
     click('text-mode'); type(source); click('blocks-mode'); click('text-mode'); expect(text().value).toBe(source.replace('glutling.attack()', 'glutling.flameStrike()'));
     session.execute({ glutling: source }, true);
     const playback = new Playback<typeof session.frames[number]>((frame) => { gameEvents.emit('battle-frame', frame); gameEvents.emit('battle-updated', frame.after, 'Entscheidung'); }, (state) => gameEvents.emit('battle-playback', state));
@@ -438,10 +438,14 @@ describe('Editorzustand und Arkan-Zuordnung', () => {
     expect(document.getElementById('category-combat')).toBeNull();
     expect(document.getElementById('category-flow')).toBeNull();
     expect(document.getElementById('category-senses')).toBeNull();
-    expect(Array.from(document.querySelectorAll<HTMLElement>('[data-command]')).map((entry) => entry.dataset.command)).toEqual(['moveRight', 'moveLeft', 'moveUp', 'moveDown']);
-    click('text-mode'); expect(text().value).toBe('glutling.moveRight();');
+    expect(Array.from(document.querySelectorAll<HTMLElement>('[data-command]')).map((entry) => entry.dataset.command)).toEqual(['moveForward', 'moveBackward', 'turnLeft', 'turnRight']);
+    click('text-mode'); expect(text().value).toBe('glutling.moveForward();');
     const session = new LessonSession(lesson, lesson.allowed);
     gameEvents.emit('battle-updated', session.snapshot, 'Bereit');
+    expect(document.getElementById('battle-orientation')!.textContent).toContain('Glutling: → rechts');
+    session.execute({ glutling: 'glutling.turnLeft(); glutling.moveBackward();' });
+    gameEvents.emit('battle-updated', session.snapshot, 'Gedreht');
+    expect(document.getElementById('battle-orientation')!.textContent).toContain('Glutling: ↑ oben');
     expect(document.getElementById('enemy-health-status')!.hidden).toBe(true);
     expect(document.getElementById('battle-status')!.classList.contains('puzzle-status')).toBe(true);
     click('lesson-hint-button'); expect(document.getElementById('lesson-hint')!.textContent).toBe(lesson.hints[0]);
@@ -460,7 +464,7 @@ describe('Editorzustand und Arkan-Zuordnung', () => {
   });
   it('programmiert ein gewähltes Glutling-Soloteam mit dessen tatsächlich erlernten Befehlen', () => {
     const programs = missionPrograms(2, ['glutling']);
-    gameEvents.emit('battle-opened', programs, 2, { glutling: ['moveForward', 'attack', 'repeat', 'enemyAdjacent'] });
+    gameEvents.emit('battle-opened', programs, 2, { glutling: ['moveTowardEnemy', 'attack', 'repeat', 'enemyAdjacent'] });
     expect(document.getElementById('select-moosling')!.hidden).toBe(true);
     expect(document.getElementById('program-owner')!.textContent).toContain('Glutling');
     click('text-mode'); expect(text().value).toContain('glutling.enemyAdjacent');
@@ -515,7 +519,7 @@ describe('Editorzustand und Arkan-Zuordnung', () => {
   });
 
   it('markiert die aktive Aktion in beiden Modi auch nach einer Neuformatierung', () => {
-    const source = '\nrepeat(2, () => {\n\n  moosling.moveForward();\n});';
+    const source = '\nrepeat(2, () => {\n\n  moosling.moveTowardEnemy();\n});';
     gameEvents.emit('battle-opened', { moosling: source }, 1); click('text-mode'); type(source);
     const session = new BattleSession(1); session.execute({ moosling: source });
     gameEvents.emit('battle-playback', 'running');
@@ -550,13 +554,13 @@ describe('Editorzustand und Arkan-Zuordnung', () => {
     expect(document.getElementById('select-glutling')!.getAttribute('aria-pressed')).toBe('true');
     expect(document.getElementById('select-moosling')!.getAttribute('aria-pressed')).toBe('false');
     click('text-mode');
-    expect(text().value).toContain('glutling.moveForward()');
+    expect(text().value).toContain('glutling.moveTowardEnemy()');
     expect(text().value).not.toContain('moosling');
   });
   it('behält eigene Programme, auch unvollständige Texte, beim Arkan-Wechsel und Neuladen', () => {
     gameEvents.emit('battle-opened', missionPrograms(3), 3); click('text-mode');
     type('repeat(2, () => { moosling.attack(); });'); click('select-glutling');
-    expect(text().value).toContain('glutling.moveForward'); type('glutling.');
+    expect(text().value).toContain('glutling.moveTowardEnemy'); type('glutling.');
     click('select-moosling'); expect(text().value).toContain('repeat(2');
     click('select-glutling'); expect(text().value).toBe('glutling.');
     listeners.clear(); new GameUi(); gameEvents.emit('battle-opened', missionPrograms(3), 3);
@@ -568,7 +572,7 @@ describe('Editorzustand und Arkan-Zuordnung', () => {
   });
   it('erhält verschachtelte Programme und leere Programme in beiden Modi', () => {
     gameEvents.emit('battle-opened', missionPrograms(1), 1); click('text-mode');
-    type('repeat(2, () => { moosling.moveForward(); moosling.attack(); });');
+    type('repeat(2, () => { moosling.moveTowardEnemy(); moosling.attack(); });');
     click('blocks-mode'); click('text-mode'); expect(text().value).toContain('moosling.vineStrike();');
     click('blocks-mode'); editor().mutate([]); click('text-mode'); expect(text().value).toBe('');
     click('blocks-mode'); expect(document.getElementById('block-editor')!.hidden).toBe(false);

@@ -1,6 +1,6 @@
 # CodeMap – Lernprogression in offenen Gebieten
 
-Stand: 15. November 2026. Die Nutzerentscheidung zu Tal und Wald ersetzt die vorherige lineare Kette Q01–Q08. Der vollständige [Gebiets- und Questplan](CodeMap_Gebietsplan.md) zeigt die 17 implementierten Quests, ihre NPCs und Voraussetzungen.
+Stand: 17. November 2026. Die Nutzerentscheidung zu Tal und Wald ersetzt die vorherige lineare Kette Q01–Q08. Der vollständige [Gebiets- und Questplan](CodeMap_Gebietsplan.md) zeigt die 20 implementierten Quests, ihre NPCs und Voraussetzungen.
 
 ## Gemeinsamer Einstieg
 
@@ -29,7 +29,7 @@ Lyra führt in Q05 verpflichtend die Frage nach der Gegnernähe und die Wahl zwi
 Danach sind unabhängig verfügbar:
 
 - Q06 bei Lyra: Bedingung in einer Schleife gegen einen aktiven Gegner neu prüfen, in zwei vollständigen Begegnungen.
-- Q13 bei Neria: Die neue Abfrage „Weg rechts frei?“ vor jeder Bewegung lesen und einen bedingten Weg zur Rune planen. Ein Rätsel benötigt dafür keinen Gegner.
+- Q13 bei Neria: Die neue Abfrage „Weg voraus frei?“ vor jeder Bewegung lesen und einen bedingten Weg zur Rune planen. Ein Rätsel benötigt dafür keinen Gegner.
 - Q07 bei Tala: Bekannte Befehle auf das gefundene Moosling übertragen, eigenes Objektprogramm und unterschiedliche Basiswerte vergleichen. Als Folge führt Q08 zwei koordinierte Programme und den zweiten Teamplatz ein.
 
 Q06 ist keine Voraussetzung für Q13 oder Q07. Die Team-Einführung folgt weiterhin auf Mooslings eigenes Programm, damit Objektwahl und Koordination getrennt gelernt werden.
@@ -39,8 +39,8 @@ Q06 ist keine Voraussetzung für Q13 oder Q07. Die Team-Einführung folgt weiter
 Der RPG-Ausbau ergänzt die bekannten Programmierschritte um Fähigkeiten und Rollen: Q14 bei Brann erklärt Glutlings Brand und Abklingzeit, Q15 und Q16 bei Tala erklären nach Q07 unabhängig Ranken als Unterstützung beziehungsweise Heilung über Zeit. Erst Q17 nach diesen Einführungen und Q08 verbindet Schaden, Unterstützung und Heilung im aktiven Zweierkampf. Neue Abfragen beschreiben konkrete Brand- und Verletzungszustände. Die Rollen erfordern keine neue Programmiersprache; Sequenzen, Wiederholungen und bereits eingeführte Verzweigungen bleiben nutzbar. Details stehen in [CodeMap_Kampfsystem.md](CodeMap_Kampfsystem.md).
 
 1. Erst konkrete Handlung erklären, dann Fachwort benennen. Aufgaben formulieren beobachtbare Ziele; Hinweise werden schrittweise genauer. Fachbegriffe werden hervorgehoben und nach passendem Abschluss mit Beispielen im Charakterfenster gespeichert sichtbar.
-2. Rechts, links, oben und unten gehören in jeder Quest zum Grundrepertoire, auch wenn die Lösung nur einzelne Richtungen benötigt. Weitere Befehle und Strukturen werden bei Annahme ihrer erklärten Einführung verfügbar. Ein Fehlversuch entzieht sie nicht. Die Aufgabenpalette begrenzt auch alte vollständig freigeschaltete Arkana auf das jeweilige Thema.
-3. Block- und Textmodus verwenden dieselben Objektprogramme, Freigaben und Erfolgskriterien. Schleifen besitzen echte innere Anschlüsse; `pathRightClear` bleibt beim Umwandeln und Speichern erhalten. Arkana werden nur durch ihre Programme bewegt.
+2. Vorwärts, rückwärts und 90°-Drehungen nach links und rechts gehören in jeder Quest zum Grundrepertoire. Q01 erklärt sie zuerst am sichtbaren Richtungspfeil. Alle Arkana starten nach rechts ausgerichtet; Drehungen stehen auf demselben Feld und zählen als eigene Schritte. Die Weltsteuerung bleibt direkt. Weitere Befehle und Strukturen werden bei Annahme ihrer erklärten Einführung verfügbar. Ein Fehlversuch entzieht sie nicht. Die Aufgabenpalette begrenzt auch alte vollständig freigeschaltete Arkana auf das jeweilige Thema.
+3. Block- und Textmodus verwenden dieselben Objektprogramme, Freigaben und Erfolgskriterien. Schleifen besitzen echte innere Anschlüsse; `pathAheadClear` bleibt beim Umwandeln und Speichern erhalten. Arkana werden nur durch ihre Programme bewegt.
 4. Rätsel und Kämpfe verwenden dieselbe sichtbare Wiedergabe mit Einzelschritt, Gesamtprogramm, Pause, Tempo und Trace. Reine Formatwechsel erhalten einen Versuch; semantische Änderungen und Neustarts verwerfen seine Nachweise.
 5. Räumliches Ziel und Lernkriterium werden getrennt geprüft. Schleifen müssen wirklich wirksame Aktionen ausführen. Bei Verschachtelung müssen in mindestens zwei äußeren Durchläufen jeweils mindestens zwei innere Durchläufe wirksam sein. Leere Blöcke oder blockierte Schritte reichen nicht.
 6. Der Waldpfad verlangt beide tatsächlichen Antworten derselben Weg-Abfrage mit passenden Bewegungen. Steine, Kartenränder und belegte Felder werden im aktuellen Zustand geprüft. Ein ausgeschriebener Weg ohne diese Entscheidung bleibt eine offene Übung.
@@ -74,7 +74,7 @@ Das frühere zweifache Wiederholen eines Angriffspaares erklärt den Sinn der zw
 4. Vergleichen: Beim Beginn der zweiten Reihe startet die innere Zählung wieder bei 1. Runen- und Reihenzähler zeigen die räumliche Wirkung.
 5. Sichern: Ein neues Glossarbeispiel verbindet die beiden Ebenen nach dem Abschluss.
 
-Das Aktivieren aller Runen allein weist die geübte Struktur noch nicht nach. Für beide Reihen muss derselbe innere Schleifenblock unter derselben äußeren Schleife die neuen Runen aktivieren. Leere Schleifen, nur verschachtelte Rückwege oder eine flache Abfolge zählen nicht als dieser Reihenablauf. Die Rückbewegung darf dagegen aus einzelnen Befehlen oder einer weiteren Schleife bestehen. Die Lösung benötigt zehn Aktionen und bleibt im bisherigen Budget von zwölf.
+Das Aktivieren aller Runen allein weist die geübte Struktur noch nicht nach. Für beide Reihen muss derselbe innere Schleifenblock unter derselben äußeren Schleife die neuen Runen aktivieren. Leere Schleifen, nur verschachtelte Rückwege oder eine flache Abfolge zählen nicht als dieser Reihenablauf. Die Rückbewegung darf dagegen aus einzelnen Befehlen oder einer weiteren Schleife bestehen. Die relative Lösung geht innen zweimal vorwärts, dann zweimal rückwärts zum Reihenanfang und wechselt mit links drehen, vorwärts, rechts drehen zur nächsten Reihe. Die Zielbewegung beendet sie nach 13 Aktionen. Das allgemeine Budget beträgt 64 Aktionen pro Arkana, einschließlich Drehungen.
 
 Die Runentreppe Q09 erklärt Felder und Stufen jetzt in dieser konkreten Reihenfolge. Ihre Voraussetzungen und die unabhängige Gebietsaufgabe Q12 bleiben erhalten. Vorhandene Q10-Abschlüsse werden nicht entwertet; bisherige Angriffsprogramme bleiben als Entwurf gespeichert und werden vor Ausführung im neuen Rätsel als nicht freigegebene Befehle zurückgewiesen.
 
@@ -82,3 +82,10 @@ Die Runentreppe Q09 erklärt Felder und Stufen jetzt in dieser konkreten Reihenf
 ## Inhaltsrevision 2 der Runenwinde
 
 Neue Q12-Abschlüsse schalten den Wald frei, vergeben aber keine Verschachtelungs- oder Schleifenrumpfbegriffe. Gültige ältere Q12-Abschlüsse behalten diese früher erworbenen Einträge über `legacyPassKnowledge`. `lessonRevision: 2` unterscheidet neue Abschlüsse von bestehenden Speicherständen; der bisherige Fortschritt und Programmentwürfe bleiben erhalten.
+
+
+## Blickrichtung und bestehende Entwürfe
+
+Bewegungs- und Drehbefehle sind konkrete Anweisungen. Der Musterpfad wiederholt vorwärts, links drehen, vorwärts, rechts drehen als gemeinsamen Rumpf. Der große Stufenweg zählt die beiden geraden Schritte innen und wiederholt die gesamte Stufe außen. Der Waldpfad fragt das Feld in Blickrichtung ab; bei einer blockierten Gerade führt ein Eckablauf um den Stein. Der Nachweis verwendet tatsächliche Ortsänderungen, keine bloßen Drehungen.
+
+Gespeicherte absolute Richtungsbefehle werden einmalig durch relative Folgen mit wiederhergestellter Ausgangsrichtung ersetzt. Die Originale bleiben gesichert. Der frühere automatische Vorwärtsbefehl wird ausdrücklich zu `moveTowardEnemy()`. Neue Programme verwenden `moveForward()` ausschließlich für einen Schritt in Blickrichtung. Kampftiming kann sich durch zusätzliche Drehungen ändern; Abschlüsse werden nicht entzogen.

@@ -200,7 +200,7 @@ describe('Sammlung und Questjournal', () => {
     campaign = new Campaign({ version: 2, completed: ['q01-glutspur'] });
     gameEvents.emit('campaign-updated', campaign.snapshot);
     expect(Array.from(document.querySelectorAll('.glossary-card h3')).map((h) => h.textContent)).toEqual(['Anweisung', 'Sequenz']);
-    expect(document.querySelector('[data-term="sequence"] pre code')?.textContent).toBe('glutling.moveRight();\nglutling.moveRight();\nglutling.moveUp();');
+    expect(document.querySelector('[data-term="sequence"] pre code')?.textContent).toBe('glutling.moveForward();\nglutling.moveForward();\nglutling.turnLeft();\nglutling.moveForward();');
     expect(el('world-panel-content').textContent).toContain('Beispiel');
     expect(el('world-panel-content').textContent).not.toContain('Schleife');
     click('world-panel-close'); click('open-journal'); expect(el('character-tabs').hidden).toBe(true);

@@ -45,7 +45,7 @@ describe('BattleEngine', () => {
 
 describe('compileActionPlan', () => {
   it('übersetzt repeat-Blöcke in einen begrenzten Aktionsplan', () => {
-    const source = 'repeat(2, () => { moosling.moveForward(); }); repeat(3, () => { moosling.attack(); });';
+    const source = 'repeat(2, () => { moosling.moveTowardEnemy(); }); repeat(3, () => { moosling.attack(); });';
     expect(compileActionPlan(source).steps).toEqual([
       { kind: 'action', action: 'MOVE_TOWARD' }, { kind: 'action', action: 'MOVE_TOWARD' },
       { kind: 'action', action: 'ATTACK' }, { kind: 'action', action: 'ATTACK' }, { kind: 'action', action: 'ATTACK' },
@@ -58,7 +58,7 @@ describe('compileActionPlan', () => {
   });
 
   it('erhält Bedingungen in der gemeinsamen Programmstruktur', () => {
-    const source = 'repeat(2, () => { if (moosling.enemyAdjacent) { moosling.attack(); } else { moosling.moveForward(); } });';
+    const source = 'repeat(2, () => { if (moosling.enemyAdjacent) { moosling.attack(); } else { moosling.moveTowardEnemy(); } });';
     expect(compileActionPlan(source).blocks).toEqual([{ kind: 'condition', count: 2, whenTrue: 'ATTACK', whenFalse: 'MOVE_TOWARD' }]);
   });
 

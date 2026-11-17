@@ -2,6 +2,8 @@ import { isArkanId } from '../gameplay/ArkanaCatalog';
 import type { ActionPlanResult, ArkanId, CombatAction, ProgramBlock, ProgramNode, ProgramStep } from './types';
 import { actionForCommand, actionMethod } from './ActionCatalog';
 
+export const MAX_PROGRAM_ACTIONS = 64;
+
 export function programCost(nodes: readonly ProgramNode[]): number {
   return nodes.reduce((sum, node) => sum + (node.kind === 'action' ? 1 : node.kind === 'repeat' ? node.count * programCost(node.body) : Math.max(programCost(node.then), programCost(node.otherwise))), 0);
 }
@@ -56,7 +58,7 @@ export function compileActionPlan(source: string, expectedActor?: ArkanId): Acti
           nodes.push({ kind: 'repeat', count, body });
         } else if (tokens[cursor] === 'if') {
           cursor++; take('('); owner(); const condition = tokens[cursor++];
-          if (condition !== 'enemyAdjacent' && condition !== 'pathRightClear' && condition !== 'allyInjured' && condition !== 'enemyBurning') throw new Error('Unbekannte Bedingung. Nutze eine Abfrage aus der Bibliothek.');
+          if (condition !== 'enemyAdjacent' && condition !== 'pathRightClear' && condition !== 'pathAheadClear' && condition !== 'allyInjured' && condition !== 'enemyBurning') throw new Error('Unbekannte Bedingung. Nutze eine Abfrage aus der Bibliothek.');
           take(')');
           const then = group(depth + 1, `${path}.then.`);
           const otherwise = tokens[cursor] === 'else' ? (cursor++, group(depth + 1, `${path}.otherwise.`)) : [];
@@ -75,7 +77,7 @@ export function compileActionPlan(source: string, expectedActor?: ArkanId): Acti
     };
     const nodes = sequence(0);
     if (cursor !== tokens.length) throw new Error('Unerwartete schließende Klammer.');
-    if (programCost(nodes) > 12) return { actor, nodes, error: 'Ein Programm darf höchstens zwölf ausgeführte Aktionen enthalten.' };
+    if (programCost(nodes) > MAX_PROGRAM_ACTIONS) return { actor, nodes, error: 'Ein Programm darf höchstens 64 ausgeführte Aktionen (einschließlich Drehungen) enthalten.' };
     if (programWork(nodes) > 512) return { actor, nodes, error: 'Zu viele verschachtelte Kontrollschritte (maximal 512).' };
     const blocks = legacyBlocks(nodes);
     const steps: ProgramStep[] = [];

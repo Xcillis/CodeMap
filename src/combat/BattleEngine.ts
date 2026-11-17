@@ -1,6 +1,7 @@
 import type { ActionFrame, ArkanId, BattleState, CombatAction, Combatant, GridPosition, ProgramStep } from './types';
 import { ARKANA_SPECIES } from '../gameplay/ArkanaCatalog';
-import { actionMethod, directionDelta } from './ActionCatalog';
+import { actionMethod } from './ActionCatalog';
+import { facingOf, isTurn, movementDelta, turnFacing } from './Movement';
 import { ABILITIES, allies, castAbility, cooldownStep, expireControl, isAbility } from './Abilities';
 import type { CombatEffect } from './types';
 
@@ -70,14 +71,14 @@ export class BattleEngine {
     if (!roster.length || roster.length > 3 || new Set(roster).size !== roster.length) throw new Error('Wähle ein Team aus ein bis drei unterschiedlichen Arkanen.');
     const ally = (id: ArkanId, y: number): Combatant => {
       const species = ARKANA_SPECIES[id];
-      return { id, name: species.name, hp: Math.max(1, Math.min(species.maxHp, this.options.initialHp?.[id] ?? species.maxHp)), maxHp: species.maxHp, attackPower: species.attack, x: 1, y, guarding: false };
+      return { id, name: species.name, hp: Math.max(1, Math.min(species.maxHp, this.options.initialHp?.[id] ?? species.maxHp)), maxHp: species.maxHp, attackPower: species.attack, x: 1, y, guarding: false, facing: 'east' };
     };
     const state: BattleState = {
       tick: 0,
       outcome: 'ongoing',
       player: ally(roster[0], 3),
       companion: roster[1] ? ally(roster[1], 2) : undefined,
-      enemy: { id: 'konstrukt', name: 'Übungskonstrukt', hp: enemyHp, maxHp: enemyHp, x: 5, y: 3, guarding: false, ...(this.options.enemyAttackPower ? { attackPower: this.options.enemyAttackPower } : {}) },
+      enemy: { id: 'konstrukt', name: 'Übungskonstrukt', hp: enemyHp, maxHp: enemyHp, x: 5, y: 3, guarding: false, facing: 'west', ...(this.options.enemyAttackPower ? { attackPower: this.options.enemyAttackPower } : {}) },
       log: ['Trainingsarena bereit. Das Konstrukt beobachtet deinen Aktionsplan.'],
     };
     if (roster.length > 2) state.additionalAllies = roster.slice(2).map((id, index) => ally(id, 4 + index));
@@ -94,7 +95,8 @@ export class BattleEngine {
       if (actor.id === 'konstrukt' || !ARKANA_SPECIES[actor.id].supported.includes(ABILITIES[action].skill)) { this.addLog('Diese Art beherrscht diese Fähigkeit nicht.'); return; }
       this.effects = castAbility(this.state, actor, action, (text) => this.addLog(text)); this.checkOutcome(); return;
     }
-    const delta = directionDelta(action);
+    if (isTurn(action)) { actor.facing = turnFacing(facingOf(actor), action); return; }
+    const delta = movementDelta(action, facingOf(actor));
     if (delta) { this.moveTo(actor, actor.x + delta.x, actor.y + delta.y); return; }
     switch (action) {
       case 'ATTACK':

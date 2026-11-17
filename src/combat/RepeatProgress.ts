@@ -1,14 +1,15 @@
 import type { RepeatGoal } from '../gameplay/WorldQuests';
-import type { CombatAction, ExecutionTrace } from './types';
+import type { CombatAction, ExecutionTrace, GridPosition } from './types';
+import { isTurn, movementDelta } from './Movement';
 
-interface Iteration { moves: { path: string; action: CombatAction }[]; blocked: boolean; effective: number }
+interface Iteration { moves: { path: string; action: CombatAction; direction: string }[]; blocked: boolean; effective: number }
 
 /** Counts observed movement, keeping separate invocations of nested loops apart. */
 export class RepeatProgress {
   private readonly loops = new Map<string, Map<number, Iteration>>();
   private readonly nested = new Map<string, Map<number, Set<number>>>();
   clear(): void { this.loops.clear(); this.nested.clear(); }
-  record(action: CombatAction, moved: boolean, trace?: ExecutionTrace, effective = moved): void {
+  record(action: CombatAction, moved: boolean, trace?: ExecutionTrace, effective = moved, displacement?: GridPosition): void {
     if (!trace) return;
     for (const [index, loop] of trace.loops.entries()) {
       const parents = trace.loops.slice(0, index).map((parent) => `${parent.path}:${parent.iteration}`).join('/');
@@ -16,8 +17,9 @@ export class RepeatProgress {
       const iterations = this.loops.get(key) ?? new Map<number, Iteration>();
       const iteration = iterations.get(loop.iteration) ?? { moves: [], blocked: false, effective: 0 };
       if (effective) iteration.effective++;
-      if (moved) iteration.moves.push({ path: trace.path, action });
-      else iteration.blocked = true;
+      const delta = displacement ?? movementDelta(action);
+      if (moved) iteration.moves.push({ path: trace.path, action, direction: delta ? `${delta.x},${delta.y}` : action });
+      else if (!isTurn(action)) iteration.blocked = true;
       iterations.set(loop.iteration, iteration); this.loops.set(key, iterations);
     }
     if (effective) for (let index = 1; index < trace.loops.length; index++) {
@@ -39,8 +41,10 @@ export class RepeatProgress {
       if (goal !== 'movement-sequence') continue;
       const sequences = new Map<string, number>();
       for (const iteration of iterations.values()) {
-        if (iteration.blocked || new Set(iteration.moves.map((move) => move.path)).size < 2 || new Set(iteration.moves.map((move) => move.action)).size < 2) continue;
-        if (!iteration.moves.some((move) => move.action === 'MOVE_RIGHT') || !iteration.moves.some((move) => move.action === 'MOVE_UP')) continue;
+        const directions = iteration.moves.map((move) => move.direction);
+        if (iteration.blocked || new Set(iteration.moves.map((move) => move.path)).size < 2
+          || !directions.some((direction) => direction === '1,0' || direction === '-1,0')
+          || !directions.some((direction) => direction === '0,1' || direction === '0,-1')) continue;
         const signature = JSON.stringify(iteration.moves);
         const count = (sequences.get(signature) ?? 0) + 1; sequences.set(signature, count);
         if (count >= 2) return true;

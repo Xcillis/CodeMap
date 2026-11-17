@@ -130,7 +130,7 @@ describe('Gebiete und unabhängige Aufgabenreihen', () => {
     const c = new Campaign(); expect(c.region).toBe('valley'); expect(c.snapshot.owned).toEqual([]); expect(c.forestUnlocked).toBe(false);
     expect(c.availableEncounters.map((e) => e.id)).toEqual(['glutling']); expect(c.interact('giver:eldren').action).toBe('meet-eldren');
     expect(c.apply('recruit-glutling')).toContain('Eldren'); c.apply('meet-eldren'); c.apply('recruit-glutling'); c.apply('recruit-glutling'); expect(c.snapshot.owned).toHaveLength(1);
-    expect(c.snapshot.owned[0].learned).toEqual(['moveRight', 'moveLeft', 'moveUp', 'moveDown']); expect(c.prepareMission('q03-wiederkehr')).toContain('Voraussetzung');
+    expect(c.snapshot.owned[0].learned).toEqual(['moveForward', 'moveBackward', 'turnLeft', 'turnRight']); expect(c.prepareMission('q03-wiederkehr')).toContain('Voraussetzung');
     win(c, 'q01-glutspur'); const s = begin(c, 'q02-basisangriff'); expect(c.snapshot.owned[0].learned).toContain('attack'); expect(c.snapshot.owned[0].learned).not.toContain('repeat');
     s.execute(QUEST_SOLUTIONS['q02-basisangriff'], true); c.finishMission('q02-basisangriff'); c.leaveMission(); expect(c.objective).toContain('Wähle');
   });

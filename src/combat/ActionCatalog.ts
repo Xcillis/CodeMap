@@ -1,8 +1,12 @@
-import type { ArkanId, CombatAction, GridPosition } from './types';
+import type { ArkanId, CombatAction } from './types';
 import { ARKANA_IDS, ARKANA_SPECIES } from '../gameplay/ArkanaCatalog';
 
 export const ACTIONS = {
-  MOVE_TOWARD: { method: 'moveForward', block: 'cm_move', label: 'zum nächsten Gegner gehen' },
+  MOVE_TOWARD: { method: 'moveTowardEnemy', block: 'cm_move_toward', label: 'zum nächsten Gegner gehen' },
+  MOVE_FORWARD: { method: 'moveForward', block: 'cm_move_forward', label: 'gehe vorwärts' },
+  MOVE_BACKWARD: { method: 'moveBackward', block: 'cm_move_backward', label: 'gehe rückwärts' },
+  TURN_LEFT: { method: 'turnLeft', block: 'cm_turn_left', label: 'drehe 90° nach links ↶' },
+  TURN_RIGHT: { method: 'turnRight', block: 'cm_turn_right', label: 'drehe 90° nach rechts ↷' },
   ATTACK: { method: 'attack', block: 'cm_attack', label: 'angreifen' },
   MOVE_RIGHT: { method: 'moveRight', block: 'cm_move_right', label: 'gehe nach rechts' },
   MOVE_LEFT: { method: 'moveLeft', block: 'cm_move_left', label: 'gehe nach links' },
@@ -26,12 +30,4 @@ export const actionMethod = (action: CombatAction, actor: ArkanId): string => ac
 export const actionLabel = (action: CombatAction, actor: ArkanId): string => action === 'ATTACK' ? ARKANA_SPECIES[actor].basicAttack.label : ACTIONS[action].label;
 export function actionForBlock(block: string): CombatAction | undefined {
   return (Object.keys(ACTIONS) as CombatAction[]).find((action) => ACTIONS[action].block === block);
-}
-export function directionDelta(action: CombatAction): GridPosition | undefined {
-  switch (action) {
-    case 'MOVE_RIGHT': return { x: 1, y: 0 };
-    case 'MOVE_LEFT': return { x: -1, y: 0 };
-    case 'MOVE_UP': return { x: 0, y: -1 };
-    case 'MOVE_DOWN': return { x: 0, y: 1 };
-  }
 }

@@ -30,7 +30,7 @@ describe('Gelernte Fachbegriffe', () => {
     loaded.completeMission('q04-musterpfad');
     const terms = learnedTerms(new Campaign(JSON.parse(JSON.stringify(loaded.snapshot))).snapshot.completed);
     expect(terms.map((term) => term.id)).toEqual(['instruction', 'sequence', 'health', 'loop', 'loop-body']);
-    expect(terms.find((term) => term.id === 'loop')?.furtherExamples?.[0].code).toContain('glutling.moveUp();');
+    expect(terms.find((term) => term.id === 'loop')?.furtherExamples?.[0].code).toContain('glutling.turnLeft();');
     loaded.leaveMission(); loaded.visitGiver('mira'); loaded.prepareMission('q12-steinrutsch'); loaded.completeMission('q12-steinrutsch'); loaded.leaveMission(); loaded.apply('travel-forest');
     loaded.visitGiver('lyra'); loaded.beginMission('q05-aufmerksam');
     expect(learnedTerms(loaded.snapshot.completed).map((term) => term.id)).not.toContain('condition');

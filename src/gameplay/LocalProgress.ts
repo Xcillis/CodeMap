@@ -1,3 +1,4 @@
+import { migrateMovementSource, migrateMovementWorkspace } from './MovementMigration';
 import { DEFAULT_PROGRAM } from '../combat/DecisionProgram';
 import { normalizeCampaign, type CampaignState } from './Campaign';
 
@@ -6,6 +7,8 @@ const BACKUP_KEY = `${STORAGE_KEY}-backup`;
 
 interface StoredProgress {
   programVersion: 3;
+  movementVersion: 2;
+  movementBackup?: { lastProgram: string; programs: Record<string, string>; blockWorkspaces: Record<string, string> };
   questCompleted: boolean;
   lastProgram: string;
   programs: Record<string, string>;
@@ -14,21 +17,26 @@ interface StoredProgress {
   campaign: CampaignState;
 }
 
-const fallbackProgress = (): StoredProgress => ({ programVersion: 3, questCompleted: false, lastProgram: DEFAULT_PROGRAM, programs: {}, blockWorkspaces: {}, editorMode: 'blocks', campaign: normalizeCampaign(undefined) });
+const fallbackProgress = (): StoredProgress => ({ programVersion: 3, movementVersion: 2, questCompleted: false, lastProgram: DEFAULT_PROGRAM, programs: {}, blockWorkspaces: {}, editorMode: 'blocks', campaign: normalizeCampaign(undefined) });
 let volatileProgress: StoredProgress | undefined;
 
 function decodeProgress(value: string | null): StoredProgress | undefined {
   if (!value) return;
   const parsed = JSON.parse(value) as Partial<StoredProgress>;
   if (!parsed || parsed.programVersion !== 3) return;
+  const old = parsed.movementVersion !== 2;
+  const lastProgram = typeof parsed.lastProgram === 'string' ? parsed.lastProgram : DEFAULT_PROGRAM;
+  const strings = (value: unknown): Record<string, string> => Object.fromEntries(Object.entries(value && typeof value === 'object' ? value : {}).filter((entry): entry is [string, string] => typeof entry[1] === 'string'));
+  const programs = strings(parsed.programs ?? (typeof parsed.lastProgram === 'string' ? { '1:moosling': parsed.lastProgram } : {}));
+  const blockWorkspaces = strings(parsed.blockWorkspaces);
   return {
-    programVersion: 3,
+    programVersion: 3, movementVersion: 2,
+    ...(old ? { movementBackup: { lastProgram, programs, blockWorkspaces } } : parsed.movementBackup ? { movementBackup: parsed.movementBackup } : {}),
     questCompleted: parsed.questCompleted === true,
-    lastProgram: typeof parsed.lastProgram === 'string' ? parsed.lastProgram : DEFAULT_PROGRAM,
-    programs: Object.fromEntries(Object.entries(parsed.programs && typeof parsed.programs === 'object' ? parsed.programs : (typeof parsed.lastProgram === 'string' ? { '1:moosling': parsed.lastProgram } : {})).filter((entry) => typeof entry[1] === 'string')),
-    blockWorkspaces: Object.fromEntries(Object.entries(parsed.blockWorkspaces && typeof parsed.blockWorkspaces === 'object' ? parsed.blockWorkspaces : {}).filter((entry) => typeof entry[1] === 'string')),
-    editorMode: parsed.editorMode === 'text' ? 'text' : 'blocks',
-    campaign: normalizeCampaign(parsed.campaign, parsed.questCompleted === true),
+    lastProgram: old ? migrateMovementSource(lastProgram) : lastProgram,
+    programs: old ? Object.fromEntries(Object.entries(programs).map(([key, source]) => [key, migrateMovementSource(source)])) : programs,
+    blockWorkspaces: old ? Object.fromEntries(Object.entries(blockWorkspaces).map(([key, source]) => [key, migrateMovementWorkspace(source)])) : blockWorkspaces,
+    editorMode: parsed.editorMode === 'text' ? 'text' : 'blocks', campaign: normalizeCampaign(parsed.campaign, parsed.questCompleted === true),
   };
 }
 export function loadProgress(): StoredProgress {
@@ -81,7 +89,7 @@ export function restoreAdventure(): AdventureChange {
 
 export function saveProgress(update: Partial<StoredProgress>): void {
   if (typeof window === 'undefined') return;
-  volatileProgress = { ...loadProgress(), ...update, programVersion: 3 };
+  volatileProgress = { ...loadProgress(), ...update, programVersion: 3, movementVersion: 2 };
   try {
     window.localStorage.setItem(STORAGE_KEY, JSON.stringify(volatileProgress));
   } catch { /* Storage may be disabled; in-memory editing still works. */ }

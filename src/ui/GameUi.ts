@@ -1,3 +1,4 @@
+import { facingOf, FACING_LABELS } from '../combat/Movement';
 import { partyMembers } from '../combat/Party';
 import { gameEvents, type DialogPayload } from '../game/events';
 import { touchInput, type TouchDirection } from '../input/TouchInput';
@@ -213,7 +214,7 @@ export class GameUi {
     const mode = parsed.nodes ? loadProgress().editorMode : 'text';
     this.setMode(mode, true);
     this.el('program-owner').textContent = `Du programmierst gerade: ${ARKANA_SPECIES[this.selectedActor].name}`;
-    this.el('program-help').textContent = `Jeder Textbefehl gehört zum ausgewählten Arkana, z. B. ${this.selectedActor}.${this.presentation?.mode === 'lesson' ? 'moveRight' : 'moveForward'}(). Höchstens zwölf ausgeführte Aktionen. Verfügbare Befehle stehen in der Bibliothek.`;
+    this.el('program-help').textContent = `Jeder Textbefehl gehört zum ausgewählten Arkana, z. B. ${this.selectedActor}.moveForward(). Höchstens 64 ausgeführte Aktionen einschließlich Drehungen. Verfügbare Befehle stehen in der Bibliothek.`;
     this.panel.dataset.programActor = this.selectedActor;
     for (const actor of Object.keys(this.sources).filter(isArkanId)) {
       this.el(`select-${actor}`).setAttribute('aria-pressed', String(actor === this.selectedActor));
@@ -326,6 +327,7 @@ export class GameUi {
       setLearningText(this.el('lesson-trial'), runes.kind === 'safeguards' ? runes.summary : `${runes.summary}. Innen bearbeitest du eine Reihe; außen wiederholst du den ganzen Reihenablauf.`);
     }
     setLearningText(this.feedback, feedback); this.el('battle-round').textContent = String(state.tick);
+    this.el('battle-orientation').textContent = partyMembers(state).map((unit) => `${unit.name}: ${FACING_LABELS[facingOf(unit)]}`).join(' · ');
     const intent = intentLabel(state); this.el('battle-intent').textContent = intent; this.el('battle-intent').hidden = !intent;
     const descriptions = [...partyMembers(state), state.enemy].filter((unit) => Boolean(unit)).flatMap((unit) => {
       if (!unit) return []; const labels = [...statusLabels(unit), ...cooldownLabels(unit)]; return labels.length ? [`${unit.name}: ${labels.join(' · ')}`] : [];
@@ -388,7 +390,7 @@ export class GameUi {
     if (!frame) return;
     const name = frame.actor === 'konstrukt' ? 'Konstrukt' : ARKANA_SPECIES[frame.actor].name;
     const loops = frame.trace?.loops.map((loop) => `Durchlauf ${loop.iteration} von ${loop.total}`).join(' · ');
-    const queries = { pathRightClear: 'Weg rechts frei', enemyAdjacent: 'Gegner direkt daneben', allyInjured: 'Verbündeter verletzt', enemyBurning: 'Gegner brennt' };
+    const queries = { pathAheadClear: 'Weg voraus frei', pathRightClear: 'Weg rechts frei', enemyAdjacent: 'Gegner direkt daneben', allyInjured: 'Verbündeter verletzt', enemyBurning: 'Gegner brennt' };
     const conditions = frame.trace?.conditions.map((condition) => `${queries[condition.condition ?? 'enemyAdjacent']}: ${condition.value ? 'ja' : 'nein'}`).join(' · ');
     trace.textContent = [name, frame.periodic ? 'Anhaltende Wirkung' : frame.actor === 'konstrukt' ? ACTIONS[frame.action].label : actionLabel(frame.action, frame.actor), loops, conditions].filter(Boolean).join(' · ');
   }

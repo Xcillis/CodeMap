@@ -4,7 +4,7 @@ import { LessonSession } from './LessonSession';
 import { ARKANA_SPECIES } from '../gameplay/ArkanaCatalog';
 
 const lesson = getLesson('q05-aufmerksam');
-const source = 'if (glutling.enemyAdjacent) { glutling.attack(); } else { glutling.moveForward(); }';
+const source = 'if (glutling.enemyAdjacent) { glutling.attack(); } else { glutling.moveTowardEnemy(); }';
 const create = () => new LessonSession(lesson, lesson.allowed);
 
 describe('Q05: eine passende Entscheidung in zwei Startsituationen', () => {
@@ -32,9 +32,9 @@ describe('Q05: eine passende Entscheidung in zwei Startsituationen', () => {
   it('lehnt bedingungslose, vertauschte, blockierte oder wirkungslose Entscheidungen ab', () => {
     for (const invalid of [
       'glutling.attack();',
-      'glutling.attack(); if (glutling.enemyAdjacent) { glutling.attack(); } else { glutling.moveForward(); }',
+      'glutling.attack(); if (glutling.enemyAdjacent) { glutling.attack(); } else { glutling.moveTowardEnemy(); }',
       'if (glutling.enemyAdjacent) {} else {} glutling.attack();',
-      'if (glutling.enemyAdjacent) { glutling.moveForward(); } else { glutling.attack(); }',
+      'if (glutling.enemyAdjacent) { glutling.moveTowardEnemy(); } else { glutling.attack(); }',
       'if (glutling.enemyAdjacent) { glutling.attack(); } else { glutling.attack(); }',
       'if (glutling.enemyAdjacent) { glutling.attack(); } else { glutling.moveUp(); }',
     ]) {
@@ -44,11 +44,11 @@ describe('Q05: eine passende Entscheidung in zwei Startsituationen', () => {
     }
   });
   it('verlangt beide Antworten derselben Verzweigung und akzeptiert passende Bewegungsvarianten', () => {
-    const split = 'if (glutling.enemyAdjacent) { glutling.attack(); } if (glutling.enemyAdjacent) {} else { glutling.moveForward(); }';
+    const split = 'if (glutling.enemyAdjacent) { glutling.attack(); } if (glutling.enemyAdjacent) {} else { glutling.moveTowardEnemy(); }';
     const session = create();
     expect(session.execute({ glutling: split }, true)).toContain('denselben falls/sonst-Block');
     expect(session.snapshot).toMatchObject({ outcome: 'incomplete', lessonTrial: { passed: 2 } });
-    session.execute({ glutling: source.replace('moveForward', 'moveRight') }, true);
+    session.execute({ glutling: source.replace('moveTowardEnemy', 'moveRight') }, true);
     expect(session.snapshot.outcome).toBe('victory');
   });
   it('bewahrt den Fallwechsel beim Formatwechsel und verwirft Erfolge bei semantischer Änderung oder Reset', () => {
@@ -57,9 +57,9 @@ describe('Q05: eine passende Entscheidung in zwei Startsituationen', () => {
     session.execute({ glutling: source.replaceAll('; ', ';\n') }); expect(session.snapshot.outcome).toBe('victory');
     session.reset(); expect(session.snapshot.lessonTrial?.passed).toBe(0);
     session.execute({ glutling: source });
-    session.execute({ glutling: source.replace('moveForward', 'moveRight') });
+    session.execute({ glutling: source.replace('moveTowardEnemy', 'moveRight') });
     expect(session.snapshot).toMatchObject({ outcome: 'ongoing', lessonTrial: { current: 1, passed: 1 } });
-    session.execute({ glutling: source.replace('moveForward', 'moveRight') }); expect(session.snapshot.outcome).toBe('victory');
+    session.execute({ glutling: source.replace('moveTowardEnemy', 'moveRight') }); expect(session.snapshot.outcome).toBe('victory');
   });
   it('beschränkt Q05 auf die neue Entscheidung und erhält den Zustand bei Syntax- und Freigabefehlern', () => {
     const session = new LessonSession(lesson, ARKANA_SPECIES.glutling.supported);
