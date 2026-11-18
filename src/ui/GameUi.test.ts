@@ -413,6 +413,24 @@ describe('Editorzustand und Arkan-Zuordnung', () => {
     type(source); click('blocks-mode'); click('text-mode'); expect(text().value).toBe(source);
     click('lesson-hint-button'); expect(document.getElementById('lesson-hint')!.textContent).toBe(lesson.hints[0]);
   });
+  it('zeigt einen lesbaren Wegweiserdialog und verwendet dieselbe Interaktion für Touch', () => {
+    const campaign = new Campaign({ version: 2, worldVersion: 1, region: 'forest', legacyForestAccess: true });
+    gameEvents.emit('interaction-hint', 'E oder Leertaste: Wegweiser lesen');
+    expect(button('interact-button').textContent).toContain('LESEN');
+    expect(button('interact-button').getAttribute('aria-label')).toBe('Wegweiser lesen');
+    const action = vi.fn(); const closed = vi.fn();
+    gameEvents.on('campaign-action', action); gameEvents.on('dialog-closed', closed);
+    gameEvents.emit('dialog-opened', campaign.interact('sign:forest-west'));
+    expect(document.getElementById('dialog')!.hidden).toBe(false);
+    expect(document.getElementById('dialog-text')!.textContent).toContain('Neria · Sonnenlichtung');
+    expect(document.getElementById('dialog-text')!.textContent).toContain('Tala · Forscherhain');
+    expect(document.activeElement?.id).toBe('dialog-close');
+    expect(button('dialog-close').textContent).toBe('Schließen');
+    click('dialog-close'); expect(closed).toHaveBeenCalledOnce(); expect(action).not.toHaveBeenCalled();
+    expect(document.getElementById('dialog')!.hidden).toBe(true);
+    gameEvents.emit('interaction-hint', 'E oder Leertaste: Waldhüterin Lyra');
+    expect(button('interact-button').textContent).toContain('REDEN');
+  });
   it('hebt Fachbegriffe im Questabschluss hervor und ersetzt sie sauber beim nächsten Dialog', () => {
     const reward = getLesson('q01-glutspur').reward;
     gameEvents.emit('dialog-opened', { speaker: 'QUEST ABGESCHLOSSEN', text: reward });

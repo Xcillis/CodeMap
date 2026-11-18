@@ -1,0 +1,16 @@
+{
+  "file": "signpost-v1.png",
+  "width": 1254,
+  "height": 1254,
+  "frame": {
+    "x": 173,
+    "y": 24,
+    "width": 908,
+    "height": 1181
+  },
+  "sha256": "0417bb2902c6ace3e69a9bc637081322cc39117e21ecdb6b294800a0080875eb",
+  "alphaMin": 0,
+  "transparentFraction": 0.6807,
+  "sourceOutput": "exec-80d3d3e9-eced-404b-b95f-8d963fdde6b7.png",
+  "processing": "Unmodified built-in image_gen output. Alpha bounds are stored as frame metadata only."
+}

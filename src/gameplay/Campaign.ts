@@ -6,6 +6,7 @@ import { availableArkanaEncounters, encounterUnlocked } from './ArkanaEncounters
 import { QUEST_GIVERS, QUEST_ROUTES, forestAccessible, giverLessons, isQuestGiverId, normalizeCompletions, requirementsMet, type QuestGiverId } from './QuestNetwork';
 import { REGIONS, isRegionId, type RegionId } from './WorldRegions';
 import { INTERIORS, isInteriorId, VILLAGE_BUILDINGS, VILLAGE_RESIDENTS, type InteriorId } from './VillagePlaces';
+import { worldSignDialog } from './WorldSigns';
 
 export interface CampaignState {
   version: 2;
@@ -233,6 +234,8 @@ export class Campaign {
     return '';
   }
   interact(target: string): CampaignDialog {
+    const sign = worldSignDialog(target, this.region, this.interior);
+    if (sign) return sign;
     if (target === 'leave-house' && this.interior) return { speaker: 'AUSGANG', text: 'Die Tür führt zurück vor dieses Haus in Auenquell.', action: 'leave-house', actionLabel: 'Haus verlassen' };
     if (target === 'village-road' && this.region === 'forest') return { speaker: 'WEG NACH AUENQUELL', text: 'Der Wald lichtet sich. Dahinter liegen der Marktplatz, das Gasthaus und die Werkstätten von Auenquell. Der Rückweg bleibt offen.', action: 'travel-village', actionLabel: 'Nach Auenquell reisen' };
     if (target.startsWith('door:') && this.region === 'village' && !this.interior) {

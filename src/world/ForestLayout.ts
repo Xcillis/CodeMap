@@ -2,6 +2,7 @@ import { REGIONS, REGION_SIZES } from '../gameplay/WorldRegions';
 import { QUEST_GIVERS } from '../gameplay/QuestNetwork';
 import { ARKANA_ENCOUNTERS } from '../gameplay/ArkanaEncounters';
 import type { Obstacle, Point } from './ValleyLayout';
+import { signsForRegion } from '../gameplay/WorldSigns';
 
 export const FOREST_SIZE = REGION_SIZES.forest;
 export const FOREST_TRAINING = { x: 1060, y: 1630 };
@@ -29,6 +30,7 @@ export function nearForestPath(point: Point, distance = 100): boolean {
   }));
 }
 const targets = [REGIONS.forest.arrival, REGIONS.forest.exit, FOREST_TRAINING,
+  ...signsForRegion('forest'),
   ...Object.values(QUEST_GIVERS).filter((giver) => giver.region === 'forest'),
   ...ARKANA_ENCOUNTERS.filter((encounter) => encounter.region === 'forest')];
 function reserved(point: Point): boolean {
@@ -66,6 +68,7 @@ export const FOREST_OBSTACLES: readonly Obstacle[] = [
   { x: 1600, y: 20, width: 3200, height: 40 }, { x: 1600, y: 2060, width: 3200, height: 40 },
   ...FOREST_TREES.map((tree) => ({ x: tree.x, y: tree.y - 8, width: 26 + tree.height * .05, height: 25 })),
   ...FOREST_PROPS.filter((prop) => prop.variant !== 'fern').map((prop) => ({ x: prop.x, y: prop.y - 9, width: prop.width * .65, height: 20 })),
+  ...signsForRegion('forest').map((sign) => ({ x: sign.x, y: sign.y - 6, width: 14, height: 12 })),
 ];
 export function forestBlocked(point: Point, radius = 14): boolean {
   return point.x < radius || point.y < radius || point.x > FOREST_SIZE.width - radius || point.y > FOREST_SIZE.height - radius

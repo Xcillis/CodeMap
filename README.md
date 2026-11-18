@@ -19,6 +19,8 @@ Der Aetherwald misst **3200 × 2080 Weltpixel** und hat damit die vierfache Flä
 
 ## Vom Wald nach Auenquell
 
+Die **Holzwegweiser im Wald** lassen sich in der Nähe mit **E**, **Leertaste** oder der Touch-Schaltfläche **LESEN** ansprechen. Die Richtungen zu Neria, Tala, Lyra und Auenquell erscheinen dann im Dialog. Die bisherigen frei schwebenden Richtungstafeln sind durch das neue Sprite ersetzt; das Lesen verändert keinen Questfortschritt. Das [Wegweiser-Asset samt Prompt](public/assets/aetheria-forest-v1/README.md#interaktive-wegweiser) wird vollständig lokal geladen.
+
 Folge dem südlichen Waldweg ganz nach Osten bis zum Reisestein **Dorf Auenquell** bei `(3020, 1700)`. Interagiere mit **E**, **Leertaste** oder der Touch-Aktion und wähle **Nach Auenquell reisen**. Das Dorf ist mit 3200 × 2080 Weltpixeln so groß wie der Wald und umfasst acht unterschiedliche Häuser, einen Marktplatz, Brunnen, Marktstand und Gärten. Ein zusätzlicher Questabschluss ist für diesen Dorfbesuch nicht erforderlich, sobald der Wald erreichbar ist.
 
 **Gasthaus, Jorins Werkstatt und Bibliothek** sind mit „Tür · Betretbar“ markiert. Gehe zur Haustür, interagiere und wähle **Haus betreten**. Jeder Innenraum hat eine eigene Karte, Einrichtung und eine ansprechbare Person. Die Tür im Süden führt wieder vor dasselbe Haus. Die übrigen Gebäude sind ausdrücklich als Privathäuser gekennzeichnet. Auf dem Marktplatz hilft Gärtnerin Pia bei der Orientierung.

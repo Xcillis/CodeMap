@@ -4,6 +4,8 @@ import { FOREST_ART, FOREST_ART_KEYS, forestImage } from '../art/ForestArt';
 import { staticLandscape } from './StaticLandscape';
 import { FOREST_CLEARINGS, FOREST_PROPS, FOREST_SIZE, FOREST_TREES } from './ForestLayout';
 import { drawForestPaths } from './ForestPaths';
+import { signsForRegion } from '../gameplay/WorldSigns';
+import { signpostImage } from '../art/SignpostArt';
 
 /** Static ground is cached in <=512px chunks; trees share atlases and use normal camera culling. */
 export function drawForest(scene: Phaser.Scene): void {
@@ -33,7 +35,14 @@ export function drawForest(scene: Phaser.Scene): void {
   }
   for (const prop of FOREST_PROPS) forestImage(scene, 'props', prop.variant, prop.x, prop.y, prop.width)?.setDepth(groundDepth(prop.y));
   for (const area of FOREST_CLEARINGS) scene.add.text(area.x, area.y - 125, area.name, { fontFamily: 'Georgia, serif', fontSize: '18px', color: '#f2e6ad', stroke: '#20382c', strokeThickness: 4 }).setOrigin(.5).setDepth(10000);
-  for (const sign of [{ x: 780, y: 1330, text: '↑ Neria · Sonnenlichtung\n→ Tala · Forscherhain' }, { x: 1820, y: 1660, text: '← Lyra · Waldsaum\nTala · Mooshain →' }]) scene.add.text(sign.x, sign.y, sign.text, { fontSize: '14px', color: '#f0dd9d', backgroundColor: '#263f31', padding: { x: 8, y: 6 } }).setOrigin(.5).setDepth(10000);
+  for (const sign of signsForRegion('forest')) {
+    const image = signpostImage(scene, sign.x, sign.y);
+    if (image) image.setDepth(groundDepth(sign.y));
+    else {
+      const fallback = scene.add.graphics().setDepth(groundDepth(sign.y));
+      fallback.fillStyle(0x78502c).fillRect(sign.x - 5, sign.y - 65, 10, 65);
+      fallback.fillStyle(0xc99452).fillRoundedRect(sign.x - 28, sign.y - 62, 56, 17, 3).fillRoundedRect(sign.x - 28, sign.y - 39, 56, 17, 3);
+    }
+  }
   scene.add.text(260, 1540, 'AETHERWALD\nBedingungen & Verzweigungen', { fontSize: '18px', color: '#f2e6ad', stroke: '#20382c', strokeThickness: 4 }).setDepth(10000);
-  scene.add.text(2890, 1600, 'Dorf Auenquell →', { fontSize: '16px', color: '#f0dd9d', backgroundColor: '#263f31', padding: { x: 8, y: 6 } }).setOrigin(.5).setDepth(10000);
 }

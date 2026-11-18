@@ -29,6 +29,8 @@ import { preloadVillageArt, registerVillageArt } from '../art/VillageArt';
 import { arrivalAfterTravel, locationKey, mapSize, mapSpawn, type MapPoint } from '../gameplay/VillagePlaces';
 import { VILLAGE_OBSTACLES, roomObstacles, villageTargets } from '../world/VillageLayout';
 import { drawInterior, drawVillage, drawVillageResidents } from '../world/VillageRenderer';
+import { signsForRegion } from '../gameplay/WorldSigns';
+import { preloadSignpost, registerSignpost } from '../art/SignpostArt';
 
 export class WorldScene extends Phaser.Scene {
   private player!: Phaser.GameObjects.Arc;
@@ -86,10 +88,11 @@ export class WorldScene extends Phaser.Scene {
   constructor() {
     super('world');
   }
-  preload(): void { preloadArt(this); preloadMotion(this); if (this.campaign.region === 'valley') { preloadValleyArt(this); preloadMountainArt(this); } else if (this.campaign.region === 'forest') preloadForestArt(this); else preloadVillageArt(this); }
+  preload(): void { preloadArt(this); preloadMotion(this); if (this.campaign.region === 'valley') { preloadValleyArt(this); preloadMountainArt(this); } else if (this.campaign.region === 'forest') { preloadForestArt(this); preloadSignpost(this); } else preloadVillageArt(this); }
 
   create(data?: { spawn?: MapPoint }): void {
     registerArtFrames(this); registerMotion(this); if (this.campaign.region === 'valley') { registerValleyArt(this); registerMountainArt(this); } else if (this.campaign.region === 'forest') registerForestArt(this); else registerVillageArt(this); this.npcVisuals.clear(); this.playerArt = undefined; this.playerFacing = 'hero-down';
+    if (this.campaign.region === 'forest') registerSignpost(this);
     this.dialogActive = false; this.overlayActive = false; this.gateBody = undefined; this.gateRocks = undefined;
     this.encounterLabels.clear(); this.arkanaVisuals.clear();
     this.interactionHint = undefined;
@@ -109,6 +112,7 @@ export class WorldScene extends Phaser.Scene {
       const people = (Object.keys(QUEST_GIVERS) as QuestGiverId[]).filter((id) => QUEST_GIVERS[id].region === this.campaign.region);
       const training = this.campaign.region === 'valley' ? { x: 1000, y: 720 } : FOREST_TRAINING;
       this.fixedTargets = [...people.map((id) => ({ id: `giver:${id}`, label: QUEST_GIVERS[id].name, x: QUEST_GIVERS[id].x, y: QUEST_GIVERS[id].y, range: 75 })),
+        ...signsForRegion(this.campaign.region).map(({ id, label, x, y, range }) => ({ id, label, x, y, range })),
         { id: 'training', label: 'Freie Trainingsarena', ...training, range: 70 },
         { id: 'travel', label: this.campaign.region === 'valley' ? 'Zum Aetherwald reisen' : 'Ins Tal zurückreisen', ...region.exit, range: 55 },
         ...(this.campaign.region === 'valley' ? [{ id: 'landslide', label: 'Runenwinde am Steinrutsch', x: 1360, y: 520, range: 65 }]

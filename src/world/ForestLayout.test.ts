@@ -3,6 +3,7 @@ import { QUEST_GIVERS } from '../gameplay/QuestNetwork';
 import { REGIONS, REGION_SIZES } from '../gameplay/WorldRegions';
 import { ARKANA_ENCOUNTERS } from '../gameplay/ArkanaEncounters';
 import { FOREST_CLEARINGS, FOREST_OBSTACLES, FOREST_PATHS, FOREST_PROPS, FOREST_SIZE, FOREST_TRAINING, FOREST_TREES, forestBlocked } from './ForestLayout';
+import { signsForRegion } from '../gameplay/WorldSigns';
 
 describe('Großer Aetherwald mit verbundenen Lichtungen', () => {
   it('ist viermal so groß wie das Akademietal und verteilt die Orte auch in die neue Fläche', () => {
@@ -21,6 +22,7 @@ describe('Großer Aetherwald mit verbundenen Lichtungen', () => {
       visited.add(id); queue.push(point);
     }
     const targets = [REGIONS.forest.arrival, REGIONS.forest.exit, FOREST_TRAINING, ...FOREST_CLEARINGS,
+      ...signsForRegion('forest').map((sign) => ({ x: sign.x, y: sign.y + 40 })),
       ...Object.values(QUEST_GIVERS).filter((giver) => giver.region === 'forest'), ...ARKANA_ENCOUNTERS.filter((encounter) => encounter.region === 'forest')];
     for (const target of targets) { expect(forestBlocked(target, 18), JSON.stringify(target)).toBe(false); expect(visited.has(key(target.x, target.y)), JSON.stringify(target)).toBe(true); }
   });

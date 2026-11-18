@@ -58,6 +58,9 @@ export class GameUi {
     gameEvents.on('interaction-hint', (text: string) => {
       const hint = this.el('interaction-hint');
       if (hint.textContent !== text) hint.textContent = text;
+      const reading = text.endsWith('Wegweiser lesen');
+      this.el('interact-button').querySelector('span')!.textContent = reading ? 'LESEN' : 'REDEN';
+      this.el('interact-button').setAttribute('aria-label', reading ? 'Wegweiser lesen' : 'Interagieren');
     });
     gameEvents.on('dialog-opened', (dialog: DialogPayload) => {
       this.pendingDialogAction = dialog.action;
