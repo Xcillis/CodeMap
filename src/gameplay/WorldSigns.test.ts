@@ -3,6 +3,8 @@ import { Campaign } from './Campaign';
 import { InteractionController } from './InteractionController';
 import { signsForRegion, worldSignDialog } from './WorldSigns';
 import { FOREST_OBSTACLES, forestBlocked } from '../world/ForestLayout';
+import { FOREST_PATH_SURFACES } from '../world/ForestPaths';
+import { SIGNPOST_ART } from '../art/SignpostArt';
 
 describe('Wegweiser lesen', () => {
   it('öffnet ortsspezifische Richtungen ohne Quests, Team oder Reisen auszulösen', () => {
@@ -29,6 +31,13 @@ describe('Wegweiser lesen', () => {
     const controller = new InteractionController(signs);
     for (const sign of signs) {
       const approach = { x: sign.x, y: sign.y + 40 };
+      // Check the whole visible sprite against the drawn ribbon, not only the pole.
+      const height = 84; const halfWidth = height * SIGNPOST_ART.frame.width / SIGNPOST_ART.frame.height / 2;
+      for (const path of FOREST_PATH_SURFACES) for (const point of path.center) {
+        const dx = Math.max(Math.abs(point.x - sign.x) - halfWidth, 0);
+        const dy = Math.max(sign.y - height - point.y, point.y - sign.y, 0);
+        expect(Math.hypot(dx, dy), sign.id).toBeGreaterThan(Math.max(point.left, point.right) * 1.15 + 12);
+      }
       expect(forestBlocked(approach, 18)).toBe(false);
       expect(controller.nearestTo(approach.x, approach.y)?.id).toBe(sign.id);
       expect(controller.nearestTo(sign.x, sign.y + sign.range + 1)).toBeUndefined();
