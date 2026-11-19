@@ -6,12 +6,14 @@ import { signsForRegion } from '../gameplay/WorldSigns';
 
 export const FOREST_SIZE = REGION_SIZES.forest;
 export const FOREST_TRAINING = { x: 1060, y: 1630 };
-export const FOREST_CLEARINGS = [
-  { ...QUEST_GIVERS.lyra, radius: 190, name: 'Waldsaum · Lyra' },
-  { x: 1480, y: 1030, radius: 200, name: 'Alte Eiche' },
-  { ...QUEST_GIVERS.neria, radius: 235, name: 'Sonnenlichtung · Neria' },
-  { ...QUEST_GIVERS.tala, radius: 210, name: 'Forscherhain · Tala' },
-  { x: 2760, y: 1730, radius: 120, name: 'Mooshain' },
+interface ForestClearing extends Point { radius: number; label?: string }
+/** NPC clearings reserve space without duplicating the person's own nameplate. */
+export const FOREST_CLEARINGS: readonly ForestClearing[] = [
+  { ...QUEST_GIVERS.lyra, radius: 190 },
+  { x: 1480, y: 1030, radius: 200, label: 'Alte Eiche' },
+  { ...QUEST_GIVERS.neria, radius: 235 },
+  { ...QUEST_GIVERS.tala, radius: 210 },
+  { x: 2760, y: 1730, radius: 120, label: 'Mooshain' },
 ];
 /** Connected walkways; the forest between them remains freely explorable. */
 export const FOREST_PATHS: readonly (readonly Point[])[] = [

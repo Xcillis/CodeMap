@@ -34,7 +34,10 @@ export function drawForest(scene: Phaser.Scene): void {
     else scene.add.ellipse(tree.x, tree.y - 55, 80, 110, 0x20543e).setDepth(groundDepth(tree.y));
   }
   for (const prop of FOREST_PROPS) forestImage(scene, 'props', prop.variant, prop.x, prop.y, prop.width)?.setDepth(groundDepth(prop.y));
-  for (const area of FOREST_CLEARINGS) scene.add.text(area.x, area.y - 125, area.name, { fontFamily: 'Georgia, serif', fontSize: '18px', color: '#f2e6ad', stroke: '#20382c', strokeThickness: 4 }).setOrigin(.5).setDepth(10000);
+  for (const area of FOREST_CLEARINGS) {
+    if (!area.label) continue;
+    scene.add.text(area.x, area.y - 125, area.label, { fontFamily: 'Georgia, serif', fontSize: '18px', color: '#f2e6ad', stroke: '#20382c', strokeThickness: 4 }).setOrigin(.5).setDepth(10000);
+  }
   for (const sign of signsForRegion('forest')) {
     const image = signpostImage(scene, sign.x, sign.y);
     if (image) image.setDepth(groundDepth(sign.y));
