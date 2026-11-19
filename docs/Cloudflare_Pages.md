@@ -48,6 +48,12 @@ Der aktuelle Build enthält ungefähr 50 MB an statischen Dateien; jede einzelne
 3. Auf einem Tablet die Touchsteuerung und LESEN-Aktion prüfen.
 4. Seite neu laden und den auf dieser Adresse gespeicherten Fortschritt kontrollieren.
 
+## GitHub-Verbindung: Fehler 8000011
+
+Wenn Cloudflare beim Anlegen des Git-Projekts `8000011` mit dem Hinweis auf eine fehlerhafte Pages-Git-Installation zurückgibt, ist ein erfolgreicher lokaler Cloudflare-Login allein noch nicht ausreichend. In **Workers & Pages → Create application → Pages → Connect to Git** die Verbindung zum GitHub-Konto **Xcillis** herstellen und **Cloudflare Workers & Pages** für das Repository **CodeMap** installieren beziehungsweise freigeben. Installation und persönliche Autorisierung sind zwei getrennte Schritte. Anschließend das Git-Projekt anlegen oder eine bereits angelegte CodeMap-Verbindung weiterverwenden.
+
+Die Freigabe erfolgt im persönlichen Cloudflare-/GitHub-Konto; hierfür keine Passwörter oder API-Schlüssel ins Repository übernehmen. Nach der Freigabe zuerst prüfen, ob `codemap-xcillis` inzwischen existiert, damit kein zweites Projekt angelegt wird. Danach Buildstatus und öffentliche Adresse überprüfen. Details: [Cloudflares Anleitung zur GitHub-Verbindung](https://developers.cloudflare.com/pages/configuration/git-integration/github-integration/).
+
 ## Offizielle Referenzen
 
 - [Pages mit GitHub verbinden](https://developers.cloudflare.com/pages/get-started/git-integration/)
