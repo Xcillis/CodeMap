@@ -6,7 +6,9 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc --noEmit && vite build",
-    "build:pages": "npm test -- --maxWorkers=2 && npm run build",
+    "build:cloudflare": "npm test -- --maxWorkers=2 && npm run build",
+    "build:pages": "npm run build:cloudflare",
+    "deploy:cloudflare": "npm exec --yes --package=wrangler@4 -- wrangler deploy",
     "preview": "vite preview",
     "test": "vitest run",
     "test:watch": "vitest"

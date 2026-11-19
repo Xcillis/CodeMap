@@ -17,9 +17,9 @@ npm run dev
 
 Der Aetherwald misst **3200 × 2080 Weltpixel** und hat damit die vierfache Fläche des Akademietals (1600 × 1040). Neue [Wald-Assets und Prompts](public/assets/aetheria-forest-v1/README.md) bilden dichte Baumgruppen, Moosfelsen, Farne, Totholz und schattigen Boden. Schmale verbundene Wege führen von Lyra am westlichen Waldsaum zu Neria auf der nordöstlichen Sonnenlichtung und Tala im südöstlichen Forscherhain. Die Erdwege besitzen zusammenhängende Flächen, gerundete Kurven und unregelmäßige Ränder mit verstreuten Steinchen. Moosling wartet nach Lyras Einführung im Mooshain. Wegweiser und beschriftete Lichtungen helfen bei der Orientierung. Bestehende Quests und Spielstände bleiben erhalten; ein Zurücksetzen ist nicht nötig.
 
-## Online mit Cloudflare Pages
+## Online mit Cloudflare
 
-Für Cloudflare Pages ist der Produktionsbuild vorbereitet: GitHub-Repository `Xcillis/CodeMap`, Branch `main`, Framework `None`, Build-Befehl **`npm run build:pages`**, Ausgabeordner **`dist`**. Der Befehl prüft alle Tests und erstellt danach den Build. Node 22 ist über `.node-version` festgelegt. Die [Einrichtungsanleitung](docs/Cloudflare_Pages.md) beschreibt GitHub-Verbindung, Vorschau und lokale Spielstände. Die Cloudflare-Verbindung muss einmalig eingerichtet sein, bevor Pushes automatisch online erscheinen.
+CodeMap nutzt den bereits mit GitHub verbundenen Cloudflare-Worker **`codemap`** für statische Dateien. `wrangler.toml` veröffentlicht den Vite-Ordner **`dist`** über Workers Static Assets; ein eigener Servercode ist dafür nicht erforderlich. In Workers Builds lautet der Deploy-Befehl **`npx wrangler deploy`**. Als Build-Befehl wird **`npm run build:cloudflare`** empfohlen: Tests, TypeScript-Prüfung und Produktionsbuild. `npm run build` bleibt als normaler Build gültig. Node 22 ist über `.node-version` festgelegt. Die [Einrichtungsanleitung](docs/Cloudflare.md) erklärt automatische Updates, lokale Veröffentlichung und getrennte Spielstände. Der frühere Pages-Befehl `build:pages` bleibt ein Alias für den geprüften Build.
 
 ## Vom Wald nach Auenquell
 
