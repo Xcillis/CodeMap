@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { Campaign } from './Campaign';
-import { QUEST_SERIES, giverProgress } from './QuestProgress';
+import { QUEST_SERIES, giverHasAvailableQuest, giverProgress } from './QuestProgress';
 import { QUEST_ROUTES } from './QuestNetwork';
 import { LESSON_IDS, type LessonId } from './WorldQuests';
 import { instanceId } from './ArkanaCatalog';
@@ -42,5 +42,45 @@ describe('Questreihen und tatsächlicher Fortschritt', () => {
     expect(giverProgress(completed, 'tala').next).toBeUndefined(); expect(giverProgress(completed, 'tala').pending).toBeUndefined();
     const missing = new Campaign({ ...saved().snapshot, completed: early.slice(0, -1), owned: [{ speciesId: 'glutling' }] });
     expect(giverProgress(missing, 'tala').next).toBeUndefined(); expect(missing.missionError('q07-moosling')).toContain('Finde zuerst Moosling');
+  });
+});
+
+describe('Questmarker in der Spielwelt', () => {
+  it('zeigt den Einstieg bei Eldren und erst nach Glutlings Aufnahme neue Lernquests', () => {
+    const campaign = new Campaign();
+    expect(giverHasAvailableQuest(campaign, 'eldren')).toBe(true);
+    expect(giverHasAvailableQuest(campaign, 'brann')).toBe(false);
+    campaign.apply('meet-eldren');
+    expect(giverHasAvailableQuest(campaign, 'eldren')).toBe(false);
+    campaign.apply('recruit-glutling');
+    expect(giverHasAvailableQuest(campaign, 'eldren')).toBe(true);
+    expect(giverHasAvailableQuest(campaign, 'brann')).toBe(false);
+    expect(campaign.snapshot.discovered).toEqual([]);
+  });
+
+  it('behält den Marker bei einer freigeschalteten Folgequest und ignoriert bloße Wiederholungen', () => {
+    const first = saved(early.slice(0, 5));
+    expect(giverHasAvailableQuest(first, 'lyra')).toBe(true);
+    const after = saved([...early, 'q06-waechter']);
+    expect(giverHasAvailableQuest(after, 'lyra')).toBe(false);
+    after.visitGiver('lyra');
+    expect(after.lessonOffer('q06-waechter').action).toBeTruthy();
+    expect(giverHasAvailableQuest(after, 'lyra')).toBe(false);
+    const unlocked = saved([...after.snapshot.completed, 'q13-lichtpfad', 'q21-solangeweg']);
+    expect(giverHasAvailableQuest(unlocked, 'lyra')).toBe(true);
+  });
+
+  it('markiert nach vollständigem Abschluss keinen Questgeber und verändert den Spielstand nicht', () => {
+    const campaign = saved(LESSON_IDS); const before = campaign.snapshot;
+    for (const giver of ['lyra', 'neria', 'tala'] as const) expect(giverHasAvailableQuest(campaign, giver)).toBe(false);
+    expect(campaign.snapshot).toEqual(before);
+  });
+
+  it('zeigt keine Angebote aus einem anderen Gebiet', () => {
+    const campaign = saved();
+    expect(giverHasAvailableQuest(campaign, 'eldren')).toBe(false);
+    expect(giverHasAvailableQuest(campaign, 'tala')).toBe(true);
+    const village = new Campaign({ ...campaign.snapshot, region: 'village' });
+    expect(giverHasAvailableQuest(village, 'tala')).toBe(false);
   });
 });

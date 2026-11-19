@@ -10,7 +10,8 @@ import type { MissionId } from '../combat/BattleSession';
 import { touchInput } from '../input/TouchInput';
 import { isArkanId } from '../gameplay/ArkanaCatalog';
 import type { ArkanId } from '../combat/types';
-import { QUEST_GIVERS, giverLessons, isQuestGiverId, type QuestGiverId } from '../gameplay/QuestNetwork';
+import { QUEST_GIVERS, isQuestGiverId, type QuestGiverId } from '../gameplay/QuestNetwork';
+import { giverHasAvailableQuest } from '../gameplay/QuestProgress';
 import { REGIONS, FOREST_VILLAGE_EXIT, VALLEY_PASS } from '../gameplay/WorldRegions';
 import { VALLEY_OBSTACLES, valleyBlocked } from '../world/ValleyLayout';
 import { drawValley } from '../world/ValleyRenderer';
@@ -41,7 +42,7 @@ export class WorldScene extends Phaser.Scene {
   private readonly campaign = new Campaign(loadProgress().campaign);
   private readonly encounterLabels = new Map<string, Phaser.GameObjects.Text>();
   private readonly arkanaVisuals = new Map<ArkanId, readonly Phaser.GameObjects.GameObject[]>();
-  private readonly npcVisuals = new Map<QuestGiverId, { root: Phaser.GameObjects.Container; art?: Phaser.GameObjects.Image | Phaser.GameObjects.Sprite; label: Phaser.GameObjects.Text; patrol: NpcPatrol; facing: MotionDirection; directional: boolean }>();
+  private readonly npcVisuals = new Map<QuestGiverId, { root: Phaser.GameObjects.Container; art?: Phaser.GameObjects.Image | Phaser.GameObjects.Sprite; label: Phaser.GameObjects.Text; questMarker: Phaser.GameObjects.Text; patrol: NpcPatrol; facing: MotionDirection; directional: boolean }>();
   private fixedTargets: InteractionTarget[] = [];
   private gateBody?: Phaser.GameObjects.Rectangle;
   private gateRocks?: Phaser.GameObjects.Container;
@@ -190,10 +191,7 @@ export class WorldScene extends Phaser.Scene {
     }
     for (const encounter of encounters) if (!this.arkanaVisuals.has(encounter.id)) this.createWorldEncounter(encounter.id, encounter.name, encounter.x, encounter.y, encounter.color);
     this.interactionController.setTargets([...this.fixedTargets, ...encounters.map((encounter) => ({ id: encounter.id, label: `${encounter.name} begegnen`, x: encounter.x, y: encounter.y, range: 70 }))]);
-    for (const id of Object.keys(QUEST_GIVERS) as QuestGiverId[]) {
-      const quests = giverLessons(id); const available = state.introduced && this.campaign.has('glutling') ? quests.filter((quest) => this.campaign.questReady(quest) && !state.completed.includes(quest)).length : 0;
-      this.encounterLabels.get(`giver:${id}`)?.setText(`${QUEST_GIVERS[id].name}\n${available ? `! ${available} Aufgabe(n) bereit` : quests.every((quest) => state.completed.includes(quest)) ? '✓ Aufgaben abgeschlossen' : 'Aufgaben & Folgequests'}`);
-    }
+    for (const [id, visual] of this.npcVisuals) visual.questMarker.setVisible(giverHasAvailableQuest(this.campaign, id));
     if (this.gateBody?.body) (this.gateBody.body as Phaser.Physics.Arcade.StaticBody).enable = !this.campaign.forestUnlocked;
     this.gateRocks?.setVisible(!this.campaign.forestUnlocked);
     if (this.campaign.region === 'valley') this.encounterLabels.get('landslide')?.setText(this.campaign.forestUnlocked ? '✓ Steinrutsch geräumt · Ostpass frei' : '! Steinrutsch · Runenwinde');
@@ -271,8 +269,8 @@ export class WorldScene extends Phaser.Scene {
       root.add(this.add.triangle(0, -15, -14, 11, 14, 11, 0, -19, 0x40245f));
     }
     const label = this.add.text(x, y - 65, name, { fontFamily: 'Georgia, serif', fontSize: '16px', color: '#fff6d8', stroke: '#26352c', strokeThickness: 4, align: 'center' }).setOrigin(.5).setDepth(10000);
-    this.npcVisuals.set(id, { root, art, label, patrol: new NpcPatrol({ x, y }, NPC_BEHAVIORS[id]), facing: 'down', directional: Boolean(directional) });
-    this.encounterLabels.set(`giver:${id}`, label);
+    const questMarker = this.add.text(x, y - 106, '!', { fontFamily: 'Arial, sans-serif', fontSize: '38px', fontStyle: 'bold', color: '#ffdb62', stroke: '#20332d', strokeThickness: 6, shadow: { offsetX: 0, offsetY: 2, color: '#000000', blur: 3, fill: true } }).setOrigin(.5).setDepth(10001).setVisible(false);
+    this.npcVisuals.set(id, { root, art, label, questMarker, patrol: new NpcPatrol({ x, y }, NPC_BEHAVIORS[id]), facing: 'down', directional: Boolean(directional) });
   }
 
   private updateNpcs(delta: number): void {
@@ -283,6 +281,7 @@ export class WorldScene extends Phaser.Scene {
         ? !valleyBlocked(point, this.campaign.forestUnlocked, 18)
         : !forestBlocked(point, 18));
       visual.root.setPosition(next.x, next.y).setDepth(groundDepth(next.y + 19)); visual.label.setPosition(next.x, next.y - 65);
+      visual.questMarker.setPosition(next.x, next.y - 106);
       this.interactionController.moveTarget(`giver:${id}`, next.x, next.y);
       if (visual.art instanceof Phaser.GameObjects.Sprite) {
         visual.facing = motionDirection(next.dx, next.dy, visual.facing);

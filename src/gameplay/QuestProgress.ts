@@ -1,5 +1,5 @@
 import type { Campaign } from './Campaign';
-import { giverLessons, type QuestGiverId } from './QuestNetwork';
+import { QUEST_GIVERS, giverLessons, type QuestGiverId } from './QuestNetwork';
 import type { LessonId } from './WorldQuests';
 
 export interface QuestStage { readonly title: string; readonly quests: readonly LessonId[]; readonly note?: string }
@@ -43,4 +43,13 @@ export function giverProgress(campaign: Campaign, giver: QuestGiverId): { comple
   const ordered = QUEST_SERIES.filter((series) => series.giver === giver).flatMap((series) => series.stages.flatMap((stage) => stage.quests));
   const ready = ordered.filter((id) => !state.completed.includes(id) && Boolean(campaign.lessonOffer(id).action));
   return { completed: giverLessons(giver).filter((id) => state.completed.includes(id)).length, total: ordered.length, ready, next: ready[0], pending: ordered.find((id) => !state.completed.includes(id)) };
+}
+
+/** World hints precede discovery at the giver; replays never count as a new offer. */
+export function giverHasAvailableQuest(campaign: Campaign, giver: QuestGiverId): boolean {
+  const state = campaign.snapshot;
+  if (state.interior || QUEST_GIVERS[giver].region !== state.region) return false;
+  if (!state.introduced) return giver === 'eldren';
+  return campaign.has('glutling') && giverLessons(giver).some((id) =>
+    !state.completed.includes(id) && campaign.questReady(id));
 }
