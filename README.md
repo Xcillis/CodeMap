@@ -19,6 +19,8 @@ Der Aetherwald misst **3200 × 2080 Weltpixel** und hat damit die vierfache Flä
 
 ## Online mit Cloudflare
 
+**Online spielen:** [CodeMap – Die Chroniken von Aetheria](https://codemap.ec-noske.workers.dev/)
+
 CodeMap nutzt den bereits mit GitHub verbundenen Cloudflare-Worker **`codemap`** für statische Dateien. `wrangler.toml` veröffentlicht den Vite-Ordner **`dist`** über Workers Static Assets; ein eigener Servercode ist dafür nicht erforderlich. In Workers Builds lautet der Deploy-Befehl **`npx wrangler deploy`**. Als Build-Befehl wird **`npm run build:cloudflare`** empfohlen: Tests, TypeScript-Prüfung und Produktionsbuild. `npm run build` bleibt als normaler Build gültig. Node 22 ist über `.node-version` festgelegt. Die [Einrichtungsanleitung](docs/Cloudflare.md) erklärt automatische Updates, lokale Veröffentlichung und getrennte Spielstände. Der frühere Pages-Befehl `build:pages` bleibt ein Alias für den geprüften Build.
 
 ## Vom Wald nach Auenquell

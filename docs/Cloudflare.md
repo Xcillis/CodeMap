@@ -2,6 +2,8 @@
 
 Das bestehende Cloudflare-Projekt **codemap** ist als Worker mit dem GitHub-Repository **Xcillis/CodeMap** verbunden. Es veröffentlicht ausschließlich den statischen Vite-Build aus `dist/`. Phaser, Blockly, Grafiken und Medien laufen weiterhin vollständig im Browser. Ein Backend, Worker-Skript mit eigener Spiellogik oder eine Datenbank wird nicht eingeführt.
 
+Die veröffentlichte Spieladresse lautet **https://codemap.ec-noske.workers.dev/**. Die Einstiegsseite, JavaScript, CSS, Held-/Arkana-Grafiken, Wegweiser, Waldboden und Blockly-Medien wurden dort nach dem Upload erfolgreich per HTTP abgerufen. Der Inhalt der HTML-Seite entsprach dem lokalen Produktionsbuild; `Cache-Control: no-cache` war aktiv. Eine visuelle Prüfung im laufenden Browser ist damit nicht ersetzt.
+
 ## Konfiguration
 
 ```toml
