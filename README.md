@@ -17,6 +17,10 @@ npm run dev
 
 Der Aetherwald misst **3200 × 2080 Weltpixel** und hat damit die vierfache Fläche des Akademietals (1600 × 1040). Neue [Wald-Assets und Prompts](public/assets/aetheria-forest-v1/README.md) bilden dichte Baumgruppen, Moosfelsen, Farne, Totholz und schattigen Boden. Schmale verbundene Wege führen von Lyra am westlichen Waldsaum zu Neria auf der nordöstlichen Sonnenlichtung und Tala im südöstlichen Forscherhain. Die Erdwege besitzen zusammenhängende Flächen, gerundete Kurven und unregelmäßige Ränder mit verstreuten Steinchen. Moosling wartet nach Lyras Einführung im Mooshain. Wegweiser und beschriftete Lichtungen helfen bei der Orientierung. Bestehende Quests und Spielstände bleiben erhalten; ein Zurücksetzen ist nicht nötig.
 
+## Online mit Cloudflare Pages
+
+Für Cloudflare Pages ist der Produktionsbuild vorbereitet: GitHub-Repository `Xcillis/CodeMap`, Branch `main`, Framework `None`, Build-Befehl **`npm run build:pages`**, Ausgabeordner **`dist`**. Der Befehl prüft alle Tests und erstellt danach den Build. Node 22 ist über `.node-version` festgelegt. Die [Einrichtungsanleitung](docs/Cloudflare_Pages.md) beschreibt GitHub-Verbindung, Vorschau und lokale Spielstände. Die Cloudflare-Verbindung muss einmalig eingerichtet sein, bevor Pushes automatisch online erscheinen.
+
 ## Vom Wald nach Auenquell
 
 Die **Holzwegweiser im Wald** lassen sich in der Nähe mit **E**, **Leertaste** oder der Touch-Schaltfläche **LESEN** ansprechen. Die Richtungen zu Neria, Tala, Lyra und Auenquell erscheinen dann im Dialog. Die bisherigen frei schwebenden Richtungstafeln sind durch das neue Sprite ersetzt; das Lesen verändert keinen Questfortschritt. Das [Wegweiser-Asset samt Prompt](public/assets/aetheria-forest-v1/README.md#interaktive-wegweiser) wird vollständig lokal geladen.
